@@ -186,7 +186,7 @@ contract GameFactory is Ownable {
     /**
      * Checks if the address has some code, if it has, returns TRUE
      */
-    function isAliveContract(address addr) internal returns (bool) {
+    function isAliveContract(address addr) internal view returns (bool) {
         uint256 size;
         assembly {
             size := extcodesize(addr)
