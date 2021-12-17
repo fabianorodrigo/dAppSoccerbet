@@ -1,6 +1,7 @@
 # dAppSoccerbet
 
-Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores.
+Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated GAMBLER. The ADMIN is the responsible for manage the system, registry the games able to gambling, open and close the game for betting, input the scores after end of these games etc.
+The GAMBLER buy tokens using Ether and uses these tokens to make guess about score of one or more games registred by the ADMIN. After a game is finished, the ADMIN registry the final score and the prize is splitted among those GAMBLERS whose bets matched the final score.
 
 This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
 
@@ -10,10 +11,21 @@ The branch 'main' will always keep the latest stable version that is the greater
 
 In this version the gamblers buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
 
-This version is composed by an user interface built in Angular and the following smart contracts:
+### UI Angular
 
-BetToken: It's a ERC20 token implementation. A token is minted when a Ether or fraction is received by the contract. The bettings are made using BetToken
+User interface built in Angular where gamblers buy tokens, make their toss and withdraw their prize in Ether.
+
+### Contracts
+
+BetToken: It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken.
+GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN.
+Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
 BetTokenFaucet: It's a faucet of ERC20BetToken
+
+### Structs
+
+Bet: One score tossed by a gambler
+Score: A score composed by number of goals scored by house teams and number of goals scored by visitor team
 
 # TODO
 
