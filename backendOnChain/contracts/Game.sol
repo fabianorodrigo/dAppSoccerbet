@@ -81,12 +81,55 @@ contract Game is Ownable {
     }
 
     /**
+     * Returns TRUE if the game is open for betting
+     */
+    function isOpen() public view returns (bool) {
+        return _open;
+    }
+
+    /**
      * Returns TRUE if the game was already finalized
      */
-    function getFinalized() public view returns (bool) {
+    function isFinalized() public view returns (bool) {
         return _finalized;
     }
 
+    /**
+     * Returns name of house team
+     */
+    function getHouseTeam() public view returns (string memory houseTeam) {
+        return _houseTeam;
+    }
+
+    /**
+     * Returns name of visitor team
+     */
+    function getVisitorTeam() public view returns (string memory visitorTeam) {
+        return _visitorTeam;
+    }
+
+    /**
+     * Returns name of datetime of the game
+     */
+    function getDateTimeGame() public view returns (uint256 dateTime) {
+        return _datetimeGame;
+    }
+
+    /**
+     * Returns the final score of the game
+     */
+    function getFinalScore() public view returns (Score memory finalScore) {
+        return _finalScore;
+    }
+
+    /**
+     * If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
+     */
     function destroyContract() public onlyOwner {
         selfdestruct(payable(this.owner()));
     }

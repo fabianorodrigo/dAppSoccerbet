@@ -78,7 +78,7 @@ contract GameFactory is Ownable {
         // get the reference to the Game of the index
         Game g = _gamesClosed[closeGameIndex];
         // it can't be already finalized
-        require(g.getFinalized() == false, "Game already finalized");
+        require(g.isFinalized() == false, "Game already finalized");
         // set it's "open" attribute
         g.openForBetting();
         // removes it from closed list
@@ -163,6 +163,14 @@ contract GameFactory is Ownable {
         g.destroyContract();
     }
 
+    /**
+     * If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
+     */
     function destroyContract() public onlyOwner {
         // since the owner of Games contracts is this contract, it's necessary to destroy all of them before destroy the Factory
         for (uint256 i = 0; i < _gamesFinished.length; i++) {
