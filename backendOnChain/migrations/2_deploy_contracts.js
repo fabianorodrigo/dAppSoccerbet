@@ -1,7 +1,11 @@
 const SBToken = artifacts.require("BetToken");
 
 module.exports = async function (deployer, network, accounts) {
-  if (network === "ganache" || network === "development") {
+  if (
+    network === "ganache" ||
+    network === "development" ||
+    network === "test"
+  ) {
     // Creation contract transaction is gonna be sent by 7º Ganache account
     const owner = accounts[6];
     //const web3Accounts = await web3.eth.getAccounts();

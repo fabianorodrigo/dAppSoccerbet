@@ -4,16 +4,23 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./BetToken.sol";
 import "./Game.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract GameFactory is Ownable {
     // BetToken contract address
     address private _betTokenContractAddress;
-    // All games open for betting
-    Game[] private _gamesOpen;
-    // All games closed for betting
-    Game[] private _gamesClosed;
-    // All games finished
-    Game[] private _gamesFinished;
+    // All games registered
+    Game[] private _games;
+
+    /**
+     * Event triggered when a new game is created
+     */
+    event GameCreated(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
 
     constructor(address betTokenContractAddress_) Ownable() {
         _betTokenContractAddress = betTokenContractAddress_;
@@ -29,7 +36,7 @@ contract GameFactory is Ownable {
         string memory house_,
         string memory visitor_,
         uint256 datetimeGame_
-    ) public onlyOwner returns (Game) {
+    ) public onlyOwner {
         // a game starts closed for betting
         Game g = new Game(
             house_,
@@ -37,129 +44,95 @@ contract GameFactory is Ownable {
             datetimeGame_,
             _betTokenContractAddress
         );
-        _gamesClosed.push(g);
-        return _gamesClosed[_gamesClosed.length - 1];
+        _games.push(g);
+        emit GameCreated(
+            address(_games[_games.length - 1]),
+            _games[_games.length - 1].getHouseTeam(),
+            _games[_games.length - 1].getVisitorTeam(),
+            _games[_games.length - 1].getDateTimeGame()
+        );
     }
 
     /**
-     * Return all games open for betting
+     * Return all games
      */
-    function listOpenGames() public view returns (Game[] memory openGames) {
-        return _gamesOpen;
-    }
-
-    /**
-     * Return all games closed for betting
-     */
-    function listClosedGames() public view returns (Game[] memory closedGames) {
-        return _gamesClosed;
-    }
-
-    /**
-     * Return all games finished
-     */
-    function listFinishedGames()
-        public
-        view
-        returns (Game[] memory finishedGames)
-    {
-        return _gamesFinished;
+    function listGames() public view returns (Game[] memory games) {
+        return _games;
     }
 
     /**
      * Open a specific game for bettings
-     * @param closeGameIndex the index of the game to be opened in the closed games array
+     * @param gameIndex the index of the game to be opened in the games array
      */
-    function openGameForBetting(uint256 closeGameIndex) public onlyOwner {
+    function openGameForBetting(uint256 gameIndex) public onlyOwner {
         require(
-            closeGameIndex > _gamesClosed.length,
-            "Game not found in the closed games list"
+            gameIndex < _games.length,
+            string(
+                bytes.concat(
+                    bytes("Game not found in the game list of length: "),
+                    bytes(Strings.toString(_games.length))
+                )
+            )
         );
         // get the reference to the Game of the index
-        Game g = _gamesClosed[closeGameIndex];
-        // it can't be already finalized
-        require(g.isFinalized() == false, "Game already finalized");
+        Game g = _games[gameIndex];
         // set it's "open" attribute
         g.openForBetting();
-        // removes it from closed list
-        delete _gamesClosed[closeGameIndex];
-        // push it in the opened list
-        _gamesOpen.push(g);
     }
 
     /**
      * Close a specific game for bettings
      *
-     * @param openGameIndex the index of the game to be closed in the opened games array
+     * @param gameIndex the index of the game to be closed in the games array
      */
-    function closeGameForBetting(uint256 openGameIndex) public onlyOwner {
-        require(
-            openGameIndex > _gamesOpen.length,
-            "Game not found in the opened games list"
-        );
+    function closeGameForBetting(uint256 gameIndex) public onlyOwner {
+        require(gameIndex < _games.length, "Game not found in the game list");
         // get the reference to the Game of the index
-        Game g = _gamesOpen[openGameIndex];
-        // set it's "open" attribute
+        Game g = _games[gameIndex];
         g.closeForBetting();
-        // removes it from opened list
-        delete _gamesOpen[openGameIndex];
-        // push it in the closed list
-        _gamesClosed.push(g);
     }
 
     /**
-     * Finishes the game registering the final score
+     * Finalizes the game registering the final score
      *
-     * @param closedGameIndex Index of the game to be edited in the _gamesClosed list
+     * @param gameIndex Index of the game to be finalized in the game list
      * @param finalScore_ Data of the final score of the match
      */
-    function finishGame(uint256 closedGameIndex, Score memory finalScore_)
+    function finalizeGame(uint256 gameIndex, Score memory finalScore_)
         public
         onlyOwner
     {
-        require(
-            closedGameIndex > _gamesClosed.length,
-            "Game not found in the closed games list"
-        );
+        require(gameIndex < _games.length, "Game not found in the game list");
         // get the reference to the Game of the index
-        Game g = _gamesClosed[closedGameIndex];
-        g.finishGame(finalScore_);
-        //removes the game from closed for betting list
-        delete _gamesClosed[closedGameIndex];
-        // pusht it to the finished list
-        _gamesFinished.push(g);
+        Game g = _games[gameIndex];
+        // set it's "open" attribute
+        g.finalizeGame(finalScore_);
     }
 
     /**
-     * Alllows edit the score of a finished game just in case something was wrong
-     * @param finishedGameIndex Index of the game to be edited in the _gamesFinished list
+     * Alllows edit the score of a finalized game just in case something was wrong
+     * @param gameIndex Index of the game to be edited in the _games list
      * @param finalScore_ Data of the final score of the match
      */
-    function editFinishedGameScore(
-        uint256 finishedGameIndex,
-        Score memory finalScore_
-    ) public onlyOwner {
-        require(
-            finishedGameIndex > _gamesFinished.length,
-            "Game not found in the finished games list"
-        );
+    function editFinalizedGameScore(uint256 gameIndex, Score memory finalScore_)
+        public
+        onlyOwner
+    {
+        require(gameIndex < _games.length, "Game not found in the game list");
         // get the reference to the Game of the index
-        Game g = _gamesFinished[finishedGameIndex];
-        g.editFinishedGameScore(finalScore_);
+        Game g = _games[gameIndex];
+        g.editFinalizedGameScore(finalScore_);
     }
 
     /**
-     * Destroy a specific Game contract if it's been finished already
+     * Destroy a specific Game contract if it's been finalized already
      *
-     * @param finishedGameIndex Index of the game to be edited in the _gamesFinished list
+     * @param gameIndex Index of the game to be edited in the _games list
      */
-    function destroyGameContract(uint256 finishedGameIndex) public onlyOwner {
-        require(
-            finishedGameIndex > _gamesFinished.length,
-            "Game not found in the finished games list"
-        );
+    function destroyGameContract(uint256 gameIndex) public onlyOwner {
+        require(gameIndex < _games.length, "Game not found in the game list");
         // get the reference to the Game of the index
-        Game g = _gamesFinished[finishedGameIndex];
+        Game g = _games[gameIndex];
         g.destroyContract();
     }
 
@@ -173,19 +146,9 @@ contract GameFactory is Ownable {
      */
     function destroyContract() public onlyOwner {
         // since the owner of Games contracts is this contract, it's necessary to destroy all of them before destroy the Factory
-        for (uint256 i = 0; i < _gamesFinished.length; i++) {
-            if (isAliveContract(address(_gamesFinished[i]))) {
-                _gamesFinished[i].destroyContract();
-            }
-        }
-        for (uint256 i = 0; i < _gamesClosed.length; i++) {
-            if (isAliveContract(address(_gamesClosed[i]))) {
-                _gamesClosed[i].destroyContract();
-            }
-        }
-        for (uint256 i = 0; i < _gamesOpen.length; i++) {
-            if (isAliveContract(address(_gamesOpen[i]))) {
-                _gamesOpen[i].destroyContract();
+        for (uint256 i = 0; i < _games.length; i++) {
+            if (isAliveContract(address(_games[i]))) {
+                _games[i].destroyContract();
             }
         }
         selfdestruct(payable(this.owner()));

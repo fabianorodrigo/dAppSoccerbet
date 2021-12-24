@@ -19,8 +19,47 @@ contract Game is Ownable {
     Bet[] private _bets;
     //real final score
     Score private _finalScore;
-    //When TRUE, the game is already finished
+    //When TRUE, the game is already finalized
     bool private _finalized;
+
+    /**
+     * Event triggered when a game is opened for betting
+     */
+    event GameOpened(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
+    /**
+     * Event triggered when a game is closed for betting
+     */
+    event GameClosed(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
+    /**
+     * Event triggered when a game is finalized
+     */
+    event GameFinalized(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame,
+        Score score
+    );
+    /**
+     * Event triggered when a game has the final score updated
+     */
+    event GameFinalScoreUpdated(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame,
+        Score score
+    );
 
     constructor(
         string memory house_,
@@ -41,7 +80,9 @@ contract Game is Ownable {
      */
     function openForBetting() public onlyOwner {
         require(_open == false, "The game is not closed");
+        require(_finalized == false, "Game has been already finalized");
         _open = true;
+        emit GameOpened(address(this), _houseTeam, _visitorTeam, _datetimeGame);
     }
 
     /**
@@ -49,35 +90,51 @@ contract Game is Ownable {
      */
     function closeForBetting() public onlyOwner {
         require(_open, "The game is not open");
+        require(_finalized == false, "Game has been already finalized");
         _open = false;
+        emit GameClosed(address(this), _houseTeam, _visitorTeam, _datetimeGame);
     }
 
     /**
-     * Finishes the game registering the final score
+     * Finalize the game registering the final score
      * @param finalScore_ Data of the final score of the match
      */
-    function finishGame(Score memory finalScore_) public onlyOwner {
+    function finalizeGame(Score memory finalScore_) public onlyOwner {
         require(_finalized == false, "The game has been already finalized");
         require(
             _open == false,
             "The game is still open for bettings, close it first"
         );
-        // register the final score and finishes the game
+        // register the final score and finalizes the game
         _finalScore = finalScore_;
         _finalized = true;
+        emit GameFinalized(
+            address(this),
+            _houseTeam,
+            _visitorTeam,
+            _datetimeGame,
+            _finalScore
+        );
     }
 
     /**
-     * Alllows edit the score of a finished game just in case something was wrong
+     * Alllows edit the score of a finalized game just in case something was wrong
      * @param finalScore_ Data of the final score of the match
      */
-    function editFinishedGameScore(Score memory finalScore_) public onlyOwner {
+    function editFinalizedGameScore(Score memory finalScore_) public onlyOwner {
         require(
             _finalized,
-            "The game hasn't been finalized yet. Call finishGame function"
+            "The game hasn't been finalized yet. Call finalizeGame function"
         );
-        // register the final score and finishes the game
+        // register the final score and finalizes the game
         _finalScore = finalScore_;
+        emit GameFinalScoreUpdated(
+            address(this),
+            _houseTeam,
+            _visitorTeam,
+            _datetimeGame,
+            _finalScore
+        );
     }
 
     /**

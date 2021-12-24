@@ -1,7 +1,7 @@
 # dAppSoccerbet
 
 Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated GAMBLER. The ADMIN is the responsible for manage the system, registry the games able to gambling, open and close the game for betting, input the scores after end of these games etc.
-The GAMBLER buy tokens using Ether and uses these tokens to make guess about score of one or more games registred by the ADMIN. After a game is finished, the ADMIN registry the final score and the prize is splitted among those GAMBLERS whose bets matched the final score.
+The GAMBLER buy tokens using Ether and uses these tokens to make guess about score of one or more games registred by the ADMIN. After a game is finalized, the ADMIN registry the final score and the prize is splitted among those GAMBLERS whose bets matched the final score.
 
 This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
 
