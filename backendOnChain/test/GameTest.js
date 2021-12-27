@@ -182,8 +182,8 @@ contract("Game", (accounts) => {
     expect(await gameContract.open()).to.be.false;
     expect(await gameContract.finalized()).to.be.true;
     const finalScore = await gameContract.finalScore();
-    expect(finalScore.house).to.be.bignumber.equal(new BN(newScore.house));
-    expect(finalScore.visitor).to.be.bignumber.equal(new BN(newScore.visitor));
+    expect(finalScore.house).to.be.bignumber.equal(newScore.house);
+    expect(finalScore.visitor).to.be.bignumber.equal(newScore.visitor);
     expectEvent(receiptEditFinalScore, "GameFinalScoreUpdated", {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",

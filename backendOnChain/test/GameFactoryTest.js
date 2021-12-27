@@ -27,6 +27,18 @@ contract("GameFactory", (accounts) => {
       from: owner,
     });
   });
+  afterEach(async function () {
+    const games = await gameFactoryContract.listGames();
+    //since the owner of the games is the same owner of GameFactory,
+    //not the GameFactory itself, its destroyContract function has
+    //to be called by the owner
+    for (const gAddress of games) {
+      const game = await Game.at(gAddress);
+      game.destroyContract({from: owner});
+    }
+    await gameFactoryContract.destroyContract({from: owner});
+    await erc20BetToken.destroyContract({from: owner});
+  });
 
   /**
    * NEWGAME
@@ -64,6 +76,37 @@ contract("GameFactory", (accounts) => {
   /**
    * DESTROYCONTRACT
    */
-  it(`Should revert if someone different from owner try destroy contract`, async () => {});
-  it(`Should revert if sending Ether to the contract`, async () => {});
+  it(`Should revert if someone different from owner try destroy contract`, async () => {
+    expectRevert(
+      gameFactoryContract.destroyContract({from: gambler}),
+      "Ownable: caller is not the owner"
+    );
+  });
+  it(`Should revert if sending Ether to the contract`, async () => {
+    const weiAmount = web3.utils.toWei(new BN(1, "ether"));
+
+    /**
+     * tentar manda ether de outra forma (via CALL???): https://solidity-by-example.org/sending-ether/
+     * function sendViaCall(address payable _to) public payable {
+     *   // Call returns a boolean value indicating success or failure.
+     *   // This is the current recommended method to use.
+     *   (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+     *   require(sent, "Failed to send Ether");
+     * }
+     *
+     *
+     */
+    expectRevert.unspecified(
+      gameFactoryContract.sendTransaction({
+        from: gambler,
+        value: weiAmount,
+      })
+    );
+
+    console.log(
+      "====== BALANCE",
+      await web3.eth.getBalance(gameFactoryContract.address)
+    );
+    //);
+  });
 });
