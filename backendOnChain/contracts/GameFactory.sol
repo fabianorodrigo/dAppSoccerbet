@@ -1,11 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
+/** SOLIDITY STYLE GUIDE **
+
+Layout contract elements in the following order:
+
+Pragma statements
+Import statements
+Interfaces
+Libraries
+Contracts
+
+Inside each contract, library or interface, use the following order:
+
+Type declarations
+State variables
+Events
+Functions
+*/
+
 import "./BetToken.sol";
 import "./Game.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+/**
+ * @title Contract responsible for generate Game contracts and maintain a list of them
+ * @author Fabiano Nascimento
+ */
 contract GameFactory is Ownable {
     // BetToken contract address
     address private _betTokenContractAddress;
@@ -22,122 +44,73 @@ contract GameFactory is Ownable {
         uint256 datetimeGame
     );
 
+    /** SOLIDITY STYLE GUIDE **
+
+        Order of Functions
+
+        constructor
+        receive function (if exists)
+        fallback function (if exists)
+        external
+        public
+        internal
+        private
+    **/
+
     constructor(address betTokenContractAddress_) Ownable() {
         _betTokenContractAddress = betTokenContractAddress_;
     }
 
+    /** SOLIDITY STYLE GUIDE **
+
+    The modifier order for a function should be:
+
+        Visibility
+        Mutability
+        Virtual
+        Override
+        Custom modifiers
+     */
+
     /**
-     * Register a new Game and, as soon as open, receive bets
-     * @param house_ Name of the team that is gonna play in house
-     * @param visitor_ Name of the team that is gonna be visiting
-     * @param datetimeGame_ The date/time of the game expressed in seconds
+     * @notice Generate a new Game contract, register it and emits the GameCreated event
+     *
+     * @param _house Name of the team that is gonna play in house
+     * @param _visitor Name of the team that is gonna be visiting
+     * @param _datetimeGame The date/time of the game expressed in seconds
      */
     function newGame(
-        string memory house_,
-        string memory visitor_,
-        uint256 datetimeGame_
+        string memory _house,
+        string memory _visitor,
+        uint256 _datetimeGame
     ) public onlyOwner {
         // a game starts closed for betting
         Game g = new Game(
-            house_,
-            visitor_,
-            datetimeGame_,
+            payable(this.owner()),
+            _house,
+            _visitor,
+            _datetimeGame,
             _betTokenContractAddress
         );
         _games.push(g);
         emit GameCreated(
             address(_games[_games.length - 1]),
-            _games[_games.length - 1].getHouseTeam(),
-            _games[_games.length - 1].getVisitorTeam(),
-            _games[_games.length - 1].getDateTimeGame()
+            g.houseTeam(),
+            g.visitorTeam(),
+            g.datetimeGame()
         );
     }
 
     /**
-     * Return all games
+     * @notice Return the list of all games registered
+     * @return games Array of games
      */
     function listGames() public view returns (Game[] memory games) {
         return _games;
     }
 
     /**
-     * Open a specific game for bettings
-     * @param gameIndex the index of the game to be opened in the games array
-     */
-    function openGameForBetting(uint256 gameIndex) public onlyOwner {
-        require(
-            gameIndex < _games.length,
-            string(
-                bytes.concat(
-                    bytes("Game not found in the game list of length: "),
-                    bytes(Strings.toString(_games.length))
-                )
-            )
-        );
-        // get the reference to the Game of the index
-        Game g = _games[gameIndex];
-        // set it's "open" attribute
-        g.openForBetting();
-    }
-
-    /**
-     * Close a specific game for bettings
-     *
-     * @param gameIndex the index of the game to be closed in the games array
-     */
-    function closeGameForBetting(uint256 gameIndex) public onlyOwner {
-        require(gameIndex < _games.length, "Game not found in the game list");
-        // get the reference to the Game of the index
-        Game g = _games[gameIndex];
-        g.closeForBetting();
-    }
-
-    /**
-     * Finalizes the game registering the final score
-     *
-     * @param gameIndex Index of the game to be finalized in the game list
-     * @param finalScore_ Data of the final score of the match
-     */
-    function finalizeGame(uint256 gameIndex, Score memory finalScore_)
-        public
-        onlyOwner
-    {
-        require(gameIndex < _games.length, "Game not found in the game list");
-        // get the reference to the Game of the index
-        Game g = _games[gameIndex];
-        // set it's "open" attribute
-        g.finalizeGame(finalScore_);
-    }
-
-    /**
-     * Alllows edit the score of a finalized game just in case something was wrong
-     * @param gameIndex Index of the game to be edited in the _games list
-     * @param finalScore_ Data of the final score of the match
-     */
-    function editFinalizedGameScore(uint256 gameIndex, Score memory finalScore_)
-        public
-        onlyOwner
-    {
-        require(gameIndex < _games.length, "Game not found in the game list");
-        // get the reference to the Game of the index
-        Game g = _games[gameIndex];
-        g.editFinalizedGameScore(finalScore_);
-    }
-
-    /**
-     * Destroy a specific Game contract if it's been finalized already
-     *
-     * @param gameIndex Index of the game to be edited in the _games list
-     */
-    function destroyGameContract(uint256 gameIndex) public onlyOwner {
-        require(gameIndex < _games.length, "Game not found in the game list");
-        // get the reference to the Game of the index
-        Game g = _games[gameIndex];
-        g.destroyContract();
-    }
-
-    /**
-     * If neither a receive Ether nor a payable fallback function is present,
+     * @notice If neither a receive Ether nor a payable fallback function is present,
      * the contract cannot receive Ether through regular transactions and throws an exception.
      * A contract without a receive Ether function can receive Ether as a recipient of a
      * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
@@ -155,7 +128,9 @@ contract GameFactory is Ownable {
     }
 
     /**
-     * Checks if the address has some code, if it has, returns TRUE
+     * @notice Checks if the address has some code, if it has, returns TRUE
+     * @param addr Address Ethereum to check whether has code or not
+     * @return return TRUE if the address has code
      */
     function isAliveContract(address addr) internal view returns (bool) {
         uint256 size;

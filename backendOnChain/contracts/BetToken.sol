@@ -2,13 +2,44 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
+/** SOLIDITY STYLE GUIDE **
+
+Layout contract elements in the following order:
+
+Pragma statements
+Import statements
+Interfaces
+Libraries
+Contracts
+
+Inside each contract, library or interface, use the following order:
+
+Type declarations
+State variables
+Events
+Functions
+*/
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BetToken is ERC20, Ownable {
-    constructor() ERC20("Soccer Bet Token", "SBT") {}
-
     event Received(address tokenBuyer, uint256 quantity);
+
+    /** SOLIDITY STYLE GUIDE **
+
+        Order of Functions
+
+        constructor
+        receive function (if exists)
+        fallback function (if exists)
+        external
+        public
+        internal
+        private
+    **/
+
+    constructor() ERC20("Soccer Bet Token", "SBT") {}
 
     // sending Ether to the contract, the sender is buying tokens for betting
     receive() external payable {

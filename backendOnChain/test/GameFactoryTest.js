@@ -57,74 +57,9 @@ contract("GameFactory", (accounts) => {
     expect(games).to.be.an("array");
     expect(games).to.have.lengthOf(1);
     const g = await Game.at(games[0]);
-    expect(await g.isOpen()).to.be.false;
-    expect(await g.isFinalized()).to.be.false;
+    expect(await g.open()).to.be.false;
+    expect(await g.finalized()).to.be.false;
   });
-
-  /**
-   * OPENFORBETTING
-   */
-
-  it(`Should open closed game for betting`, async () => {
-    await createGame();
-    //test before opening
-    let games = await gameFactoryContract.listGames();
-    expect(games).to.be.an("array");
-    expect(games).to.have.lengthOf(1);
-    const g = await Game.at(games[0]);
-    expect(await g.isOpen()).to.be.false;
-    expect(await g.isFinalized()).to.be.false;
-    //open game zero
-    const receiptOpen = await gameFactoryContract.openGameForBetting(0, {
-      from: owner,
-    });
-    console.log(receiptOpen);
-    expectEvent(receiptOpen, "GameOpened", {
-      addressGame: games[0],
-      homeTeam: "SÃO PAULO",
-      visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_163000_IN_MINUTES,
-    });
-    //test after open game
-    games = await gameFactoryContract.listGames();
-    expect(games).to.be.an("array");
-    expect(games).to.have.lengthOf(1);
-    expect(await g.isOpen()).to.be.true;
-    expect(await g.isFinalized()).to.be.false;
-  });
-
-  it(`Should revert if try open for betting an already open game`, async () => {});
-
-  it(`Should revert if someone different from owner try open a game for betting`, async () => {});
-
-  /**
-   * CLOSEFORBETTING
-   */
-  it(`Should close open game for betting`, async () => {});
-
-  it(`Should revert if try close for betting an closed game`, async () => {});
-
-  it(`Should revert if someone different from owner try close a game for betting`, async () => {});
-
-  /**
-   * FINALIZEGAME
-   */
-  it(`Should finalized a closed game`, async () => {});
-
-  it(`Should revert if try to finalized an open game`, async () => {});
-
-  it(`Should revert if try to finalized an already finalizeded game`, async () => {});
-
-  it(`Should revert if someone different from owner try finalized a game`, async () => {});
-
-  /**
-   * EDITfinalizedEDGAMESCORE
-   */
-  it(`Should edit the score of a finalizeded game`, async () => {});
-
-  it(`Should revert if try to edit the score of a not finalizeded game`, async () => {});
-
-  it(`Should revert if someone different from owner try to edit the score of a finalizeded game`, async () => {});
 
   /**
    * DESTROYCONTRACT

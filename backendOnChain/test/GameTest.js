@@ -23,6 +23,7 @@ contract("Game", (accounts) => {
   beforeEach(async function () {
     erc20BetToken = await BetToken.new({from: owner});
     gameContract = await Game.new(
+      owner,
       "SÃO PAULO",
       "ATLÉTICO-MG",
       DATETIME_20220716_170000_IN_MINUTES,
@@ -33,19 +34,19 @@ contract("Game", (accounts) => {
 
   it(`Should have the initial state accordingly`, async () => {
     // Game attributes
-    expect(await gameContract.getHouseTeam()).to.equal("SÃO PAULO");
-    expect(await gameContract.getVisitorTeam()).to.equal("ATLÉTICO-MG");
-    expect(await gameContract.getDateTimeGame()).to.be.bignumber.equal(
+    expect(await gameContract.houseTeam()).to.equal("SÃO PAULO");
+    expect(await gameContract.visitorTeam()).to.equal("ATLÉTICO-MG");
+    expect(await gameContract.datetimeGame()).to.be.bignumber.equal(
       DATETIME_20220716_170000_IN_MINUTES
     );
     //when the game is created, is initially closed for betting
     expect(
-      await gameContract.isOpen(),
+      await gameContract.open(),
       "When created, the game is initially closed for betting"
     ).to.be.false;
     //when the game is created, is initially not finalized
     expect(
-      await gameContract.isFinalized(),
+      await gameContract.finalized(),
       "When created, the game can't be finalized"
     ).to.be.false;
   });
@@ -57,7 +58,7 @@ contract("Game", (accounts) => {
   it(`Should open closed game for betting`, async () => {
     //Game is initially close for betting
     const receiptOpen = await gameContract.openForBetting({from: owner});
-    expect(await gameContract.isOpen()).to.be.true;
+    expect(await gameContract.open()).to.be.true;
     expectEvent(receiptOpen, "GameOpened", {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
@@ -89,7 +90,7 @@ contract("Game", (accounts) => {
     //Game is initially close for betting
     await gameContract.openForBetting({from: owner});
     const receiptClose = await gameContract.closeForBetting({from: owner});
-    expect(await gameContract.isOpen()).to.be.false;
+    expect(await gameContract.open()).to.be.false;
     expectEvent(receiptClose, "GameClosed", {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
@@ -122,17 +123,17 @@ contract("Game", (accounts) => {
     const receiptFinalize = await gameContract.finalizeGame(score, {
       from: owner,
     });
-    expect(await gameContract.isOpen()).to.be.false;
-    expect(await gameContract.isFinalized()).to.be.true;
-    const finalScore = await gameContract.getFinalScore();
-    expect(finalScore.house).to.equal(score.house);
-    expect(finalScore.visitor).to.equal(score.visitor);
+    expect(await gameContract.open()).to.be.false;
+    expect(await gameContract.finalized()).to.be.true;
+    const finalScore = await gameContract.finalScore();
+    expect(finalScore.house).to.be.bignumber.equal(score.house);
+    expect(finalScore.visitor).to.be.bignumber.equal(score.visitor);
     expectEvent(receiptFinalize, "GameFinalized", {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
       datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
-      score: score,
+      score: Object.values(score), //had to to this in order to expectEvent work properly
     });
   });
 
@@ -144,10 +145,10 @@ contract("Game", (accounts) => {
       gameContract.finalizeGame(score, {from: owner}),
       "The game is still open for bettings, close it first"
     );
-    expect(await gameContract.isFinalized()).to.be.false;
-    const finalScore = await gameContract.getFinalScore();
-    expect(finalScore.house).to.equal("0");
-    expect(finalScore.visitor).to.equal("0");
+    expect(await gameContract.finalized()).to.be.false;
+    const finalScore = await gameContract.finalScore();
+    expect(finalScore.house).to.be.bignumber.equal("0");
+    expect(finalScore.visitor).to.be.bignumber.equal("0");
   });
 
   it(`Should revert if try to finalize an already finalized game`, async () => {
@@ -178,17 +179,17 @@ contract("Game", (accounts) => {
       newScore,
       {from: owner}
     );
-    expect(await gameContract.isOpen()).to.be.false;
-    expect(await gameContract.isFinalized()).to.be.true;
-    const finalScore = await gameContract.getFinalScore();
-    expect(finalScore.house).to.equal(newScore.house);
-    expect(finalScore.visitor).to.equal(newScore.visitor);
+    expect(await gameContract.open()).to.be.false;
+    expect(await gameContract.finalized()).to.be.true;
+    const finalScore = await gameContract.finalScore();
+    expect(finalScore.house).to.be.bignumber.equal(new BN(newScore.house));
+    expect(finalScore.visitor).to.be.bignumber.equal(new BN(newScore.visitor));
     expectEvent(receiptEditFinalScore, "GameFinalScoreUpdated", {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
       datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
-      score: newScore,
+      score: Object.values(newScore),
     });
   });
 
