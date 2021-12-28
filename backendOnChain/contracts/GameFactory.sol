@@ -75,19 +75,19 @@ contract GameFactory is Ownable {
     /**
      * @notice Generate a new Game contract, register it and emits the GameCreated event
      *
-     * @param _house Name of the team that is gonna play in house
+     * @param _home Name of the team that is gonna play in home
      * @param _visitor Name of the team that is gonna be visiting
      * @param _datetimeGame The date/time of the game expressed in seconds
      */
     function newGame(
-        string memory _house,
+        string memory _home,
         string memory _visitor,
         uint256 _datetimeGame
     ) public onlyOwner {
         // a game starts closed for betting
         Game g = new Game(
             payable(this.owner()),
-            _house,
+            _home,
             _visitor,
             _datetimeGame,
             _betTokenContractAddress
@@ -95,7 +95,7 @@ contract GameFactory is Ownable {
         _games.push(g);
         emit GameCreated(
             address(_games[_games.length - 1]),
-            g.houseTeam(),
+            g.homeTeam(),
             g.visitorTeam(),
             g.datetimeGame()
         );
@@ -104,6 +104,10 @@ contract GameFactory is Ownable {
     /**
      * @notice Return the list of all games registered
      * @return games Array of games
+     * @dev If you have a public state variable of array type, then you can only
+     * retrieve single elements of the array via the generated getter function.
+     * This mechanism exists to avoid high gas costs when returning an entire array.
+     * If you want to return an entire array in one call, then you need to write a function
      */
     function listGames() public view returns (Game[] memory games) {
         return _games;

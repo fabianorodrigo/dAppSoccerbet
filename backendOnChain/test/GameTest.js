@@ -4,6 +4,7 @@
 const {expect} = require("chai");
 // Import utilities from Test Helpers
 const {BN, expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {web3} = require("@openzeppelin/test-helpers/src/setup");
 
 const BetToken = artifacts.require("BetToken");
 const Game = artifacts.require("Game");
@@ -15,7 +16,7 @@ contract("Game", (accounts) => {
   );
   // The owner is gonna be sent by 7º Ganache account
   const owner = accounts[6];
-  const gambler = accounts[1];
+  const bettor = accounts[1];
 
   let erc20BetToken = null,
     gameContract = null;
@@ -31,10 +32,14 @@ contract("Game", (accounts) => {
       {from: owner}
     );
   });
+  afterEach(async function () {
+    await gameContract.destroyContract({from: owner});
+    await erc20BetToken.destroyContract({from: owner});
+  });
 
   it(`Should have the initial state accordingly`, async () => {
     // Game attributes
-    expect(await gameContract.houseTeam()).to.equal("SÃO PAULO");
+    expect(await gameContract.homeTeam()).to.equal("SÃO PAULO");
     expect(await gameContract.visitorTeam()).to.equal("ATLÉTICO-MG");
     expect(await gameContract.datetimeGame()).to.be.bignumber.equal(
       DATETIME_20220716_170000_IN_MINUTES
@@ -56,7 +61,7 @@ contract("Game", (accounts) => {
    */
 
   it(`Should open closed game for betting`, async () => {
-    //Game is initially close for betting
+    //Game is initially closed for betting
     const receiptOpen = await gameContract.openForBetting({from: owner});
     expect(await gameContract.open()).to.be.true;
     expectEvent(receiptOpen, "GameOpened", {
@@ -68,7 +73,7 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if try open for betting an already open game`, async () => {
-    //Game is initially close for betting
+    //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
     expectRevert(
       gameContract.openForBetting({from: owner}),
@@ -78,7 +83,7 @@ contract("Game", (accounts) => {
 
   it(`Should revert if someone different from owner try open a game for betting`, async () => {
     expectRevert(
-      gameContract.openForBetting({from: gambler}),
+      gameContract.openForBetting({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -87,7 +92,7 @@ contract("Game", (accounts) => {
    * CLOSEFORBETTING
    */
   it(`Should close open game for betting`, async () => {
-    //Game is initially close for betting
+    //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
     const receiptClose = await gameContract.closeForBetting({from: owner});
     expect(await gameContract.open()).to.be.false;
@@ -100,7 +105,7 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if try close for betting an closed game`, async () => {
-    //Game is initially close for betting
+    //Game is initially closed for betting
     expectRevert(
       gameContract.closeForBetting({from: owner}),
       "The game is not open"
@@ -109,7 +114,7 @@ contract("Game", (accounts) => {
 
   it(`Should revert if someone different from owner try close a game for betting`, async () => {
     expectRevert(
-      gameContract.closeForBetting({from: gambler}),
+      gameContract.closeForBetting({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -119,14 +124,14 @@ contract("Game", (accounts) => {
    */
   it(`Should finalize a closed game`, async () => {
     //TODO: discover why the struct returned in getFinalScore() turns uint8 into string
-    const score = {house: "3", visitor: "1"};
+    const score = {home: "3", visitor: "1"};
     const receiptFinalize = await gameContract.finalizeGame(score, {
       from: owner,
     });
     expect(await gameContract.open()).to.be.false;
     expect(await gameContract.finalized()).to.be.true;
     const finalScore = await gameContract.finalScore();
-    expect(finalScore.house).to.be.bignumber.equal(score.house);
+    expect(finalScore.home).to.be.bignumber.equal(score.home);
     expect(finalScore.visitor).to.be.bignumber.equal(score.visitor);
     expectEvent(receiptFinalize, "GameFinalized", {
       addressGame: gameContract.address,
@@ -138,8 +143,8 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if try to finalize an open game`, async () => {
-    const score = {house: "3", visitor: "1"};
-    //Game is initially close for betting
+    const score = {home: "3", visitor: "1"};
+    //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
     expectRevert(
       gameContract.finalizeGame(score, {from: owner}),
@@ -147,12 +152,12 @@ contract("Game", (accounts) => {
     );
     expect(await gameContract.finalized()).to.be.false;
     const finalScore = await gameContract.finalScore();
-    expect(finalScore.house).to.be.bignumber.equal("0");
+    expect(finalScore.home).to.be.bignumber.equal("0");
     expect(finalScore.visitor).to.be.bignumber.equal("0");
   });
 
   it(`Should revert if try to finalize an already finalized game`, async () => {
-    const score = {house: "3", visitor: "1"};
+    const score = {home: "3", visitor: "1"};
     await gameContract.finalizeGame(score, {from: owner});
     expectRevert(
       gameContract.finalizeGame(score, {from: owner}),
@@ -161,9 +166,9 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if someone different from owner try finalize a game`, async () => {
-    const score = {house: "3", visitor: "1"};
+    const score = {home: "3", visitor: "1"};
     expectRevert(
-      gameContract.finalizeGame(score, {from: gambler}),
+      gameContract.finalizeGame(score, {from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -172,8 +177,8 @@ contract("Game", (accounts) => {
    * EDITFINALIZEDGAMESCORE
    */
   it(`Should edit the score of a finalized game`, async () => {
-    const score = {house: "3", visitor: "1"};
-    const newScore = {house: "4", visitor: "2"};
+    const score = {home: "3", visitor: "1"};
+    const newScore = {home: "4", visitor: "2"};
     await gameContract.finalizeGame(score, {from: owner});
     const receiptEditFinalScore = await gameContract.editFinalizedGameScore(
       newScore,
@@ -182,7 +187,7 @@ contract("Game", (accounts) => {
     expect(await gameContract.open()).to.be.false;
     expect(await gameContract.finalized()).to.be.true;
     const finalScore = await gameContract.finalScore();
-    expect(finalScore.house).to.be.bignumber.equal(newScore.house);
+    expect(finalScore.home).to.be.bignumber.equal(newScore.home);
     expect(finalScore.visitor).to.be.bignumber.equal(newScore.visitor);
     expectEvent(receiptEditFinalScore, "GameFinalScoreUpdated", {
       addressGame: gameContract.address,
@@ -194,7 +199,7 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if try to edit the score of a not finalized game`, async () => {
-    const newScore = {house: "4", visitor: "2"};
+    const newScore = {home: "4", visitor: "2"};
     expectRevert(
       gameContract.editFinalizedGameScore(newScore, {from: owner}),
       "The game hasn't been finalized yet. Call finalizeGame function"
@@ -202,11 +207,69 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if someone different from owner try to edit the score of a finalized game`, async () => {
-    const score = {house: "3", visitor: "1"};
-    const newScore = {house: "4", visitor: "2"};
+    const score = {home: "3", visitor: "1"};
+    const newScore = {home: "4", visitor: "2"};
     await gameContract.finalizeGame(score, {from: owner});
     expectRevert(
-      gameContract.editFinalizedGameScore(newScore, {from: gambler}),
+      gameContract.editFinalizedGameScore(newScore, {from: bettor}),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  /**
+   * BET
+   */
+  it(`Should make a bet on an open game`, async () => {
+    const score = {home: "3", visitor: "1"};
+    //One wei => 1 Ether = 1 * 10^18 wei
+    const betTokenAmount = new BN(1001);
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    //bettor has to buy some BetTokens
+    await erc20BetToken.sendTransaction({
+      from: bettor,
+      value: betTokenAmount,
+    });
+    // The ETHER balance of BetToken contract is now 1001 ETH
+    expect(
+      await web3.eth.getBalance(erc20BetToken.address)
+    ).to.be.bignumber.equal("1001");
+    // The BETTOKEN balance of the bettor is now 1001 BETTOKENs
+    expect(await erc20BetToken.balanceOf(bettor)).to.be.bignumber.equal("1001");
+    // make a bet with total betTokenAmount
+    const receiptBet = await gameContract.bet(score, betTokenAmount, {
+      from: bettor,
+    });
+    // The BETTOKEN balances of the Game contract and the bettor are, respectively, 1001 and 0 BETTOKENs
+    expect(
+      await erc20BetToken.balanceOf(gameContract.address)
+    ).to.be.bignumber.equal("1001");
+    expect(await erc20BetToken.balanceOf(bettor.address)).to.be.bignumber.equal(
+      "0"
+    );
+
+    //expect(await gameContract.open()).to.be.false;
+    expectEvent(receiptBet, "BetOnGame", {
+      addressGame: gameContract.address,
+      addressBettor: bettor,
+      homeTeam: "SÃO PAULO",
+      visitorTeam: "ATLÉTICO-MG",
+      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
+      score,
+    });
+  });
+
+  it(`Should revert if try close for betting an closed game`, async () => {
+    //Game is initially closed for betting
+    expectRevert(
+      gameContract.closeForBetting({from: owner}),
+      "The game is not open"
+    );
+  });
+
+  it(`Should revert if someone different from owner try close a game for betting`, async () => {
+    expectRevert(
+      gameContract.closeForBetting({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -216,7 +279,7 @@ contract("Game", (accounts) => {
    */
   it(`Should revert if someone different from owner try destroy contract`, async () => {
     expectRevert(
-      gameContract.destroyContract({from: gambler}),
+      gameContract.destroyContract({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -236,7 +299,7 @@ contract("Game", (accounts) => {
      */
     expectRevert.unspecified(
       gameContract.sendTransaction({
-        from: gambler,
+        from: bettor,
         value: weiAmount,
       })
     );

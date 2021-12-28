@@ -8,7 +8,7 @@ contract("BetToken", (accounts) => {
   let trace = false;
   // The owner is gonna be sent by 7º Ganache account
   const owner = accounts[6];
-  const gambler = accounts[1];
+  const bettor = accounts[1];
 
   let erc20BetToken = null;
 
@@ -25,11 +25,11 @@ contract("BetToken", (accounts) => {
     let receipt = await buyOneWeiOfTokens(weiAmount);
     // Test for event
     expectEvent(receipt, "Received", {
-      tokenBuyer: gambler,
+      tokenBuyer: bettor,
       quantity: weiAmount,
     });
     // test balance of tokens
-    expect(await erc20BetToken.balanceOf(gambler)).to.be.bignumber.equal(
+    expect(await erc20BetToken.balanceOf(bettor)).to.be.bignumber.equal(
       weiAmount
     );
     // test balance of Ether of the contract ERC20
@@ -39,7 +39,7 @@ contract("BetToken", (accounts) => {
   });
 
   /**
-   * Buys tokens with the amount of WEI with the gambler account
+   * @notice Buys tokens with the amount of WEI with the bettor account
    *
    * @param {BN} weiAmountBN Amount of WEI in BN (BigNumber)
    * @returns Receipt of transaction
@@ -47,14 +47,14 @@ contract("BetToken", (accounts) => {
   async function buyOneWeiOfTokens(weiAmountBN) {
     //One wei => 1 Ether = 1 * 10^18 wei
     return await erc20BetToken.sendTransaction({
-      from: gambler,
+      from: bettor,
       value: weiAmountBN,
     });
   }
 
   it(`Should revert if someone different from owner try destroy contract`, async () => {
     expectRevert(
-      erc20BetToken.destroyContract({from: gambler}),
+      erc20BetToken.destroyContract({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });

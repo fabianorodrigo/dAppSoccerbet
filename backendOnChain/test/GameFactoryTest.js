@@ -16,7 +16,7 @@ contract("GameFactory", (accounts) => {
   );
   // The owner is gonna be sent by 7º Ganache account
   const owner = accounts[6];
-  const gambler = accounts[1];
+  const bettor = accounts[1];
 
   let erc20BetToken = null,
     gameFactoryContract = null;
@@ -78,7 +78,7 @@ contract("GameFactory", (accounts) => {
    */
   it(`Should revert if someone different from owner try destroy contract`, async () => {
     expectRevert(
-      gameFactoryContract.destroyContract({from: gambler}),
+      gameFactoryContract.destroyContract({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
@@ -98,15 +98,9 @@ contract("GameFactory", (accounts) => {
      */
     expectRevert.unspecified(
       gameFactoryContract.sendTransaction({
-        from: gambler,
+        from: bettor,
         value: weiAmount,
       })
     );
-
-    console.log(
-      "====== BALANCE",
-      await web3.eth.getBalance(gameFactoryContract.address)
-    );
-    //);
   });
 });

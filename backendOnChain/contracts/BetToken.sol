@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BetToken is ERC20, Ownable {
-    event Received(address tokenBuyer, uint256 quantity);
+    event Received(address tokenBuyer, uint256 quantity, uint256 balance);
 
     /** SOLIDITY STYLE GUIDE **
 
@@ -46,7 +46,7 @@ contract BetToken is ERC20, Ownable {
         // _mint sums the second parameter to the token's totalSupply and assign the
         // new tokens to the address of the msg.sender
         _mint(msg.sender, msg.value);
-        emit Received(msg.sender, msg.value);
+        emit Received(msg.sender, msg.value, address(this).balance);
     }
 
     /**

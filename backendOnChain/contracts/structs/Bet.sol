@@ -4,6 +4,7 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./Score.sol";
 
 struct Bet {
-    address payable gambler;
+    address bettor;
     Score score;
+    uint256 value;
 }

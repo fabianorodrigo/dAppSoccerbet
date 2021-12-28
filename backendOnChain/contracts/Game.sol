@@ -33,14 +33,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Game is Ownable {
     //BetToken contract
     BetToken private _betTokenContract;
-    //When open, gamblers can bet
+    //When open, bettors can bet
     bool public open;
-    string public houseTeam;
+    string public homeTeam;
     string public visitorTeam;
     //datetime of the game in seconds
     uint256 public datetimeGame;
     //bets
-    Bet[] public bets;
+    Bet[] private _bets;
     //real final score
     Score public finalScore;
     //When TRUE, the game is already finalized
@@ -84,6 +84,17 @@ contract Game is Ownable {
         uint256 datetimeGame,
         Score score
     );
+    /**
+     * @notice Event triggered when someone bet on a game
+     */
+    event BetOnGame(
+        address indexed addressGame,
+        address indexed addressBettor,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame,
+        Score score
+    );
 
     /** SOLIDITY STYLE GUIDE **
 
@@ -100,12 +111,12 @@ contract Game is Ownable {
 
     constructor(
         address payable _owner,
-        string memory _house,
+        string memory _home,
         string memory _visitor,
         uint256 _datetimeGame,
         address _betTokenContractAddress
     ) Ownable() {
-        houseTeam = _house;
+        homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
         open = false;
@@ -129,22 +140,60 @@ contract Game is Ownable {
      * @notice Opens a game for betting (sets the open to TRUE). Only allowed
      * if the game is closed for betting. Emits the event GameOpened
      */
-    function openForBetting() public onlyOwner {
+    function openForBetting() external onlyOwner {
         require(open == false, "The game is not closed");
         require(finalized == false, "Game has been already finalized");
         open = true;
-        emit GameOpened(address(this), houseTeam, visitorTeam, datetimeGame);
+        emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
+    }
+
+    /**
+     * @notice Make a bet in the game. Only allowed if the game is open for betting,
+     * the game is not finalized and if the bettor has a balance of BetToken equal or
+     * greater than _value. Emits the event ...
+     * @param _score The score guessed by the bettor
+     * @param _value The amount of BetToken put on the bet by the player
+     */
+    function bet(Score memory _score, uint256 _value) external {
+        require(open, "The game is not open");
+        require(finalized == false, "Game has been already finalized");
+        require(
+            _betTokenContract.balanceOf(msg.sender) >= _value,
+            "BetToken balance insufficient"
+        );
+        //In the BetToken, the sender is gonna be Game Contract.
+        //In this case, we have to approve the spent in spite of calling transfer directly
+        //_betTokenContract.transfer(address(this), _value);
+        if (_betTokenContract.approve(address(this), _value)) {
+            if (
+                _betTokenContract.transferFrom(
+                    msg.sender,
+                    address(this),
+                    _value
+                )
+            ) {
+                _bets.push(Bet(msg.sender, _score, _value));
+                emit BetOnGame(
+                    address(this),
+                    msg.sender,
+                    homeTeam,
+                    visitorTeam,
+                    datetimeGame,
+                    _score
+                );
+            }
+        }
     }
 
     /**
      * @notice Closes a game for betting (sets the open to FALSE). Only
      * allowed if the game is open for betting. Emits the event GameClosed
      */
-    function closeForBetting() public onlyOwner {
+    function closeForBetting() external onlyOwner {
         require(open, "The game is not open");
         require(finalized == false, "Game has been already finalized");
         open = false;
-        emit GameClosed(address(this), houseTeam, visitorTeam, datetimeGame);
+        emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
 
     /**
@@ -153,7 +202,7 @@ contract Game is Ownable {
      *
      * @param _finalScore Data of the final score of the match
      */
-    function finalizeGame(Score memory _finalScore) public onlyOwner {
+    function finalizeGame(Score memory _finalScore) external onlyOwner {
         require(finalized == false, "The game has been already finalized");
         require(
             open == false,
@@ -164,7 +213,7 @@ contract Game is Ownable {
         finalized = true;
         emit GameFinalized(
             address(this),
-            houseTeam,
+            homeTeam,
             visitorTeam,
             datetimeGame,
             finalScore
@@ -177,7 +226,10 @@ contract Game is Ownable {
      *
      * @param _finalScore Data of the final score of the match
      */
-    function editFinalizedGameScore(Score memory _finalScore) public onlyOwner {
+    function editFinalizedGameScore(Score memory _finalScore)
+        external
+        onlyOwner
+    {
         require(
             finalized,
             "The game hasn't been finalized yet. Call finalizeGame function"
@@ -186,11 +238,23 @@ contract Game is Ownable {
         finalScore = _finalScore;
         emit GameFinalScoreUpdated(
             address(this),
-            houseTeam,
+            homeTeam,
             visitorTeam,
             datetimeGame,
             finalScore
         );
+    }
+
+    /**
+     * @notice Return the list of all bets registered for the current game
+     * @return bets Array of bettings
+     * @dev If you have a public state variable of array type, then you can only
+     * retrieve single elements of the array via the generated getter function.
+     * This mechanism exists to avoid high gas costs when returning an entire array.
+     * If you want to return an entire array in one call, then you need to write a function
+     */
+    function listBets() public view returns (Bet[] memory bets) {
+        return _bets;
     }
 
     /**
