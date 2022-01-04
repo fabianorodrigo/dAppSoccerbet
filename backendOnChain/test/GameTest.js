@@ -221,22 +221,39 @@ contract("Game", (accounts) => {
    */
   it(`Should make a bet on an open game`, async () => {
     const score = {home: "3", visitor: "1"};
-    //One wei => 1 Ether = 1 * 10^18 wei
     const betTokenAmount = new BN(1001);
     //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
-    //bettor has to buy some BetTokens
+    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
     await erc20BetToken.sendTransaction({
       from: bettor,
       value: betTokenAmount,
     });
-    // The ETHER balance of BetToken contract is now 1001 ETH
+    // The ETHER balance of BetToken contract is now 1001 WEI
     expect(
       await web3.eth.getBalance(erc20BetToken.address)
     ).to.be.bignumber.equal("1001");
     // The BETTOKEN balance of the bettor is now 1001 BETTOKENs
     expect(await erc20BetToken.balanceOf(bettor)).to.be.bignumber.equal("1001");
-    // make a bet with total betTokenAmount
+    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    const receiptApprove = await erc20BetToken.approve(
+      gameContract.address,
+      betTokenAmount,
+      {
+        from: bettor,
+      }
+    );
+    expectEvent(receiptApprove, "Approval", {
+      owner: bettor,
+      spender: gameContract.address,
+      value: betTokenAmount,
+    });
+    const allowanceValue = await erc20BetToken.allowance(
+      bettor,
+      gameContract.address
+    );
+    expect(allowanceValue).to.be.bignumber.equal(betTokenAmount);
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
     const receiptBet = await gameContract.bet(score, betTokenAmount, {
       from: bettor,
     });
@@ -244,33 +261,77 @@ contract("Game", (accounts) => {
     expect(
       await erc20BetToken.balanceOf(gameContract.address)
     ).to.be.bignumber.equal("1001");
-    expect(await erc20BetToken.balanceOf(bettor.address)).to.be.bignumber.equal(
-      "0"
-    );
+    expect(await erc20BetToken.balanceOf(bettor)).to.be.bignumber.equal("0");
 
-    //expect(await gameContract.open()).to.be.false;
     expectEvent(receiptBet, "BetOnGame", {
       addressGame: gameContract.address,
       addressBettor: bettor,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
       datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
-      score,
+      score: Object.values(score), //had to to this in order to expectEvent work properly
     });
   });
 
-  it(`Should revert if try close for betting an closed game`, async () => {
-    //Game is initially closed for betting
+  it(`Should revert if try to bet on a closed game`, async () => {
+    const score = {home: "3", visitor: "1"};
+    const betTokenAmount = new BN(1001);
+    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettor,
+      value: betTokenAmount,
+    });
+    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    const receiptApprove = await erc20BetToken.approve(
+      gameContract.address,
+      betTokenAmount,
+      {
+        from: bettor,
+      }
+    );
+    //Game is initially closed for betting. Since the game was not opened, it has to revert
     expectRevert(
-      gameContract.closeForBetting({from: owner}),
+      gameContract.bet(score, betTokenAmount, {
+        from: bettor,
+      }),
       "The game is not open"
     );
   });
 
-  it(`Should revert if someone different from owner try close a game for betting`, async () => {
+  it(`Should revert if try to bet on a game without BetTokens`, async () => {
+    const score = {home: "3", visitor: "1"};
+    const betTokenAmount = new BN(1001);
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
     expectRevert(
-      gameContract.closeForBetting({from: bettor}),
-      "Ownable: caller is not the owner"
+      gameContract.bet(score, betTokenAmount, {
+        from: bettor,
+      }),
+      "BetToken balance insufficient"
+    );
+  });
+
+  it(`Should revert if try to bet on a game without approve enough BetTokens for Game contract`, async () => {
+    const score = {home: "3", visitor: "1"};
+    const betTokenAmount = new BN(1001);
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettor,
+      value: betTokenAmount,
+    });
+    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE MINUS 1 OF THE BET IN HIS NAME
+    await erc20BetToken.approve(gameContract.address, new BN(1000), {
+      from: bettor,
+    });
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+    expectRevert(
+      gameContract.bet(score, betTokenAmount, {
+        from: bettor,
+      }),
+      "ERC20: transfer amount exceeds allowance"
     );
   });
 
