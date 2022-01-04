@@ -149,8 +149,13 @@ contract Game is Ownable {
 
     /**
      * @notice Make a bet in the game. Only allowed if the game is open for betting,
-     * the game is not finalized and if the bettor has a balance of BetToken equal or
-     * greater than _value. Emits the event ...
+     * the game is not finalized.
+     * Also, there must be a number of tokens that GAME CONTRACT, the `spender`, is
+     * allowed to spend on behalf of the BETTOR, `owner` of BetTokens, equal or
+     * greater than _value.
+     *
+     * Emits the event BetOnGame
+     *
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
@@ -162,26 +167,19 @@ contract Game is Ownable {
             "BetToken balance insufficient"
         );
         //In the BetToken, the sender is gonna be Game Contract.
-        //In this case, we have to approve the spent in spite of calling transfer directly
-        //_betTokenContract.transfer(address(this), _value);
-        if (_betTokenContract.approve(address(this), _value)) {
-            if (
-                _betTokenContract.transferFrom(
-                    msg.sender,
-                    address(this),
-                    _value
-                )
-            ) {
-                _bets.push(Bet(msg.sender, _score, _value));
-                emit BetOnGame(
-                    address(this),
-                    msg.sender,
-                    homeTeam,
-                    visitorTeam,
-                    datetimeGame,
-                    _score
-                );
-            }
+        //In this case, before calling 'bet' function, the bettor has
+        //to approve the spent of at least the amount of tokens of this bet
+        //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
+        if (_betTokenContract.transferFrom(msg.sender, address(this), _value)) {
+            _bets.push(Bet(msg.sender, _score, _value));
+            emit BetOnGame(
+                address(this),
+                msg.sender,
+                homeTeam,
+                visitorTeam,
+                datetimeGame,
+                _score
+            );
         }
     }
 
