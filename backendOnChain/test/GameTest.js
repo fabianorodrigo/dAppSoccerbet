@@ -17,6 +17,7 @@ contract("Game", (accounts) => {
   // The owner is gonna be sent by 7º Ganache account
   const owner = accounts[6];
   const bettor = accounts[1];
+  const bettorB = accounts[2];
 
   let erc20BetToken = null,
     gameContract = null;
@@ -333,6 +334,58 @@ contract("Game", (accounts) => {
       }),
       "ERC20: transfer amount exceeds allowance"
     );
+  });
+
+  /**
+   * LISTBETS
+   */
+  it(`Should list all bets on an game`, async () => {
+    const scoreA = {home: "3", visitor: "1"};
+    const betTokenAmountA = new BN(1001);
+    const scoreB = {home: "2", visitor: "2"};
+    const betTokenAmountB = new BN(1979);
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettor,
+      value: betTokenAmountA,
+    });
+    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    await erc20BetToken.approve(gameContract.address, betTokenAmountA, {
+      from: bettor,
+    });
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+    await gameContract.bet(scoreA, betTokenAmountA, {
+      from: bettor,
+    });
+    ////////////////// BETTOR B HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettorB,
+      value: betTokenAmountB,
+    });
+    //////////////// BETTOR B ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    await erc20BetToken.approve(gameContract.address, betTokenAmountB, {
+      from: bettorB,
+    });
+    //////////////// BETTOR B MAKES A BET IN THE VALUE OF {betTokenAmount}
+    await gameContract.bet(scoreB, betTokenAmountB, {
+      from: bettorB,
+    });
+    // listGames should have 2 bets
+    const betsArray = await gameContract.listBets();
+    expect(betsArray).to.be.an("array");
+    expect(betsArray).to.have.lengthOf(2);
+    //bet one
+    expect(betsArray[0].bettor).to.be.equal(bettor);
+    expect(betsArray[0].score.home).to.be.equal("3");
+    expect(betsArray[0].score.visitor).to.be.equal("1");
+    expect(betsArray[0].value).to.be.bignumber.equal("1001");
+    //bet two
+    expect(betsArray[1].bettor).to.be.equal(bettorB);
+    expect(betsArray[1].score.home).to.be.equal("2");
+    expect(betsArray[1].score.visitor).to.be.equal("2");
+    expect(betsArray[1].value).to.be.bignumber.equal("1979");
   });
 
   /**
