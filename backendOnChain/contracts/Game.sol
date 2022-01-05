@@ -161,6 +161,7 @@ contract Game is Ownable {
      */
     function bet(Score memory _score, uint256 _value) external {
         require(open, "The game is not open");
+        require(_value > 0, "The betting value has to be greater than zero");
         require(finalized == false, "Game has been already finalized");
         require(
             _betTokenContract.balanceOf(msg.sender) >= _value,
@@ -253,6 +254,18 @@ contract Game is Ownable {
      */
     function listBets() public view returns (Bet[] memory bets) {
         return _bets;
+    }
+
+    /**
+     * @notice Return the sum of value in BetTokens of all bets
+     * @return the stake of all bets, the amount of BetToken
+     */
+    function getTotalStake() public view returns (uint256) {
+        uint256 stake = 0;
+        for (uint256 i = 0; i < _bets.length; i++) {
+            stake += _bets[i].value;
+        }
+        return stake;
     }
 
     /**

@@ -299,6 +299,20 @@ contract("Game", (accounts) => {
     );
   });
 
+  it(`Should revert if try to bet zero BetTokens on a game`, async () => {
+    const score = {home: "3", visitor: "1"};
+    const betTokenAmount = new BN(1001);
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
+    expectRevert(
+      gameContract.bet(score, new BN(0), {
+        from: bettor,
+      }),
+      "The betting value has to be greater than zero"
+    );
+  });
+
   it(`Should revert if try to bet on a game without BetTokens`, async () => {
     const score = {home: "3", visitor: "1"};
     const betTokenAmount = new BN(1001);
@@ -340,38 +354,17 @@ contract("Game", (accounts) => {
    * LISTBETS
    */
   it(`Should list all bets on an game`, async () => {
-    const scoreA = {home: "3", visitor: "1"};
     const betTokenAmountA = new BN(1001);
-    const scoreB = {home: "2", visitor: "2"};
     const betTokenAmountB = new BN(1979);
-    //Game is initially closed for betting
-    await gameContract.openForBetting({from: owner});
-    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
-    await erc20BetToken.sendTransaction({
-      from: bettor,
-      value: betTokenAmountA,
-    });
-    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-    await erc20BetToken.approve(gameContract.address, betTokenAmountA, {
-      from: bettor,
-    });
-    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    await gameContract.bet(scoreA, betTokenAmountA, {
-      from: bettor,
-    });
-    ////////////////// BETTOR B HAS TO BUY SOME BETTOKENS
-    await erc20BetToken.sendTransaction({
-      from: bettorB,
-      value: betTokenAmountB,
-    });
-    //////////////// BETTOR B ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-    await erc20BetToken.approve(gameContract.address, betTokenAmountB, {
-      from: bettorB,
-    });
-    //////////////// BETTOR B MAKES A BET IN THE VALUE OF {betTokenAmount}
-    await gameContract.bet(scoreB, betTokenAmountB, {
-      from: bettorB,
-    });
+    //make bets
+    await makeBetA_BetB(
+      gameContract,
+      owner,
+      bettor,
+      betTokenAmountA,
+      bettorB,
+      betTokenAmountB
+    );
     // listGames should have 2 bets
     const betsArray = await gameContract.listBets();
     expect(betsArray).to.be.an("array");
@@ -386,6 +379,75 @@ contract("Game", (accounts) => {
     expect(betsArray[1].score.home).to.be.equal("2");
     expect(betsArray[1].score.visitor).to.be.equal("2");
     expect(betsArray[1].value).to.be.bignumber.equal("1979");
+  });
+
+  /**
+   * Follow the process of buying Bettokens, aprove for GameContract and bet using the parameters informed
+   * @param {*} gameContract Game contract where the bets will happen
+   * @param {*} owner Owner of Game contract
+   * @param {*} bettorA adsress of bettor A
+   * @param {*} betTokenAmountA amount of BetToken on betting A
+   * @param {*} bettorB address for bettor B
+   * @param {*} betTokenAmountB amount of BetToken on betting B
+   */
+  async function makeBetA_BetB(
+    gameContract,
+    owner,
+    bettorA,
+    betTokenAmountA,
+    bettorB,
+    betTokenAmountB
+  ) {
+    const scoreA = {home: "3", visitor: "1"};
+    const scoreB = {home: "2", visitor: "2"};
+    //Game is initially closed for betting
+    await gameContract.openForBetting({from: owner});
+    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettorA,
+      value: betTokenAmountA,
+    });
+    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    await erc20BetToken.approve(gameContract.address, betTokenAmountA, {
+      from: bettorA,
+    });
+    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+    await gameContract.bet(scoreA, betTokenAmountA, {
+      from: bettorA,
+    });
+    ////////////////// BETTOR B HAS TO BUY SOME BETTOKENS
+    await erc20BetToken.sendTransaction({
+      from: bettorB,
+      value: betTokenAmountB,
+    });
+    //////////////// BETTOR B ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+    await erc20BetToken.approve(gameContract.address, betTokenAmountB, {
+      from: bettorB,
+    });
+    //////////////// BETTOR B MAKES A BET IN THE VALUE OF {betTokenAmount}
+    await gameContract.bet(scoreB, betTokenAmountB, {
+      from: bettorB,
+    });
+  }
+
+  /**
+   * GETTOTALSTAKE
+   */
+  it(`Should get the sum of BetTokens bet on an game`, async () => {
+    const betTokenAmountA = new BN(16);
+    const betTokenAmountB = new BN(7);
+    //make bets
+    await makeBetA_BetB(
+      gameContract,
+      owner,
+      bettor,
+      betTokenAmountA,
+      bettorB,
+      betTokenAmountB
+    );
+    // listGames should have 2 bets
+    const stake = await gameContract.getTotalStake();
+    expect(stake).to.be.bignumber.equal(new BN(23));
   });
 
   /**
