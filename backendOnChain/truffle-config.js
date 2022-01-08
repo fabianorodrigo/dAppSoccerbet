@@ -51,6 +51,14 @@ module.exports = {
       port: 8545, // Standard Ethereum port (default: none)
       network_id: "1337", // Any network (default: none)
     },
+    /**
+     * Run ganache docker image trufflesuite/ganache:v7.0.0-beta.2 as https://github.com/trufflesuite/ganache#docker
+     */
+    docker: {
+      host: "172.17.0.2", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+    },
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
