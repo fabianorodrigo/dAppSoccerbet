@@ -7,7 +7,9 @@ const {BN, expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
 const {web3} = require("@openzeppelin/test-helpers/src/setup");
 
 const BetToken = artifacts.require("BetToken");
+const Calculator = artifacts.require("Calculator");
 const Game = artifacts.require("Game");
+const TestingAuxiliar = artifacts.require("TestingAuxiliar");
 
 contract("Game", (accounts) => {
   let trace = false;
@@ -20,16 +22,21 @@ contract("Game", (accounts) => {
   const bettorB = accounts[2];
 
   let erc20BetToken = null,
-    gameContract = null;
+    calculator = null,
+    gameContract = null,
+    testingAuxiliar = null;
 
   beforeEach(async function () {
     erc20BetToken = await BetToken.new({from: owner});
+    calculator = await Calculator.new({from: owner});
     gameContract = await Game.new(
       owner,
       "SÃO PAULO",
       "ATLÉTICO-MG",
       DATETIME_20220716_170000_IN_MINUTES,
       erc20BetToken.address,
+      calculator.address,
+      new BN(10),
       {from: owner}
     );
   });
@@ -451,8 +458,78 @@ contract("Game", (accounts) => {
   });
 
   /**
+   * GETCOMMISSIONVALUE
+   */
+  it(`Should get the percentage of administration commission applyed over the stake of a game`, async () => {
+    const betTokenAmountA = new BN(16);
+    const betTokenAmountB = new BN(7);
+    //make bets
+    await makeBetA_BetB(
+      gameContract,
+      owner,
+      bettor,
+      betTokenAmountA,
+      bettorB,
+      betTokenAmountB
+    );
+    // listGames should have 2 bets
+    const commission = await gameContract.getCommissionValue();
+    expect(commission).to.be.bignumber.equal(new BN(2)); //seria 2,3 ...
+  });
+
+  /**
+   * GETPRIZE
+   */
+  it(`Should get the total stake of a game less the administration commission`, async () => {
+    const betTokenAmountA = new BN(16);
+    const betTokenAmountB = new BN(7);
+    //make bets
+    await makeBetA_BetB(
+      gameContract,
+      owner,
+      bettor,
+      betTokenAmountA,
+      bettorB,
+      betTokenAmountB
+    );
+    const prize = await gameContract.getPrize();
+    expect(prize).to.be.bignumber.equal(new BN(21)); //seria 20,7 ...
+  });
+
+  /**
    * DESTROYCONTRACT
    */
+  it(`Should eventual Ether balance of Game contract be sent to the owner`, async () => {
+    const weiAmount = web3.utils.toWei(new BN(1, "ether"));
+    //Create a instance of TestingAuxiliar with some Ether and setting the Game contract as
+    //the destination of it's remaining Ether after selfDestruct
+    const testingAuxiliar = await TestingAuxiliar.new(gameContract.address, {
+      value: weiAmount,
+    });
+    expect(await testingAuxiliar.selfDestructRecipient()).to.be.equal(
+      gameContract.address
+    );
+    //game contract balance should be ZERO
+    expect(
+      await web3.eth.getBalance(gameContract.address)
+    ).to.be.bignumber.equal(new BN(0));
+    // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
+    expect(
+      await web3.eth.getBalance(testingAuxiliar.address)
+    ).to.be.bignumber.equal(weiAmount);
+    // Destructing the testingAuxiliar should send it's Ethers to Game contract
+    await testingAuxiliar.destroyContract();
+    expect(
+      await web3.eth.getBalance(gameContract.address)
+    ).to.be.bignumber.equal(weiAmount);
+    // Destructing the Game contract should send it's Ethers to owner
+    const ownerBalance = await web3.eth.getBalance(owner);
+    await gameContract.destroyContract({from: owner});
+    expect(await web3.eth.getBalance(owner)).to.be.bignumber.greaterThan(
+      ownerBalance
+    );
+  });
+
   it(`Should revert if someone different from owner try destroy contract`, async () => {
     expectRevert(
       gameContract.destroyContract({from: bettor}),
@@ -461,18 +538,6 @@ contract("Game", (accounts) => {
   });
   it(`Should revert if sending Ether to the contract`, async () => {
     const weiAmount = web3.utils.toWei(new BN(1, "ether"));
-
-    /**
-     * tentar manda ether de outra forma (via CALL???): https://solidity-by-example.org/sending-ether/
-     * function sendViaCall(address payable _to) public payable {
-     *   // Call returns a boolean value indicating success or failure.
-     *   // This is the current recommended method to use.
-     *   (bool sent, bytes memory data) = _to.call{value: msg.value}("");
-     *   require(sent, "Failed to send Ether");
-     * }
-     *
-     *
-     */
     expectRevert.unspecified(
       gameContract.sendTransaction({
         from: bettor,

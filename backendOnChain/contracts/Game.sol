@@ -22,6 +22,7 @@ Functions
 import "./structs/Score.sol";
 import "./structs/Bet.sol";
 import "./BetToken.sol";
+import "./Calculator.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -33,6 +34,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Game is Ownable {
     //BetToken contract
     BetToken private _betTokenContract;
+    // Calculator contract
+    Calculator private _calculator;
+    // Percentage of all bets reverted for administration costs
+    // After a Game is created, it can't be changed
+    uint256 commission = 10;
     //When open, bettors can bet
     bool public open;
     string public homeTeam;
@@ -109,12 +115,24 @@ contract Game is Ownable {
         private
         **/
 
+    /**
+     * @notice Instance a new Game
+     * @param _owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
+     * @param _home The name of the team playing at home
+     * @param _visitor The name of the team playing out of home
+     * @param _datetimeGame The date/time scheduled to start the game
+     * @param _betTokenContractAddress The address of the BetToken contract used for the Game
+     * @param _calculatorContractAddress The address of the Calculator Contract used for the Game
+     * @param _commission The percentage of stake that will be reverted to administrative costs
+     */
     constructor(
         address payable _owner,
         string memory _home,
         string memory _visitor,
         uint256 _datetimeGame,
-        address _betTokenContractAddress
+        address _betTokenContractAddress,
+        address _calculatorContractAddress,
+        uint256 _commission
     ) Ownable() {
         homeTeam = _home;
         visitorTeam = _visitor;
@@ -122,6 +140,8 @@ contract Game is Ownable {
         open = false;
         finalized = false;
         _betTokenContract = BetToken(payable(_betTokenContractAddress));
+        _calculator = Calculator(_calculatorContractAddress);
+        commission = _commission;
         transferOwnership(_owner);
     }
 
@@ -266,6 +286,30 @@ contract Game is Ownable {
             stake += _bets[i].value;
         }
         return stake;
+    }
+
+    /**
+     * @notice Return percentage of {commission} applyed on the sum of value in BetTokens of all bets
+     * @return administration commission
+     */
+    function getCommissionValue() public view returns (uint256) {
+        uint256 stake = 0;
+        for (uint256 i = 0; i < _bets.length; i++) {
+            stake += _bets[i].value;
+        }
+        return _calculator.calcPercentage(stake, commission);
+    }
+
+    /**
+     * @notice Return the sum of value in BetTokens of all bets discounted the commission for administration
+     * @return stake value less commissions
+     */
+    function getPrize() public view returns (uint256) {
+        uint256 stake = 0;
+        for (uint256 i = 0; i < _bets.length; i++) {
+            stake += _bets[i].value;
+        }
+        return stake - this.getCommissionValue();
     }
 
     /**

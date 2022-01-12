@@ -20,6 +20,7 @@ User interface built in Angular where bettors buy tokens, make their toss and wi
 BetToken: It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken.
 GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN.
 Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
+Calculator: Contract that provides Math functions
 BetTokenFaucet: It's a faucet of ERC20BetToken
 
 ### Structs
@@ -34,3 +35,4 @@ Score: A score composed by number of goals scored by home team and number of goa
 - Utilizar o Openzeppelin Defender
 - Em alguma versão futura, criar uma votação (ou outro mecanismo) para o BetToken perder paridade com o Ether (See: https://101blockchains.com/tokenomics/)
 - Na mesma linha do tópico acima: Prover um ICO para os interessados ganharem participação nos lucros da casa/banca?
+- Implementar lógica do valor da aposta/prêmio de acordo com as probabilidades: https://www.pinnacle.com/en/betting-resources/glossary

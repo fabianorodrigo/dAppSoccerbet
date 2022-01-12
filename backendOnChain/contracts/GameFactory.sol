@@ -21,6 +21,7 @@ Functions
 
 import "./BetToken.sol";
 import "./Game.sol";
+import "./libs/StringUtils.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -30,9 +31,15 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  */
 contract GameFactory is Ownable {
     // BetToken contract address
-    address private _betTokenContractAddress;
+    address private betTokenContractAddress;
+    // Calculator contract address
+    address private calculatorContractAddress;
     // All games registered
     Game[] private _games;
+    // Percentage of administration costs passed in the constructor of Game
+    // It can be changed along the time by ADMINISTRATOR for new games.
+    // However, after a Game is created, it can't be changed for that Game
+    uint256 private commission = 10;
 
     /**
      * Event triggered when a new game is created
@@ -43,6 +50,11 @@ contract GameFactory is Ownable {
         string visitorTeam,
         uint256 datetimeGame
     );
+
+    /**
+     * Event triggered when the commission for future created Games changes
+     */
+    event CommissionChanged(uint256 oldCommission, uint256 newCommission);
 
     /** SOLIDITY STYLE GUIDE **
 
@@ -57,8 +69,12 @@ contract GameFactory is Ownable {
         private
     **/
 
-    constructor(address betTokenContractAddress_) Ownable() {
-        _betTokenContractAddress = betTokenContractAddress_;
+    constructor(
+        address _betTokenContractAddress,
+        address _calculatorContractAddress
+    ) Ownable() {
+        betTokenContractAddress = _betTokenContractAddress;
+        calculatorContractAddress = _calculatorContractAddress;
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -83,14 +99,16 @@ contract GameFactory is Ownable {
         string memory _home,
         string memory _visitor,
         uint256 _datetimeGame
-    ) public onlyOwner {
+    ) external onlyOwner {
         // a game starts closed for betting
         Game g = new Game(
-            payable(this.owner()),
+            payable(this.owner()), //The owner of the game is the same owner of the GameFactory
             _home,
             _visitor,
             _datetimeGame,
-            _betTokenContractAddress
+            betTokenContractAddress,
+            calculatorContractAddress,
+            commission
         );
         _games.push(g);
         emit GameCreated(
@@ -99,6 +117,26 @@ contract GameFactory is Ownable {
             g.visitorTeam(),
             g.datetimeGame()
         );
+    }
+
+    /**
+     * @notice Return the current percentage of stake of future Games created directed to administration fee
+     *
+     * @return Percentage of fee for future created games
+     */
+    function getCommission() external view returns (uint256) {
+        return commission;
+    }
+
+    /**
+     * @notice Change the percentage of stake of future Games created directed to administration fee
+     *
+     * @param _commission New percentage of fee for future created games
+     */
+    function setCommission(uint256 _commission) external onlyOwner {
+        uint256 old = commission;
+        commission = _commission;
+        emit CommissionChanged(old, commission);
     }
 
     /**
@@ -121,26 +159,7 @@ contract GameFactory is Ownable {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() public onlyOwner {
-        // since the owner of Games contracts is this contract, it's necessary to destroy all of them before destroy the Factory
-        for (uint256 i = 0; i < _games.length; i++) {
-            if (isAliveContract(address(_games[i]))) {
-                _games[i].destroyContract();
-            }
-        }
+    function destroyContract() external onlyOwner {
         selfdestruct(payable(this.owner()));
-    }
-
-    /**
-     * @notice Checks if the address has some code, if it has, returns TRUE
-     * @param addr Address Ethereum to check whether has code or not
-     * @return return TRUE if the address has code
-     */
-    function isAliveContract(address addr) internal view returns (bool) {
-        uint256 size;
-        assembly {
-            size := extcodesize(addr)
-        }
-        return size > 0;
     }
 }

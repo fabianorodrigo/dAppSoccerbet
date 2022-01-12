@@ -6,8 +6,10 @@ const {expect} = require("chai");
 const {BN, expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
 
 const BetToken = artifacts.require("BetToken");
+const Calculator = artifacts.require("Calculator");
 const GameFactory = artifacts.require("GameFactory");
 const Game = artifacts.require("Game");
+const TestingAuxiliar = artifacts.require("TestingAuxiliar");
 
 contract("GameFactory", (accounts) => {
   let trace = false;
@@ -19,24 +21,35 @@ contract("GameFactory", (accounts) => {
   const bettor = accounts[1];
 
   let erc20BetToken = null,
+    calculator = null,
     gameFactoryContract = null;
+
+  before(async function () {
+    calculator = await Calculator.new({from: owner});
+  });
 
   beforeEach(async function () {
     erc20BetToken = await BetToken.new({from: owner});
-    gameFactoryContract = await GameFactory.new(erc20BetToken.address, {
-      from: owner,
-    });
+    gameFactoryContract = await GameFactory.new(
+      erc20BetToken.address,
+      calculator.address,
+      {
+        from: owner,
+      }
+    );
   });
   afterEach(async function () {
-    const games = await gameFactoryContract.listGames();
-    //since the owner of the games is the same owner of GameFactory,
-    //not the GameFactory itself, its destroyContract function has
-    //to be called by the owner
-    for (const gAddress of games) {
-      const game = await Game.at(gAddress);
-      game.destroyContract({from: owner});
+    if (gameFactoryContract != null) {
+      const games = await gameFactoryContract.listGames();
+      //since the owner of the games is the same owner of GameFactory,
+      //not the GameFactory itself, its destroyContract function has
+      //to be called by the owner
+      for (const gAddress of games) {
+        const game = await Game.at(gAddress);
+        await game.destroyContract({from: owner});
+      }
+      await gameFactoryContract.destroyContract({from: owner}); //, gasLimit: 500000});
     }
-    await gameFactoryContract.destroyContract({from: owner});
     await erc20BetToken.destroyContract({from: owner});
   });
 
@@ -74,8 +87,70 @@ contract("GameFactory", (accounts) => {
   });
 
   /**
+   * SETCOMMISSION
+   */
+  it(`Should set commision fee for future created Games`, async () => {
+    await createGame();
+    expect(await gameFactoryContract.getCommission()).to.be.bignumber.equal(
+      new BN(10)
+    );
+    const setCommissionReceipt = await gameFactoryContract.setCommission(16, {
+      from: owner,
+    });
+    expectEvent(setCommissionReceipt, "CommissionChanged", {
+      oldCommission: new BN(10),
+      newCommission: new BN(16),
+    });
+    expect(await gameFactoryContract.getCommission()).to.be.bignumber.equal(
+      new BN(16)
+    );
+  });
+
+  it(`Should revert if someone different from owner try set commission`, async () => {
+    expectRevert(
+      gameFactoryContract.setCommission(16, {from: bettor}),
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  /**
    * DESTROYCONTRACT
    */
+  it(`Should eventual Ether balance of GameFactory contract be sent to the owner`, async () => {
+    const weiAmount = web3.utils.toWei(new BN(1, "ether"));
+    //Create a instance of TestingAuxiliar with some Ether and setting the Game contract as
+    //the destination of it's remaining Ether after selfDestruct
+    const testingAuxiliar = await TestingAuxiliar.new(
+      gameFactoryContract.address,
+      {
+        value: weiAmount,
+      }
+    );
+    expect(await testingAuxiliar.selfDestructRecipient()).to.be.equal(
+      gameFactoryContract.address
+    );
+    //game contract balance should be ZERO
+    expect(
+      await web3.eth.getBalance(gameFactoryContract.address)
+    ).to.be.bignumber.equal(new BN(0));
+    // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
+    expect(
+      await web3.eth.getBalance(testingAuxiliar.address)
+    ).to.be.bignumber.equal(weiAmount);
+    // Destructing the testingAuxiliar should send it's Ethers to Game contract
+    await testingAuxiliar.destroyContract();
+    expect(
+      await web3.eth.getBalance(gameFactoryContract.address)
+    ).to.be.bignumber.equal(weiAmount);
+    // Destructing the Game contract should send it's Ethers to owner
+    const ownerBalance = await web3.eth.getBalance(owner);
+    await gameFactoryContract.destroyContract({from: owner});
+    gameFactoryContract = null;
+    expect(await web3.eth.getBalance(owner)).to.be.bignumber.greaterThan(
+      ownerBalance
+    );
+  });
+
   it(`Should revert if someone different from owner try destroy contract`, async () => {
     expectRevert(
       gameFactoryContract.destroyContract({from: bettor}),
@@ -84,18 +159,6 @@ contract("GameFactory", (accounts) => {
   });
   it(`Should revert if sending Ether to the contract`, async () => {
     const weiAmount = web3.utils.toWei(new BN(1, "ether"));
-
-    /**
-     * tentar manda ether de outra forma (via CALL???): https://solidity-by-example.org/sending-ether/
-     * function sendViaCall(address payable _to) public payable {
-     *   // Call returns a boolean value indicating success or failure.
-     *   // This is the current recommended method to use.
-     *   (bool sent, bytes memory data) = _to.call{value: msg.value}("");
-     *   require(sent, "Failed to send Ether");
-     * }
-     *
-     *
-     */
     expectRevert.unspecified(
       gameFactoryContract.sendTransaction({
         from: bettor,
