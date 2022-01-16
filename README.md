@@ -11,6 +11,15 @@ The branch 'main' will always keep the latest stable version that is the greater
 
 In this version the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
 
+### Local installation for development purpose
+
+```
+npm install
+
+# eth-gas-reporter only worked when deployed globally
+npm install --save-dev eth-gas-reporter -g
+```
+
 ### UI Angular
 
 User interface built in Angular where bettors buy tokens, make their toss and withdraw their prize in Ether.
