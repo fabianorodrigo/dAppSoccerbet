@@ -182,49 +182,6 @@ contract("Game", (accounts) => {
   });
 
   /**
-   * EDITFINALIZEDGAMESCORE
-   */
-  it(`Should edit the score of a finalized game`, async () => {
-    const score = {home: "3", visitor: "1"};
-    const newScore = {home: "4", visitor: "2"};
-    await gameContract.finalizeGame(score, {from: owner});
-    const receiptEditFinalScore = await gameContract.editFinalizedGameScore(
-      newScore,
-      {from: owner}
-    );
-    expect(await gameContract.open()).to.be.false;
-    expect(await gameContract.finalized()).to.be.true;
-    const finalScore = await gameContract.finalScore();
-    expect(finalScore.home).to.be.bignumber.equal(newScore.home);
-    expect(finalScore.visitor).to.be.bignumber.equal(newScore.visitor);
-    expectEvent(receiptEditFinalScore, "GameFinalScoreUpdated", {
-      addressGame: gameContract.address,
-      homeTeam: "SÃO PAULO",
-      visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
-      score: Object.values(newScore),
-    });
-  });
-
-  it(`Should revert if try to edit the score of a not finalized game`, async () => {
-    const newScore = {home: "4", visitor: "2"};
-    expectRevert(
-      gameContract.editFinalizedGameScore(newScore, {from: owner}),
-      "The game hasn't been finalized yet. Call finalizeGame function"
-    );
-  });
-
-  it(`Should revert if someone different from owner try to edit the score of a finalized game`, async () => {
-    const score = {home: "3", visitor: "1"};
-    const newScore = {home: "4", visitor: "2"};
-    await gameContract.finalizeGame(score, {from: owner});
-    expectRevert(
-      gameContract.editFinalizedGameScore(newScore, {from: bettor}),
-      "Ownable: caller is not the owner"
-    );
-  });
-
-  /**
    * BET
    */
   it(`Should make a bet on an open game`, async () => {

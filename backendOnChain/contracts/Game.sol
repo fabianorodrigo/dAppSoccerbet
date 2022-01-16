@@ -32,6 +32,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @author Fabiano Nascimento
  */
 contract Game is Ownable {
+    uint8 public immutable WINNING = 2;
+    uint8 public immutable LOSS = 1;
+    uint8 public immutable NO_RESULT = 0;
+
     //BetToken contract
     BetToken private _betTokenContract;
     // Calculator contract
@@ -47,6 +51,8 @@ contract Game is Ownable {
     uint256 public datetimeGame;
     //bets
     Bet[] private _bets;
+    //total stake
+    uint256 private _totalStake = 0;
     //real final score
     Score public finalScore;
     //When TRUE, the game is already finalized
@@ -192,7 +198,8 @@ contract Game is Ownable {
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
         if (_betTokenContract.transferFrom(msg.sender, address(this), _value)) {
-            _bets.push(Bet(msg.sender, _score, _value));
+            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT));
+            _totalStake += _value;
             emit BetOnGame(
                 address(this),
                 msg.sender,
@@ -240,28 +247,51 @@ contract Game is Ownable {
     }
 
     /**
-     * @notice Edit the score of a finalized game just in case something was wrong.
-     * Only allowed if the game is finalized. Emits the event GameFinalScoreUpdated
-     *
-     * @param _finalScore Data of the final score of the match
+     * @notice Identify which bets matched the finalScore and split the prize (stake less comission fee)
+     * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
+     * for all
+     * @return The number of bets winners
      */
-    function editFinalizedGameScore(Score memory _finalScore)
-        external
-        onlyOwner
-    {
-        require(
-            finalized,
-            "The game hasn't been finalized yet. Call finalizeGame function"
-        );
-        // register the final score and finalizes the game
-        finalScore = _finalScore;
-        emit GameFinalScoreUpdated(
-            address(this),
-            homeTeam,
-            visitorTeam,
-            datetimeGame,
-            finalScore
-        );
+    function payPrizes() external onlyOwner returns (uint256) {
+        require(finalized, "Game not finalized yet");
+        uint256 _totalTokensBetWinners = 0;
+        uint256 _totalWinners = 0;
+        for (uint256 i = 0; i < _bets.length; i++) {
+            if (
+                _bets[i].score.home == finalScore.home &&
+                _bets[i].score.visitor == finalScore.visitor
+            ) {
+                _bets[i].result = WINNING;
+                _totalTokensBetWinners += _bets[i].value;
+                _totalWinners++;
+            } else {
+                _bets[i].result = LOSS;
+            }
+        }
+        uint256 _totalPrize = this.getPrize();
+        uint256 _divider;
+        // if nobody matches the final score, every bettor is refunded with
+        // the value of he's bet less the commission fee
+        // In this case, the divider applyed to the formula will be the total stake
+        if (_totalWinners == 0) {
+            _divider = _totalStake;
+        }
+        //Otherwise, the divider will be the _totalTokensBetWinners
+        else {
+            _divider = _totalTokensBetWinners;
+        }
+        for (uint256 i = 0; i < _bets.length; i++) {
+            //If nobody matches the final score, _totalTokensBetWinners will be zero
+            //and if will always return TRUE. Otherwise, only when for bets that matched
+            //the final score the IF will be TRUE
+            if (_bets[i].result == WINNING || _totalTokensBetWinners == 0) {
+                // The value transfered will be proportional: prize * the value of bet divided by
+                // the total of tokens of the winning bets (if nobody wins, the total stake)
+                uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
+                _betTokenContract.transfer(_bets[i].bettor, _prizeValue);
+            }
+        }
+        return _totalWinners;
     }
 
     /**
@@ -281,11 +311,7 @@ contract Game is Ownable {
      * @return the stake of all bets, the amount of BetToken
      */
     function getTotalStake() public view returns (uint256) {
-        uint256 stake = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            stake += _bets[i].value;
-        }
-        return stake;
+        return _totalStake;
     }
 
     /**
@@ -293,11 +319,7 @@ contract Game is Ownable {
      * @return administration commission
      */
     function getCommissionValue() public view returns (uint256) {
-        uint256 stake = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            stake += _bets[i].value;
-        }
-        return _calculator.calcPercentage(stake, commission);
+        return _calculator.calcPercentage(_totalStake, commission);
     }
 
     /**
@@ -305,11 +327,7 @@ contract Game is Ownable {
      * @return stake value less commissions
      */
     function getPrize() public view returns (uint256) {
-        uint256 stake = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            stake += _bets[i].value;
-        }
-        return stake - this.getCommissionValue();
+        return _totalStake - this.getCommissionValue();
     }
 
     /**
