@@ -1,1 +1,13 @@
-<p>home works!</p>
+<button
+  mat-raised-button
+  color="primary"
+  (click)="connect($event)"
+  *ngIf="!accountAddress"
+>
+  Connect Wallet
+</button>
+
+<mat-card class="example-card" *ngIf="accountAddress">
+  <mat-card-header>Connected</mat-card-header>
+  <mat-card-content> Account address: {{ accountAddress }} </mat-card-content>
+</mat-card>
