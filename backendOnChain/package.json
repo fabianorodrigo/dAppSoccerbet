@@ -6,7 +6,8 @@
     "start": "npm run migrate",
     "build": "truffle compile",
     "migrate": "truffle migrate --network ganache",
-    "test": "truffle test --network ganache"
+    "test": "truffle test --network ganache",
+    "trailofbits":"docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.1",
