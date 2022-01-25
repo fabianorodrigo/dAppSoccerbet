@@ -13,14 +13,17 @@
         <mat-icon>home</mat-icon>
         Home
       </mat-list-item>
-      <mat-list-item [routerLink]="['/money']">
-        <mat-icon>money</mat-icon>
-        Transactions
+      <mat-list-item
+        [routerLink]="['/admin']"
+        *ngIf="this.owner == this.wallet"
+      >
+        <mat-icon>build</mat-icon>
+        Admin
       </mat-list-item>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
+    <mat-toolbar fxLayout="row" fxLayoutAlign="space-between" color="primary">
       <button
         type="button"
         aria-label="Toggle sidenav"
@@ -30,11 +33,12 @@
       >
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>{{ title }}</span>
+      <span fxFlexAlign="center">{{ title }}</span>
       <span class="example-spacer"></span>
-      <button mat-icon-button [routerLink]="['/account']">
-        <mat-icon>{{ icon }}</mat-icon>
-      </button>
+      <dapp-wallet
+        fxFlexAlign="center"
+        (onChangeAccount)="changeWalletAccount($event)"
+      ></dapp-wallet>
     </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>

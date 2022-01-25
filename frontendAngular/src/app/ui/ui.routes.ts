@@ -2,11 +2,11 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 // Components
-import { ErrorComponent } from './error/error.component';
+import { ErrorComponent } from './components/error/error.component';
 import { HomeComponent } from './home/home.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'money', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
   //{ path: 'money', component: TransactionComponent },
   { path: 'home', component: HomeComponent },
   //{ path: 'account', component: AccountComponent},

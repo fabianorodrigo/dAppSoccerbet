@@ -1,15 +1,22 @@
+import { ComponentsModule } from './components/components.module';
 import { UiRoutingModule } from './ui.routes';
 import { MaterialModule } from './../material.module';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from './header/header.component';
+import { HeaderComponent } from './components/header/header.component';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home/home.component';
-import { ErrorComponent } from './error/error.component';
+import { ErrorComponent } from './components/error/error.component';
 
 @NgModule({
-  declarations: [HeaderComponent, HomeComponent, ErrorComponent],
-  imports: [CommonModule, RouterModule, MaterialModule, UiRoutingModule],
-  exports: [HeaderComponent],
+  declarations: [HomeComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MaterialModule,
+    UiRoutingModule,
+    ComponentsModule,
+  ],
+  exports: [ComponentsModule],
 })
 export class UiModule {}

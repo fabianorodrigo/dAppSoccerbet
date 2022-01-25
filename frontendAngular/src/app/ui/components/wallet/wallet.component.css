@@ -1,0 +1,14 @@
+.connected-account {
+  max-width: 400px;
+}
+
+.label {
+  padding-bottom: 0px;
+  font-size: small;
+}
+
+.accountAddress {
+  font-weight: bold;
+  font-size: smaller;
+  color: rgb(255, 215, 64);
+}
