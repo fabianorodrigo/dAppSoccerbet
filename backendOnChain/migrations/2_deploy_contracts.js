@@ -3,6 +3,7 @@ const Calculator = artifacts.require("Calculator");
 const GameFactory = artifacts.require("GameFactory");
 
 module.exports = async function (deployer, network, accounts) {
+  console.log(`NETWORK OF DEPLOY: ${network}`);
   if (
     network === "ganache" ||
     network === "development" ||

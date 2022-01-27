@@ -2,16 +2,17 @@
   "name": "dappsoccerbet-backendonchain",
   "version": "0.0.0",
   "scripts": {
-    "ganache": "ganache -p 7545 -i 5777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
+    "ganache": "ganache -p 7545 -i 7777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
     "start": "npm run migrate",
     "build": "truffle compile",
     "migrate": "truffle migrate --network ganache",
     "test": "truffle test --network ganache",
-    "trailofbits":"docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox"
+    "trailofbits": "docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.1",
-    "@truffle/hdwallet-provider": "^2.0.0"
+    "@truffle/hdwallet-provider": "^2.0.0",
+    "eth-gas-reporter": "^0.2.24"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.15"
