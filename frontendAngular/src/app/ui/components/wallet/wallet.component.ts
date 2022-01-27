@@ -132,7 +132,10 @@ export class WalletComponent implements OnInit {
     //Angular not rerendering in spite of changing this.accountAddress
     this.changeDetectorRefs.detectChanges();
     this.onChangeAccount.emit(this.accountAddress);
-    console.log(`wallet valido? `, this.web3.utils.isAddress(accounts[0]));
+    console.log(
+      `wallet ${accounts[0]} valido? `,
+      this.web3.utils.isAddress(accounts[0])
+    );
   }
 
   /**

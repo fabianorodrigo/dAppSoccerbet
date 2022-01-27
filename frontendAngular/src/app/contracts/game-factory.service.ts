@@ -23,8 +23,8 @@ export class GameFactoryService extends BaseContract {
           try {
             result = await contract.methods.owner().call();
             console.log(`owner() valido? `, this.web3.utils.isAddress(result));
-          } catch (e: any) {
-            alert(e.message);
+          } catch (e) {
+            console.warn(e);
           }
           subscriber.next(result);
         }

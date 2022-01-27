@@ -31,22 +31,41 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.gameFactory
-      .owner()
-      .pipe(
-        //if an error in the HTTP request occurs we are going to return an Observable that emits the
-        //empty array using 'of'
-        catchError((e) => {
-          return of('');
-        })
-      )
-      .subscribe((ownerAddress) => {
-        this.owner = ownerAddress;
-        console.log(`subscribe`, this.owner);
-      });
+    this.getOwner().subscribe((ownerAddress) => {
+      this.owner = ownerAddress;
+      console.log(`OnInit subscribe owner`, this.owner);
+    });
+  }
+
+  private getOwner(): Observable<string> {
+    return new Observable<string>((subscriber) => {
+      this.gameFactory
+        .owner()
+        .pipe(
+          //if an error in the HTTP request occurs we are going to return an Observable that emits the
+          //empty array using 'of'
+          catchError((e) => {
+            return of('');
+          })
+        )
+        .subscribe((ownerAddress) => {
+          subscriber.next(ownerAddress);
+        });
+    });
   }
 
   changeWalletAccount(address: string | null) {
     this.wallet = address;
+    console.warn(`wallet: ${this.wallet}`);
+    //if owner was not set yet, try again
+    this.getOwner().subscribe((ownerAddress) => {
+      this.owner = ownerAddress;
+      console.log(`changeWalletAccount subscribe owner`, this.owner);
+      if (!ownerAddress) {
+        alert(
+          `Connection with contract failed. Check if you are connected with your account in the right chain`
+        );
+      }
+    });
   }
 }
