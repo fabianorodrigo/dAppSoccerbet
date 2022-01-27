@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
-  gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
+  betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
+  gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
 };
 
 /*
