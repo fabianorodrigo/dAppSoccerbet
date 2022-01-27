@@ -20,9 +20,12 @@ export class BetTokenService extends BaseContract {
     return new Observable<BigNumber>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (contract) => {
-          const result = await contract.methods
-            .balanceOf(accountAddress)
-            .call();
+          let result;
+          try {
+            result = await contract.methods.balanceOf(accountAddress).call();
+          } catch (e: any) {
+            alert(e.message);
+          }
           subscriber.next(result);
         }
       );

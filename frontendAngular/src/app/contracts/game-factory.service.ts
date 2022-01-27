@@ -19,8 +19,13 @@ export class GameFactoryService extends BaseContract {
     return new Observable<string>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (contract) => {
-          const result = await contract.methods.owner().call();
-          console.log(`owner() valido? `, this.web3.utils.isAddress(result));
+          let result;
+          try {
+            result = await contract.methods.owner().call();
+            console.log(`owner() valido? `, this.web3.utils.isAddress(result));
+          } catch (e: any) {
+            alert(e.message);
+          }
           subscriber.next(result);
         }
       );
