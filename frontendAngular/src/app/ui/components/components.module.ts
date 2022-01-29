@@ -7,9 +7,17 @@ import { RouterModule } from '@angular/router';
 import { UiRoutingModule } from '../ui.routes';
 import { WalletComponent } from './wallet/wallet.component';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { MenuComponent } from './menu/menu.component';
+import { LayoutComponent } from './layout/layout.component';
 
 @NgModule({
-  declarations: [HeaderComponent, ErrorComponent, WalletComponent],
+  declarations: [
+    HeaderComponent,
+    ErrorComponent,
+    WalletComponent,
+    MenuComponent,
+    LayoutComponent,
+  ],
   imports: [
     CommonModule,
     RouterModule,
@@ -17,6 +25,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     UiRoutingModule,
     FlexLayoutModule,
   ],
-  exports: [HeaderComponent, WalletComponent],
+  exports: [HeaderComponent, WalletComponent, MenuComponent, LayoutComponent],
 })
 export class ComponentsModule {}

@@ -1,6 +1,6 @@
 import { GameFactoryService } from './../../../contracts/game-factory.service';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 
 @Component({
@@ -11,6 +11,8 @@ import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 export class HeaderComponent implements OnInit {
   @Input() title: String = 'Ðapp';
   @Input() icon!: String;
+  @Output() public sidenavToggle = new EventEmitter();
+
   owner: string | null = null;
   wallet: string | null = null;
 
@@ -68,4 +70,8 @@ export class HeaderComponent implements OnInit {
       }
     });
   }
+
+  public onToggleSidenav = () => {
+    this.sidenavToggle.emit();
+  };
 }

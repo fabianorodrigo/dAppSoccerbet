@@ -1,2 +1,17 @@
-<dapp-header [title]="title" [icon]="icon"></dapp-header>
-<router-outlet></router-outlet>
+<dapp-layout>
+  <dapp-header
+    [title]="title"
+    [icon]="icon"
+    (sidenavToggle)="sidenav.toggle()"
+  ></dapp-header>
+  <mat-sidenav-container>
+    <mat-sidenav #sidenav role="navigation">
+      <dapp-menu (sidenavClose)="sidenav.close()"></dapp-menu>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <main>
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</dapp-layout>

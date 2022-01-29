@@ -1,0 +1,23 @@
+<mat-nav-list>
+  <a mat-list-item routerLink="/home" (click)="onSidenavClose()">
+    <mat-icon>home</mat-icon> <span class="nav-caption">Home</span>
+  </a>
+  <a mat-list-item routerLink="/home" (click)="onSidenavClose()">
+    <mat-icon>sports_soccer</mat-icon> <span class="nav-caption">Games</span>
+  </a>
+  <a mat-list-item routerLink="/games" (click)="onSidenavClose()">
+    <mat-icon>sell</mat-icon><span class="nav-caption">Bet Token</span>
+  </a>
+  <mat-list-item [matMenuTriggerFor]="menu">
+    <mat-icon>build</mat-icon>
+    <a matline>Administration</a>
+  </mat-list-item>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item routerLink="/adminToken" (click)="onSidenavClose()">
+      Bet Token
+    </button>
+    <button mat-menu-item routerLink="/adminGames" (click)="onSidenavClose()">
+      Games
+    </button>
+  </mat-menu>
+</mat-nav-list>

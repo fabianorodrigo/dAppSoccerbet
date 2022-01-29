@@ -8,9 +8,10 @@ import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { ErrorComponent } from './components/error/error.component';
 import { AdminComponent } from './admin/admin.component';
+import { GamesComponent } from './games/games.component';
 
 @NgModule({
-  declarations: [HomeComponent, AdminComponent],
+  declarations: [HomeComponent, AdminComponent, GamesComponent],
   imports: [
     CommonModule,
     RouterModule,

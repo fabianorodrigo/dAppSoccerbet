@@ -8,8 +8,7 @@ a:active {
   color: lightgray;
 }
 
-.navigation-items {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+.nav-caption {
+  display: inline-block;
+  padding-left: 6px;
 }

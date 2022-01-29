@@ -1,45 +1,20 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav
-    #drawer
-    class="sidenav"
-    fixedInViewport
-    [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-    [mode]="(isHandset$ | async) ? 'over' : 'side'"
-    [opened]="(isHandset$ | async) === false"
-  >
-    <mat-toolbar>Menu</mat-toolbar>
-    <mat-nav-list>
-      <mat-list-item [routerLink]="['/home']">
-        <mat-icon>home</mat-icon>
-        Home
-      </mat-list-item>
-      <mat-list-item
-        [routerLink]="['/admin']"
-        *ngIf="this.owner == this.wallet"
-      >
-        <mat-icon>build</mat-icon>
-        Admin
-      </mat-list-item>
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <mat-toolbar fxLayout="row" fxLayoutAlign="space-between" color="primary">
-      <button
-        type="button"
-        aria-label="Toggle sidenav"
-        mat-icon-button
-        (click)="drawer.toggle()"
-        *ngIf="isHandset$ | async"
-      >
-        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-      </button>
-      <span fxFlexAlign="center">{{ title }}</span>
-      <span class="example-spacer"></span>
-      <dapp-wallet
-        fxFlexAlign="center"
-        (onChangeAccount)="changeWalletAccount($event)"
-      ></dapp-wallet>
-    </mat-toolbar>
-    <router-outlet></router-outlet>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+<mat-toolbar color="primary">
+  <div>
+    <button mat-icon-button (click)="onToggleSidenav()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </div>
+  <div>
+    <a routerLink="/home">{{ title }}</a>
+  </div>
+  <div fxFlex fxLayout fxLayoutAlign="end" fxHide.xs>
+    <ul fxLayout fxLayoutGap="15px" class="navigation-items">
+      <li>
+        <dapp-wallet
+          fxFlexAlign="center"
+          (onChangeAccount)="changeWalletAccount($event)"
+        ></dapp-wallet>
+      </li>
+    </ul>
+  </div>
+</mat-toolbar>
