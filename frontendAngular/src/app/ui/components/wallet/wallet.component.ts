@@ -9,7 +9,9 @@ import {
 import { BetTokenService } from 'src/app/contracts/bettoken.service';
 import { WEB3 } from 'src/app/core/web3';
 import { ProviderMessage } from 'src/app/model/metamask/ProviderMessage';
+import { Web3Service } from 'src/app/services';
 import Web3 from 'web3';
+import { ProviderErrors } from './../../../model/eip1193/providerErrors';
 
 declare let window: any;
 
@@ -23,13 +25,14 @@ export class WalletComponent implements OnInit {
   accountAddress: string | null = null;
 
   constructor(
-    @Inject(WEB3) private web3: Web3,
+    @Inject(WEB3) web3: Web3,
     private changeDetectorRefs: ChangeDetectorRef,
     private betTokenContractService: BetTokenService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     if (window.ethereum) {
+      //const chainId = await ethereum.request({ method: 'eth_chainId' });
       window.ethereum.on('connect', this.handleOnConnect.bind(this));
       window.ethereum.on('disconnect', this.handleOnDisconnect.bind(this));
       window.ethereum.on(
@@ -58,14 +61,12 @@ export class WalletComponent implements OnInit {
         this.handleOnAccountsChanged(accounts);
       } catch (err: any) {
         console.error(err);
-        if (err.code === 4001) {
-          // EIP-1193 userRejectedRequest error
-          // If this happens, the user rejected the connection request.
+        const providerError = ProviderErrors[err.code];
+        if (providerError) {
           alert(
-            'You need to connect with an account in your wallet in order to make use of this Ðapp'
+            `${providerError.title}: ${providerError.message}. You need to connect with an account in your wallet in order to make use of this Ðapp`
           );
         } else {
-          console.error(err);
           alert('We had some problem connecting you wallet');
         }
       }
@@ -132,10 +133,7 @@ export class WalletComponent implements OnInit {
     //Angular not rerendering in spite of changing this.accountAddress
     this.changeDetectorRefs.detectChanges();
     this.onChangeAccount.emit(this.accountAddress);
-    console.log(
-      `wallet ${accounts[0]} valido? `,
-      this.web3.utils.isAddress(accounts[0])
-    );
+    console.log(`wallet ${accounts[0]} valido? `);
   }
 
   /**

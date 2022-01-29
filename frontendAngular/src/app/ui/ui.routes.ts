@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AdminComponent } from './admin/admin.component';
 
 // Components
 import { ErrorComponent } from './components/error/error.component';
@@ -9,6 +10,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   //{ path: 'money', component: TransactionComponent },
   { path: 'home', component: HomeComponent },
+  { path: 'admin', component: AdminComponent },
   //{ path: 'account', component: AccountComponent},
   { path: '404', component: ErrorComponent },
   { path: '**', redirectTo: '/404' },

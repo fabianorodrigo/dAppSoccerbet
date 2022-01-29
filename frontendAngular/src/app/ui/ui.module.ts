@@ -7,9 +7,10 @@ import { HeaderComponent } from './components/header/header.component';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { ErrorComponent } from './components/error/error.component';
+import { AdminComponent } from './admin/admin.component';
 
 @NgModule({
-  declarations: [HomeComponent],
+  declarations: [HomeComponent, AdminComponent],
   imports: [
     CommonModule,
     RouterModule,

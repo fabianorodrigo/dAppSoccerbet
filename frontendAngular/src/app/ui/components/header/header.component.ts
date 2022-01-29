@@ -11,8 +11,8 @@ import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 export class HeaderComponent implements OnInit {
   @Input() title: String = 'Ðapp';
   @Input() icon!: String;
-  owner!: string | null;
-  wallet!: string | null;
+  owner: string | null = null;
+  wallet: string | null = null;
 
   menuItems = ['Home', 'Admin'];
 
