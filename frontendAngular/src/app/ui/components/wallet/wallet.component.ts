@@ -25,7 +25,6 @@ export class WalletComponent implements OnInit {
   accountAddress: string | null = null;
 
   constructor(
-    @Inject(WEB3) web3: Web3,
     private changeDetectorRefs: ChangeDetectorRef,
     private betTokenContractService: BetTokenService
   ) {}

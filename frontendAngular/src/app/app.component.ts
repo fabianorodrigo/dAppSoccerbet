@@ -1,7 +1,7 @@
 import { environment } from 'src/environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
-import { GameFactoryService } from './contracts/game-factory.service';
+import { GameFactoryService } from './contracts';
 
 @Component({
   selector: 'app-root',

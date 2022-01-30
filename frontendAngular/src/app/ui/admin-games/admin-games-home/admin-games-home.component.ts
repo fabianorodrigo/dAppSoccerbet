@@ -1,5 +1,8 @@
-import { Game } from 'src/app/model/game.interface';
 import { Component, OnInit } from '@angular/core';
+import { catchError, finalize, of } from 'rxjs';
+import { GameFactoryService } from 'src/app/contracts';
+import { Game } from 'src/app/model/game.interface';
+import { MessageService } from './../../../services';
 
 @Component({
   selector: 'dapp-admin-games-home',
@@ -7,9 +10,13 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./admin-games-home.component.css'],
 })
 export class AdminGamesHomeComponent implements OnInit {
-  constructor() {}
+  constructor(
+    private gameFactory: GameFactoryService,
+    private message: MessageService
+  ) {}
 
   editing: boolean = false;
+  processing: boolean = false;
 
   ngOnInit(): void {}
   newGame(event: MouseEvent) {
@@ -18,7 +25,15 @@ export class AdminGamesHomeComponent implements OnInit {
 
   closeForm(game: Game | null) {
     if (game != null) {
-      alert(`Olha o jogo aí gente: ${game.homeTeam} vs ${game.visitorTeam}`);
+      this.processing = true;
+      this.gameFactory.newGame(game).subscribe((success) => {
+        this.processing = false;
+        if (success) {
+          this.message.show(`Transaction sent successfully`);
+        } else {
+          this.message.show(`The transaction wasn't sent`);
+        }
+      });
     }
     this.editing = false;
   }

@@ -1,7 +1,7 @@
 <button mat-raised-button color="primary" (click)="newGame($event)">
   New Game ...
 </button>
-
+<mat-spinner *ngIf="processing"></mat-spinner>
 <dapp-admin-games-form
   *ngIf="this.editing"
   (onCloseEdition)="closeForm($event)"

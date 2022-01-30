@@ -1,14 +1,14 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from './header/header.component';
-import { ErrorComponent } from './error/error.component';
-import { MaterialModule } from 'src/app/material.module';
-import { RouterModule } from '@angular/router';
-import { UiRoutingModule } from '../ui.routes';
-import { WalletComponent } from './wallet/wallet.component';
+import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { MenuComponent } from './menu/menu.component';
+import { RouterModule } from '@angular/router';
+import { MaterialModule } from 'src/app/material.module';
+import { UiRoutingModule } from '../ui.routes';
+import { ErrorComponent } from './error/error.component';
+import { HeaderComponent } from './header/header.component';
 import { LayoutComponent } from './layout/layout.component';
+import { MenuComponent } from './menu/menu.component';
+import { WalletComponent } from './wallet/wallet.component';
 
 @NgModule({
   declarations: [

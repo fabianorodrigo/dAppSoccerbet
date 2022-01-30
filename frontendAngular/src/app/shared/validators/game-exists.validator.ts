@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { debounceTime, first, map, switchMap } from 'rxjs/operators';
-import { GameFactoryService } from './../../contracts/game-factory.service';
+import { GameFactoryService } from './../../contracts';
 
 @Injectable({ providedIn: 'root' })
 export class GameExistsValidator {
