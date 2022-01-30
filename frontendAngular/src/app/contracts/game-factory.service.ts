@@ -6,6 +6,7 @@ import { WEB3 } from '../core/web3';
 import { Observable } from 'rxjs';
 import contractABI from '../../../../backendOnChain/build/contracts/GameFactory.json';
 import { AbiItem } from 'web3-utils';
+import { Game } from '../model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,5 +31,10 @@ export class GameFactoryService extends BaseContract {
         }
       );
     });
+  }
+
+  exists(id: any) {
+    return false;
+    //TODO: Implementar
   }
 }

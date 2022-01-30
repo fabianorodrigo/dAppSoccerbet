@@ -1,0 +1,49 @@
+<form class="form" [formGroup]="form">
+  <mat-form-field class="full-width">
+    <input matInput placeholder="Home Team" formControlName="homeTeam" />
+  </mat-form-field>
+  <mat-form-field class="full-width">
+    <input matInput placeholder="Visitor Team" formControlName="visitorTeam" />
+  </mat-form-field>
+  <div fxLayout="row" fxLayoutAlign="start" fxLayoutGap="5px">
+    <mat-form-field>
+      <input
+        matInput
+        [matDatepicker]="picker"
+        formControlName="datetimeGame"
+        placeholder="Date of the game"
+      />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field class="timePart">
+      <input
+        matInput
+        type="number"
+        placeholder="Hours"
+        formControlName="hours"
+        min="0"
+        max="23"
+      />
+    </mat-form-field>
+    <mat-form-field class="timePart">
+      <input
+        matInput
+        type="number"
+        placeholder="Minutes"
+        formControlName="minutes"
+        min="0"
+        max="59"
+        step="5"
+      />
+    </mat-form-field>
+  </div>
+  <div fxLayout="row" fxLayoutAlign="start" fxLayoutGap="5px">
+    <button mat-raised-button color="primary" (click)="save($event)">
+      Save
+    </button>
+    <button mat-raised-button color="secondary" (click)="cancel($event)">
+      Cancel
+    </button>
+  </div>
+</form>

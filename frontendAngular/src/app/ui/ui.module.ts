@@ -1,23 +1,22 @@
-import { ComponentsModule } from './components/components.module';
-import { UiRoutingModule } from './ui.routes';
-import { MaterialModule } from './../material.module';
-import { NgModule } from '@angular/core';
+import { AdminGamesModule } from './admin-games/admin-games.module';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from './components/header/header.component';
+import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { HomeComponent } from './home/home.component';
-import { ErrorComponent } from './components/error/error.component';
-import { AdminGamesComponent } from './admin-games/admin-games.component';
+import { MaterialModule } from './../material.module';
+import { ComponentsModule } from './components/components.module';
 import { GamesComponent } from './games/games.component';
+import { HomeComponent } from './home/home.component';
+import { UiRoutingModule } from './ui.routes';
 
 @NgModule({
-  declarations: [HomeComponent, AdminGamesComponent, GamesComponent],
+  declarations: [HomeComponent, GamesComponent],
   imports: [
     CommonModule,
     RouterModule,
     MaterialModule,
     UiRoutingModule,
     ComponentsModule,
+    AdminGamesModule,
   ],
   exports: [ComponentsModule],
 })

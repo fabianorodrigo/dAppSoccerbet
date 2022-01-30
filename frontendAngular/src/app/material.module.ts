@@ -1,9 +1,11 @@
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { NgModule } from '@angular/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -15,9 +17,9 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatTabsModule } from '@angular/material/tabs';
 
 @NgModule({
   imports: [
@@ -31,7 +33,6 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatButtonModule,
     MatTableModule,
     MatGridListModule,
-    MatDatepickerModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule,
@@ -40,6 +41,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatTooltipModule,
     MatMenuModule,
     MatTabsModule,
+    MatNativeDateModule,
+    MatDatepickerModule,
   ],
   exports: [
     MatSidenavModule,
@@ -52,7 +55,6 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatButtonModule,
     MatTableModule,
     MatGridListModule,
-    MatDatepickerModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule,
@@ -61,6 +63,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     MatTooltipModule,
     MatMenuModule,
     MatTabsModule,
+    MatNativeDateModule,
+    MatDatepickerModule,
   ],
 })
 export class MaterialModule {}

@@ -1,0 +1,17 @@
+.form {
+  min-width: 150px;
+  max-width: 500px;
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid gray;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.timePart {
+  width: 75px;
+}
