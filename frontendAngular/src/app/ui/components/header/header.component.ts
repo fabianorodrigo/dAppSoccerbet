@@ -1,7 +1,5 @@
-import { GameFactoryService } from './../../../contracts/game-factory.service';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 
 @Component({
   selector: 'dapp-header',
@@ -11,64 +9,18 @@ import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 export class HeaderComponent implements OnInit {
   @Input() title: String = 'Ðapp';
   @Input() icon!: String;
+  @Input() userAccountAddress: string | null = null;
+
   @Output() public sidenavToggle = new EventEmitter();
+  @Output() onChangeAccount = new EventEmitter<string | null>();
 
-  owner: string | null = null;
-  wallet: string | null = null;
+  constructor(private breakpointObserver: BreakpointObserver) {}
 
-  menuItems = ['Home', 'Admin'];
-
-  isHandset$: Observable<boolean> = this.breakpointObserver
-    .observe(Breakpoints.Handset)
-    .pipe(
-      map((result) => {
-        return result.matches;
-      }),
-      shareReplay()
-    );
-
-  constructor(
-    private breakpointObserver: BreakpointObserver,
-    private gameFactory: GameFactoryService
-  ) {}
-
-  ngOnInit(): void {
-    this.getOwner().subscribe((ownerAddress) => {
-      this.owner = ownerAddress;
-      console.log(`OnInit subscribe owner`, this.owner);
-    });
-  }
-
-  private getOwner(): Observable<string> {
-    return new Observable<string>((subscriber) => {
-      this.gameFactory
-        .owner()
-        .pipe(
-          //if an error in the HTTP request occurs we are going to return an Observable that emits the
-          //empty array using 'of'
-          catchError((e) => {
-            return of('');
-          })
-        )
-        .subscribe((ownerAddress) => {
-          subscriber.next(ownerAddress);
-        });
-    });
-  }
+  ngOnInit(): void {}
 
   changeWalletAccount(address: string | null) {
-    this.wallet = address;
-    console.warn(`wallet: ${this.wallet}`);
-    //if owner was not set yet, try again
-    this.getOwner().subscribe((ownerAddress) => {
-      this.owner = ownerAddress;
-      console.log(`changeWalletAccount subscribe owner`, this.owner);
-      if (!ownerAddress) {
-        alert(
-          `Connection with contract failed. Check if you are connected with your account in the right chain`
-        );
-      }
-    });
+    this.onChangeAccount.emit(address);
+    console.warn(`wallet: ${address}`);
   }
 
   public onToggleSidenav = () => {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
   selector: 'dapp-menu',
@@ -6,7 +6,11 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
   styleUrls: ['./menu.component.css'],
 })
 export class MenuComponent implements OnInit {
+  @Input() owner: string | null = null;
+  @Input() userAccountAddress: string | null = null;
+
   @Output() sidenavClose = new EventEmitter();
+
   constructor() {}
   ngOnInit() {}
   public onSidenavClose = () => {

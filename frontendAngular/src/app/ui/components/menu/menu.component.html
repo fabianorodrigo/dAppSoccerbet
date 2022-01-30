@@ -2,13 +2,16 @@
   <a mat-list-item routerLink="/home" (click)="onSidenavClose()">
     <mat-icon>home</mat-icon> <span class="nav-caption">Home</span>
   </a>
-  <a mat-list-item routerLink="/home" (click)="onSidenavClose()">
+  <a mat-list-item routerLink="/games" (click)="onSidenavClose()">
     <mat-icon>sports_soccer</mat-icon> <span class="nav-caption">Games</span>
   </a>
-  <a mat-list-item routerLink="/games" (click)="onSidenavClose()">
+  <a mat-list-item routerLink="/token" (click)="onSidenavClose()">
     <mat-icon>sell</mat-icon><span class="nav-caption">Bet Token</span>
   </a>
-  <mat-list-item [matMenuTriggerFor]="menu">
+  <mat-list-item
+    [matMenuTriggerFor]="menu"
+    *ngIf="this.owner == this.userAccountAddress"
+  >
     <mat-icon>build</mat-icon>
     <a matline>Administration</a>
   </mat-list-item>

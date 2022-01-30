@@ -1,7 +1,7 @@
 import { GamesComponent } from './games/games.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AdminComponent } from './admin/admin.component';
+import { AdminGamesComponent } from './admin-games/admin-games.component';
 
 // Components
 import { ErrorComponent } from './components/error/error.component';
@@ -12,7 +12,7 @@ export const routes: Routes = [
   //{ path: 'money', component: TransactionComponent },
   { path: 'home', component: HomeComponent },
   { path: 'games', component: GamesComponent },
-  { path: 'admin', component: AdminComponent },
+  { path: 'adminGames', component: AdminGamesComponent },
   //{ path: 'account', component: AccountComponent},
   { path: '404', component: ErrorComponent },
   { path: '**', redirectTo: '/404' },

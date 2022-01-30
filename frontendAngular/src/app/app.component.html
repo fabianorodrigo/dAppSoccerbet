@@ -2,11 +2,17 @@
   <dapp-header
     [title]="title"
     [icon]="icon"
+    [userAccountAddress]="userAccountAddress"
     (sidenavToggle)="sidenav.toggle()"
+    (onChangeAccount)="changeWalletAccount($event)"
   ></dapp-header>
   <mat-sidenav-container>
     <mat-sidenav #sidenav role="navigation">
-      <dapp-menu (sidenavClose)="sidenav.close()"></dapp-menu>
+      <dapp-menu
+        [userAccountAddress]="userAccountAddress"
+        [owner]="owner"
+        (sidenavClose)="sidenav.close()"
+      ></dapp-menu>
     </mat-sidenav>
     <mat-sidenav-content>
       <main>

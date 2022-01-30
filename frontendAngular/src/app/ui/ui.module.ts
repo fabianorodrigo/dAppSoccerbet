@@ -7,11 +7,11 @@ import { HeaderComponent } from './components/header/header.component';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { ErrorComponent } from './components/error/error.component';
-import { AdminComponent } from './admin/admin.component';
+import { AdminGamesComponent } from './admin-games/admin-games.component';
 import { GamesComponent } from './games/games.component';
 
 @NgModule({
-  declarations: [HomeComponent, AdminComponent, GamesComponent],
+  declarations: [HomeComponent, AdminGamesComponent, GamesComponent],
   imports: [
     CommonModule,
     RouterModule,
