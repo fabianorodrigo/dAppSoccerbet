@@ -42,6 +42,27 @@ export class GameService extends BaseContract {
     });
   }
 
+  closeForBetting(): Observable<void> {
+    return new Observable<void>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[]).subscribe(
+        async (_contract) => {
+          let result;
+          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods
+                .closeForBetting()
+                .send({ from: fromAccount });
+              subscriber.next();
+            } catch (e) {
+              console.warn(e);
+              subscriber.next();
+            }
+          });
+        }
+      );
+    });
+  }
+
   owner(): Observable<string> {
     return this.getString(contractABI.abi as AbiItem[], 'owner');
   }
