@@ -83,14 +83,14 @@ contract("Game", (accounts) => {
   it(`Should revert if try open for betting an already open game`, async () => {
     //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
-    expectRevert(
+    await expectRevert(
       gameContract.openForBetting({from: owner}),
       "The game is not closed"
     );
   });
 
   it(`Should revert if someone different from owner try open a game for betting`, async () => {
-    expectRevert(
+    await expectRevert(
       gameContract.openForBetting({from: bettor}),
       "Ownable: caller is not the owner"
     );
@@ -114,14 +114,14 @@ contract("Game", (accounts) => {
 
   it(`Should revert if try close for betting an closed game`, async () => {
     //Game is initially closed for betting
-    expectRevert(
+    await expectRevert(
       gameContract.closeForBetting({from: owner}),
       "The game is not open"
     );
   });
 
   it(`Should revert if someone different from owner try close a game for betting`, async () => {
-    expectRevert(
+    await expectRevert(
       gameContract.closeForBetting({from: bettor}),
       "Ownable: caller is not the owner"
     );
@@ -154,7 +154,7 @@ contract("Game", (accounts) => {
     const score = {home: "3", visitor: "1"};
     //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
-    expectRevert(
+    await expectRevert(
       gameContract.finalizeGame(score, {from: owner}),
       "The game is still open for bettings, close it first"
     );
@@ -167,7 +167,7 @@ contract("Game", (accounts) => {
   it(`Should revert if try to finalize an already finalized game`, async () => {
     const score = {home: "3", visitor: "1"};
     await gameContract.finalizeGame(score, {from: owner});
-    expectRevert(
+    await expectRevert(
       gameContract.finalizeGame(score, {from: owner}),
       "The game has been already finalized"
     );
@@ -175,7 +175,7 @@ contract("Game", (accounts) => {
 
   it(`Should revert if someone different from owner try finalize a game`, async () => {
     const score = {home: "3", visitor: "1"};
-    expectRevert(
+    await expectRevert(
       gameContract.finalizeGame(score, {from: bettor}),
       "Ownable: caller is not the owner"
     );
@@ -255,7 +255,7 @@ contract("Game", (accounts) => {
       }
     );
     //Game is initially closed for betting. Since the game was not opened, it has to revert
-    expectRevert(
+    await expectRevert(
       gameContract.bet(score, betTokenAmount, {
         from: bettor,
       }),
@@ -269,7 +269,7 @@ contract("Game", (accounts) => {
     //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
     //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
-    expectRevert(
+    await expectRevert(
       gameContract.bet(score, new BN(0), {
         from: bettor,
       }),
@@ -283,7 +283,7 @@ contract("Game", (accounts) => {
     //Game is initially closed for betting
     await gameContract.openForBetting({from: owner});
     //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    expectRevert(
+    await expectRevert(
       gameContract.bet(score, betTokenAmount, {
         from: bettor,
       }),
@@ -306,7 +306,7 @@ contract("Game", (accounts) => {
       from: bettor,
     });
     //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    expectRevert(
+    await expectRevert(
       gameContract.bet(score, betTokenAmount, {
         from: bettor,
       }),
@@ -488,14 +488,14 @@ contract("Game", (accounts) => {
   });
 
   it(`Should revert if someone different from owner try destroy contract`, async () => {
-    expectRevert(
+    await expectRevert(
       gameContract.destroyContract({from: bettor}),
       "Ownable: caller is not the owner"
     );
   });
   it(`Should revert if sending Ether to the contract`, async () => {
     const weiAmount = web3.utils.toWei(new BN(1, "ether"));
-    expectRevert.unspecified(
+    await expectRevert.unspecified(
       gameContract.sendTransaction({
         from: bettor,
         value: weiAmount,
