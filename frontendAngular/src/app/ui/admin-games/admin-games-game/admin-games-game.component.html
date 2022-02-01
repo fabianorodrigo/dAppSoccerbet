@@ -16,11 +16,18 @@
       *ngIf="!open"
       mat-flat-button
       color="primary"
+      matTooltip="The game is not receiving bets. Click to open it for betting"
       (click)="openForBetting()"
     >
       Open for betting
     </button>
-    <button class="button" *ngIf="open" mat-flat-button color="accent">
+    <button
+      class="button"
+      *ngIf="open"
+      mat-flat-button
+      color="accent"
+      matTooltip="The game is open for betting. Click to close it"
+    >
       Close for betting
     </button>
     <button class="button" *ngIf="!open" mat-flat-button color="warn">
