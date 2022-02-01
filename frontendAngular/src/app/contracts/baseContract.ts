@@ -28,6 +28,7 @@ export class BaseContract {
 
   /**
    * Calls the GET function of the contract with the name {_propertyName}
+   * @param _abi Contract's ABI
    * @param _propertyName name of the property of type string
    */
   protected getString(
@@ -35,20 +36,27 @@ export class BaseContract {
     _propertyName: string
   ): Observable<string> {
     return new Observable<string>((_subscriber) => {
-      this.getContract(_abi).subscribe(async (_contract) => {
-        let result;
-        try {
-          result = await _contract.methods[_propertyName]().call();
-        } catch (e) {
-          console.warn(e);
-        }
-        _subscriber.next(result);
-      });
+      this.getProperty(_abi, _propertyName, _subscriber);
     });
   }
 
   /**
    * Calls the GET function of the contract with the name {_propertyName}
+   * @param _abi Contract's ABI
+   * @param _propertyName name of the property of type string[]
+   */
+  protected getStringArray(
+    _abi: AbiItem[],
+    _propertyName: string
+  ): Observable<string[]> {
+    return new Observable<string[]>((_subscriber) => {
+      this.getProperty(_abi, _propertyName, _subscriber);
+    });
+  }
+
+  /**
+   * Calls the GET function of the contract with the name {_propertyName}
+   * @param _abi Contract's ABI
    * @param _propertyName name of the property of type boolean
    */
   protected getBoolean(
@@ -56,15 +64,7 @@ export class BaseContract {
     _propertyName: string
   ): Observable<boolean> {
     return new Observable<boolean>((_subscriber) => {
-      this.getContract(_abi).subscribe(async (_contract) => {
-        let result;
-        try {
-          result = await _contract.methods[_propertyName]().call();
-        } catch (e) {
-          console.warn(e);
-        }
-        _subscriber.next(result);
-      });
+      this.getProperty(_abi, _propertyName, _subscriber);
     });
   }
 
@@ -77,15 +77,7 @@ export class BaseContract {
     _propertyName: string
   ): Observable<number> {
     return new Observable<number>((_subscriber) => {
-      this.getContract(_abi).subscribe(async (_contract) => {
-        let result;
-        try {
-          result = await _contract.methods[_propertyName]().call();
-        } catch (e) {
-          console.warn(e);
-        }
-        _subscriber.next(result);
-      });
+      this.getProperty(_abi, _propertyName, _subscriber);
     });
   }
 
@@ -136,5 +128,28 @@ export class BaseContract {
    */
   removeEventListener(_eventName: string, _listenerAlias: string) {
     delete this._eventListeners[_eventName][_listenerAlias];
+  }
+
+  /**
+   * Calls the GET function of the contract with the name {_propertyName}
+   *
+   * @param _abi Contract's ABI
+   * @param _propertyName name of the property of type string
+   * @param _subscriber Instance of the subscriber that will receive the result
+   */
+  private getProperty(
+    _abi: AbiItem[],
+    _propertyName: string,
+    _subscriber: any
+  ) {
+    this.getContract(_abi).subscribe(async (_contract) => {
+      let result;
+      try {
+        result = await _contract.methods[_propertyName]().call();
+      } catch (e) {
+        console.warn(e);
+      }
+      _subscriber.next(result);
+    });
   }
 }

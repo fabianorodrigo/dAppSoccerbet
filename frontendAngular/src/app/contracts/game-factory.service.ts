@@ -35,20 +35,7 @@ export class GameFactoryService extends BaseContract {
   }
 
   listGames(): Observable<string[]> {
-    return new Observable<string[]>((_subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (contract) => {
-          let result = [];
-          try {
-            result = await contract.methods.listGames().call();
-            console.log(`list GAmes invocado `, result);
-          } catch (e) {
-            console.warn(e);
-          }
-          _subscriber.next(result);
-        }
-      );
-    });
+    return this.getStringArray(contractABI.abi as AbiItem[], 'listGames');
   }
 
   newGame(_game: Game): Observable<boolean> {
