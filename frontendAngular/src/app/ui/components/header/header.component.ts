@@ -20,7 +20,6 @@ export class HeaderComponent implements OnInit {
 
   changeWalletAccount(address: string | null) {
     this.onChangeAccount.emit(address);
-    console.warn(`wallet: ${address}`);
   }
 
   public onToggleSidenav = () => {

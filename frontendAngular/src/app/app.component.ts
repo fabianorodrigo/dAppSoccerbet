@@ -2,6 +2,7 @@ import { environment } from 'src/environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { GameFactoryService } from './contracts';
+import { Web3Service } from './services';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent implements OnInit {
   userAccountAddress: string | null = null;
   owner: string | null = null;
 
-  constructor(private gameFactory: GameFactoryService) {}
+  constructor(private _gameFactory: GameFactoryService) {}
 
   ngOnInit(): void {
     console.log(`BetToken.address`, environment.betTokenAddress);
@@ -26,23 +27,25 @@ export class AppComponent implements OnInit {
     });
   }
 
-  changeWalletAccount(address: string | null) {
-    this.userAccountAddress = address;
+  changeWalletAccount(_address: string | null) {
+    this.userAccountAddress = _address;
     //if owner was not set yet, try again
-    this.getOwner().subscribe((ownerAddress) => {
-      this.owner = ownerAddress;
-      console.log(`changeWalletAccount subscribe owner`, this.owner);
-      if (!ownerAddress) {
-        alert(
-          `Connection with contract failed. Check if you are connected with your account in the right chain`
-        );
-      }
-    });
+    if (!this.owner) {
+      this.getOwner().subscribe((ownerAddress) => {
+        this.owner = ownerAddress;
+        console.log(`changeWalletAccount subscribe owner`, this.owner);
+        if (!ownerAddress) {
+          alert(
+            `Connection with contract failed. Check if you are connected with your account in the right chain`
+          );
+        }
+      });
+    }
   }
 
   private getOwner(): Observable<string> {
     return new Observable<string>((subscriber) => {
-      this.gameFactory
+      this._gameFactory
         .owner()
         .pipe(
           //if an error in the HTTP request occurs we are going to return an Observable that emits the

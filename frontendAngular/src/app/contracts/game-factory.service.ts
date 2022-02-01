@@ -1,10 +1,8 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import contractABI from '../../../../backendOnChain/build/contracts/GameFactory.json';
-import { WEB3 } from '../core/web3';
 import { Game } from '../model';
 import { NumbersService, Web3Service } from './../services';
 import { BaseContract } from './baseContract';
@@ -13,33 +11,31 @@ import { BaseContract } from './baseContract';
   providedIn: 'root',
 })
 export class GameFactoryService extends BaseContract {
-  constructor(
-    @Inject(WEB3) web3: Web3,
-    private web3Service: Web3Service,
-    private numberService: NumbersService
-  ) {
-    super(web3, environment.gameFactoryAddress);
-  }
+  static EVENTS = {
+    GAME_CREATED: 'GameCreated',
+  };
 
-  owner(): Observable<string> {
-    return new Observable<string>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (contract) => {
-          let result;
-          try {
-            result = await contract.methods.owner().call();
-            console.log(`owner() valido? `, this.web3.utils.isAddress(result));
-          } catch (e) {
-            console.warn(e);
-          }
-          subscriber.next(result);
-        }
+  constructor(
+    _web3Service: Web3Service,
+    private _numberService: NumbersService
+  ) {
+    super(_web3Service, environment.gameFactoryAddress);
+
+    this.getContract(contractABI.abi as AbiItem[]).subscribe((_contract) => {
+      //For all events in the static member EVENTS
+      this.initEventListeners(
+        _contract,
+        Object.values(GameFactoryService.EVENTS)
       );
     });
   }
 
-  listGames(): Observable<Game[]> {
-    return new Observable<Game[]>((subscriber) => {
+  owner(): Observable<string> {
+    return this.getString(contractABI.abi as AbiItem[], 'owner');
+  }
+
+  listGames(): Observable<string[]> {
+    return new Observable<string[]>((_subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (contract) => {
           let result = [];
@@ -49,27 +45,27 @@ export class GameFactoryService extends BaseContract {
           } catch (e) {
             console.warn(e);
           }
-          subscriber.next(result);
+          _subscriber.next(result);
         }
       );
     });
   }
 
-  newGame(game: Game): Observable<boolean> {
+  newGame(_game: Game): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (contract) => {
+        async (_contract) => {
           let result;
-          this.web3Service.currentAccount().subscribe(async (fromAccount) => {
+          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
             try {
-              result = await contract.methods
+              result = await _contract.methods
                 .newGame(
-                  game.homeTeam,
-                  game.visitorTeam,
-                  this.numberService.convertTimeJSToChain(game.datetimeGame)
+                  _game.homeTeam,
+                  _game.visitorTeam,
+                  this._numberService.convertTimeJSToChain(_game.datetimeGame)
                 )
                 .send({ from: fromAccount });
-              console.log(`newGame chamado`, game);
+              console.log(`newGame chamado`, _game);
               subscriber.next(true);
             } catch (e) {
               console.warn(e);

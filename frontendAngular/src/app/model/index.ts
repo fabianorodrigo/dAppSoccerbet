@@ -4,3 +4,4 @@ export * from './game.interface';
 export * from './score.interface';
 export * from './eip1193';
 export * from './metamask/ProviderMessage';
+export * from './events';

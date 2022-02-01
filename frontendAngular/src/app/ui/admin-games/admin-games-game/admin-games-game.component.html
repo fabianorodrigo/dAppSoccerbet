@@ -1,0 +1,30 @@
+<div class="game">
+  <div class="row">
+    <label>{{ homeTeam }}</label>
+    <label>X</label>
+    <label>{{ visitorTeam }}</label>
+  </div>
+  <div class="row">
+    <mat-icon>today</mat-icon>
+    <span>{{ datetimeGame?.toLocaleDateString() }}</span>
+    <mat-icon>schedule</mat-icon>
+    <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
+  </div>
+  <div class="row-action">
+    <button
+      class="button"
+      *ngIf="!open"
+      mat-flat-button
+      color="primary"
+      (click)="openForBetting()"
+    >
+      Open for betting
+    </button>
+    <button class="button" *ngIf="open" mat-flat-button color="accent">
+      Close for betting
+    </button>
+    <button class="button" *ngIf="!open" mat-flat-button color="warn">
+      Finalize ...
+    </button>
+  </div>
+</div>
