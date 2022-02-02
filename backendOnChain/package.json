@@ -2,7 +2,8 @@
   "name": "dappsoccerbet-backendonchain",
   "version": "0.0.0",
   "scripts": {
-    "ganache": "ganache -p 7545 -i 7777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
+    "ganache": "ganache -p 7545 -i 7777 --wallet.deterministic --database.dbPath ~/sgbds/ganache",
+    "ganache-debug": "ganache -p 7545 -i 7777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
     "start": "npm run migrate",
     "build": "truffle compile",
     "migrate": "truffle migrate --network ganache",
