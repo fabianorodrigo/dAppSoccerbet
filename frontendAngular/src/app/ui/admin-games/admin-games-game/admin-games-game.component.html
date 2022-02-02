@@ -31,7 +31,7 @@
     >
       Close for betting
     </button>
-    <button class="button" *ngIf="!open" mat-flat-button color="warn">
+    <button class="button" [disabled]="open" mat-flat-button color="warn">
       Finalize ...
     </button>
   </div>

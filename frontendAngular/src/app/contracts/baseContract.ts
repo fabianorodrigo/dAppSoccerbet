@@ -1,7 +1,9 @@
-import { Observable } from 'rxjs';
+import { TransactionResult } from './../model/transaction-result.interface';
+import { Observable, Subscriber } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
-import { Web3Service } from '../services';
+import { ProviderErrors } from '../model';
+import { MessageService, Web3Service } from '../services';
 
 export class BaseContract {
   protected contract!: Contract;
@@ -23,6 +25,43 @@ export class BaseContract {
       } else {
         throw new Error(`Web3 not instanciated`);
       }
+    });
+  }
+
+  /**
+   * Execute a SEND (change state) to a function without input parameter
+   * and without return from the currentAccount selected on the wallet provider
+   *
+   * @param _abi  Contract's ABI
+   * @param _functionName Name of contract's function to be invoked
+   * @param _successMessage Message to be sent in the Observable in case of successfully execution
+   * @returns Observable<TransactionResult>
+   */
+  protected sendParamlessVoidFunction(
+    _abi: AbiItem[],
+    _functionName: string,
+    _successMessage: string
+  ): Observable<TransactionResult> {
+    return new Observable<TransactionResult>((subscriber) => {
+      this.getContract(_abi as AbiItem[]).subscribe(async (_contract) => {
+        let result;
+        this._web3Service.currentAccount().subscribe(async (fromAccount) => {
+          try {
+            result = await _contract.methods[_functionName]().send({
+              from: fromAccount,
+            });
+            subscriber.next({ success: true, message: _successMessage });
+          } catch (e: any) {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem connecting you wallet. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            subscriber.next({ success: false, message: message });
+          }
+        });
+      });
     });
   }
 

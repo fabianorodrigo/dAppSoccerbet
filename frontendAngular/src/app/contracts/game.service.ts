@@ -1,10 +1,11 @@
+import { TransactionResult } from './../model/transaction-result.interface';
 import { BaseContract } from './baseContract';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { NumbersService, Web3Service } from '../services';
+import { MessageService, NumbersService, Web3Service } from '../services';
 import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
 import { AbiItem } from 'web3-utils';
-import { Observable } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
 
 export class GameService extends BaseContract {
   static EVENTS = {
@@ -21,46 +22,20 @@ export class GameService extends BaseContract {
     });
   }
 
-  openForBetting(): Observable<void> {
-    return new Observable<void>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (_contract) => {
-          let result;
-          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods
-                .openForBetting()
-                .send({ from: fromAccount });
-              subscriber.next();
-            } catch (e) {
-              console.warn(e);
-              subscriber.next();
-            }
-          });
-        }
-      );
-    });
+  openForBetting(): Observable<TransactionResult> {
+    return this.sendParamlessVoidFunction(
+      contractABI.abi as AbiItem[],
+      'openForBetting',
+      'Transaction to open the game for betting was sent successfully'
+    );
   }
 
-  closeForBetting(): Observable<void> {
-    return new Observable<void>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (_contract) => {
-          let result;
-          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods
-                .closeForBetting()
-                .send({ from: fromAccount });
-              subscriber.next();
-            } catch (e) {
-              console.warn(e);
-              subscriber.next();
-            }
-          });
-        }
-      );
-    });
+  closeForBetting(): Observable<TransactionResult> {
+    return this.sendParamlessVoidFunction(
+      contractABI.abi as AbiItem[],
+      'closeForBetting',
+      'Transaction to close the game for betting was sent successfully'
+    );
   }
 
   owner(): Observable<string> {

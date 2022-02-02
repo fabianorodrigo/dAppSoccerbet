@@ -67,14 +67,14 @@ export class AdminGamesGameComponent implements OnInit {
   }
 
   openForBetting() {
-    this.gameService.openForBetting().subscribe(() => {
-      this._messageService.show(`Transaction sent successfully`);
+    this.gameService.openForBetting().subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.message);
     });
   }
 
   closeForBetting() {
-    this.gameService.closeForBetting().subscribe(() => {
-      this._messageService.show(`Transaction sent successfully`);
+    this.gameService.closeForBetting().subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.message);
     });
   }
 }
