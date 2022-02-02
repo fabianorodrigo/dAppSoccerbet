@@ -1,8 +1,12 @@
 <div class="game">
-  <div class="row">
+  <div class="row-teams">
     <label>{{ homeTeam }}</label>
     <label>X</label>
     <label>{{ visitorTeam }}</label>
+  </div>
+  <div class="row-teams" *ngIf="finalized">
+    <label class="label-score">{{ finalScore?.home }}</label>
+    <label class="label-score">{{ finalScore?.visitor }}</label>
   </div>
   <div class="row">
     <mat-icon>today</mat-icon>
@@ -10,7 +14,7 @@
     <mat-icon>schedule</mat-icon>
     <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
   </div>
-  <div class="row-action">
+  <div class="row-action" *ngIf="!finalized">
     <button
       class="button"
       *ngIf="!open"
@@ -31,7 +35,13 @@
     >
       Close for betting
     </button>
-    <button class="button" [disabled]="open" mat-flat-button color="warn">
+    <button
+      class="button"
+      [disabled]="open"
+      mat-flat-button
+      color="warn"
+      (click)="finalizeGame()"
+    >
       Finalize ...
     </button>
   </div>

@@ -6,6 +6,7 @@ import { MessageService, NumbersService, Web3Service } from '../services';
 import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
 import { AbiItem } from 'web3-utils';
 import { Observable, Subscriber } from 'rxjs';
+import { ProviderErrors, Score } from '../model';
 
 export class GameService extends BaseContract {
   static EVENTS = {
@@ -22,6 +23,10 @@ export class GameService extends BaseContract {
     });
   }
 
+  /**
+   * Open the game for betting
+   * @returns result of transaction submission
+   */
   openForBetting(): Observable<TransactionResult> {
     return this.sendParamlessVoidFunction(
       contractABI.abi as AbiItem[],
@@ -30,12 +35,51 @@ export class GameService extends BaseContract {
     );
   }
 
+  /**
+   * Close the game for betting
+   * @returns result of transaction submission
+   */
   closeForBetting(): Observable<TransactionResult> {
     return this.sendParamlessVoidFunction(
       contractABI.abi as AbiItem[],
       'closeForBetting',
       'Transaction to close the game for betting was sent successfully'
     );
+  }
+
+  /**
+   * Finalize the game
+   * @param _score The final score of the game
+   * @returns result of transaction submission
+   */
+  finalizeGame(_score: Score): Observable<TransactionResult> {
+    return new Observable<TransactionResult>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[]).subscribe(
+        async (_contract) => {
+          let result;
+          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.finalizeGame(_score).send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                message:
+                  'Transaction to finalize the game for betting was sent successfully',
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+              }
+              console.warn(e);
+              subscriber.next({ success: false, message: message });
+            }
+          });
+        }
+      );
+    });
   }
 
   owner(): Observable<string> {
@@ -56,5 +100,21 @@ export class GameService extends BaseContract {
   }
   finalized(): Observable<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'finalized');
+  }
+
+  finalScore(): Observable<Score> {
+    return new Observable<Score>((_subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[]).subscribe(
+        async (_contract) => {
+          let result;
+          try {
+            result = await _contract.methods.finalScore().call();
+          } catch (e) {
+            console.warn(e);
+          }
+          _subscriber.next(result);
+        }
+      );
+    });
   }
 }

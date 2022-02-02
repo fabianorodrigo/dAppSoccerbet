@@ -1,3 +1,4 @@
+import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -9,6 +10,7 @@ import { HeaderComponent } from './header/header.component';
 import { LayoutComponent } from './layout/layout.component';
 import { MenuComponent } from './menu/menu.component';
 import { WalletComponent } from './wallet/wallet.component';
+import { ScoreDialogComponent } from './score-dialog/score-dialog.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +19,7 @@ import { WalletComponent } from './wallet/wallet.component';
     WalletComponent,
     MenuComponent,
     LayoutComponent,
+    ScoreDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -24,6 +27,7 @@ import { WalletComponent } from './wallet/wallet.component';
     MaterialModule,
     UiRoutingModule,
     FlexLayoutModule,
+    ReactiveFormsModule,
   ],
   exports: [HeaderComponent, WalletComponent, MenuComponent, LayoutComponent],
 })

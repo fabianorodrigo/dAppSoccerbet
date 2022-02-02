@@ -53,7 +53,7 @@ export class BaseContract {
             subscriber.next({ success: true, message: _successMessage });
           } catch (e: any) {
             const providerError = ProviderErrors[e.code];
-            let message = `We had some problem connecting you wallet. The transaction wasn't sent.`;
+            let message = `We had some problem. The transaction wasn't sent.`;
             if (providerError) {
               message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
             }
@@ -135,9 +135,11 @@ export class BaseContract {
       }
       _contract.events[_eventName]()
         .on('data', (event: any) => {
-          Object.values(this._eventListeners[_eventName]).forEach((_f) => {
-            _f(event.returnValues);
-          });
+          if (this._eventListeners[_eventName]) {
+            Object.values(this._eventListeners[_eventName]).forEach((_f) => {
+              _f(event.returnValues);
+            });
+          }
         })
         .on('error', console.error);
     });

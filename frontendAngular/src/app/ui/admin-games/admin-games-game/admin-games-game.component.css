@@ -6,8 +6,16 @@
   border-radius: 5px;
   padding: 10px;
   min-width: 250px;
+  min-height: 80px;
 }
-
+.row-teams {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 5px;
+}
 .row {
   display: flex;
   flex-direction: row;
@@ -26,4 +34,10 @@
 label {
   font-weight: bold;
   margin-right: 5px;
+}
+.label-score {
+  color: green;
+  font-size: xx-large;
+  margin-top: 5px;
+  margin-bottom: 15px;
 }

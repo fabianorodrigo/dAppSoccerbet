@@ -1,7 +1,9 @@
+import { ScoreDialogComponent } from './../../components/score-dialog/score-dialog.component';
 import { Component, Input, OnInit } from '@angular/core';
 import { GameService } from 'src/app/contracts';
-import { GameEvent } from 'src/app/model';
+import { GameEvent, GameFinalizedEvent, Score } from 'src/app/model';
 import { MessageService } from 'src/app/services';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'dapp-admin-games-game',
@@ -17,8 +19,12 @@ export class AdminGamesGameComponent implements OnInit {
   datetimeGame!: Date;
   open!: boolean;
   finalized!: boolean;
+  finalScore!: Score;
 
-  constructor(private _messageService: MessageService) {}
+  constructor(
+    private _messageService: MessageService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     //Call for game data
@@ -36,6 +42,11 @@ export class AdminGamesGameComponent implements OnInit {
     });
     this.gameService.finalized().subscribe((_finalized) => {
       this.finalized = _finalized;
+      if (this.finalized) {
+        this.gameService.finalScore().subscribe((_finalScore) => {
+          this.finalScore = _finalScore;
+        });
+      }
     });
     //events listeners
     this.gameService.addEventListener(
@@ -45,7 +56,7 @@ export class AdminGamesGameComponent implements OnInit {
         if (this.gameService.address == g.addressGame) {
           this.open = true;
         } else {
-          alert(
+          this._messageService.show(
             `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
           );
         }
@@ -58,7 +69,21 @@ export class AdminGamesGameComponent implements OnInit {
         if (this.gameService.address == g.addressGame) {
           this.open = false;
         } else {
-          alert(
+          this._messageService.show(
+            `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
+          );
+        }
+      }
+    );
+    this.gameService.addEventListener(
+      GameService.EVENTS.GAME_FINALIZED,
+      'admin-games-game',
+      (g: GameFinalizedEvent) => {
+        if (this.gameService.address == g.addressGame) {
+          this.finalized = true;
+          this.finalScore = g.score;
+        } else {
+          this._messageService.show(
             `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
           );
         }
@@ -75,6 +100,31 @@ export class AdminGamesGameComponent implements OnInit {
   closeForBetting() {
     this.gameService.closeForBetting().subscribe((transactionResult) => {
       this._messageService.show(transactionResult.message);
+    });
+  }
+
+  finalizeGame() {
+    const dialogRef = this.dialog.open(ScoreDialogComponent, {
+      data: {
+        title: `Game's Final Score`,
+        homeTeam: this.homeTeam,
+        visitorTeam: this.visitorTeam,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((score) => {
+      if (score) {
+        if (score.home != null && score.visitor != null) {
+          this.gameService
+            .finalizeGame(score)
+            .subscribe((transactionResult) => {
+              this._messageService.show(transactionResult.message);
+            });
+        } else {
+          this._messageService.show(`Score is not valid`);
+        }
+      }
+      console.log(`Dialog result`, score);
     });
   }
 }
