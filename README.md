@@ -1,4 +1,4 @@
-# dAppSoccerbet
+# Ðapp Soccer Bet ⚽💰
 
 [![licence GPL-3.0](https://img.shields.io/github/license/fabianorodrigo/dappsoccerbet?style=for-the-badge&logo=creativecommons)](https://github.com/fabianorodrigo/dappsoccerbet/blob/master/LICENSE.md)
 ![Web3](https://img.shields.io/badge/web3-Decentralized%20Web-brightgreen?style=for-the-badge&logo=ethereum)
@@ -21,7 +21,29 @@ npm install
 
 # eth-gas-reporter only worked when deployed globally
 npm install --save-dev eth-gas-reporter -g
+
+# if you haven't installed Ganache yet
+npm install ganache --global
+
+# if you haven't installed Truffle yet
+npm install truffle --global
 ```
+
+### Local execution for development purpose
+
+```
+# Running Ganache on port 7545 with pre-defined deterministic seed and saving the chain database at ~/sgbds/ganache
+cd backendOnChain
+npm run ganache
+
+# Migrating the contracts to the Ganache network
+npm run migrate --network ganache
+
+# Running the frontend
+cd frontendAngular
+ng serve --open
+```
+
 
 ### UI Angular
 
