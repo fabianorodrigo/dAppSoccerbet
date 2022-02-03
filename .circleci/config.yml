@@ -9,7 +9,7 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker: 
-      - image: fabianorodrigo/contratosintel_truffle:1.0.1
+      - image: fabianorodrigo/contratosintel_truffle:1.0.2
     working_directory: ~/repos/handson_solidity
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
