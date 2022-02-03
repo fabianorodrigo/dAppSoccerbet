@@ -46,6 +46,7 @@ jobs:
             command: npm run ganache-ci
             background: true
         - run: truffle test --network ganache
+        - run: cat ./test-results/test-contract-results.xml 
         - store_test_results:
             path: ./test-results
         - store_artifacts:
