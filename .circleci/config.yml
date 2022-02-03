@@ -10,12 +10,12 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker: 
       - image: fabianorodrigo/contratosintel_truffle:1.0.2
-    working_directory: ~/repos/handson_solidity
+    working_directory: ~/repos/handson_solidity/backendOnChain
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
-      - checkout
-      - run: cd backendOnChain
+      - checkout:
+          path: ~/repos/handson_solidity/
       - run: npm install && truffle compile
   test:
       docker: 
