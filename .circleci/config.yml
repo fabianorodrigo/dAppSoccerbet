@@ -17,6 +17,18 @@ jobs:
       - checkout:
           path: ~/repos/handson_solidity/
       - run: npm install && truffle compile
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: node_modules-{{ checksum "package.json" }}
+
+      # Special step used to persist a temporary file to be used by another job in the workflow.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+            - build
   test:
       docker: 
         - image: fabianorodrigo/contratosintel_truffle:1.0.2
@@ -24,6 +36,11 @@ jobs:
       steps:
         - checkout:
             path: ~/repos/handson_solidity/
+        - attach_workspace:
+            at: ~/repos/handson_solidity/backendOnChain
+        - restore_cache:
+            keys:
+              - node_modules-{{ checksum "package.json" }}
         - run: npm install
         - run: npm run ganache-ci & truffle test --network ganache
 
