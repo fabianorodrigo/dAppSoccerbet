@@ -20,6 +20,7 @@ jobs:
   test:
       docker: 
         - image: fabianorodrigo/contratosintel_truffle:1.0.1
+      working_directory: ~/repos/handson_solidity/backendOnChain        
       steps:
         - run: npm run ganache & truffle test --network ganache
 
