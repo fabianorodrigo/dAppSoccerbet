@@ -4,6 +4,7 @@
   "scripts": {
     "ganache": "ganache -p 7545 -i 7777 --wallet.deterministic --database.dbPath ~/sgbds/ganache",
     "ganache-debug": "ganache -p 7545 -i 7777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
+    "ganache-ci": "ganache -p 7545 -i 7777 --wallet.deterministic ",
     "start": "npm run migrate",
     "build": "truffle compile",
     "migrate": "truffle migrate --network ganache",
