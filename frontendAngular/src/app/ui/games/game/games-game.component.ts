@@ -1,5 +1,6 @@
+import { GameCompound } from './../game-compound.class';
 import { ScoreDialogComponent } from '../../components/score-dialog/score-dialog.component';
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { GameService } from 'src/app/contracts';
 import { GameEvent, GameFinalizedEvent, Score } from 'src/app/model';
 import { MessageService } from 'src/app/services';
@@ -12,79 +13,71 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class GamesGameComponent implements OnInit {
   @Input()
-  gameService!: GameService;
+  gameCompound!: GameCompound;
 
   homeTeam!: string;
   visitorTeam!: string;
   datetimeGame!: Date;
   open!: boolean;
   finalized!: boolean;
-  finalScore!: Score;
+  finalScore!: Score | undefined;
 
   constructor(
     private _messageService: MessageService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private _changeDetectorRefs: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    //Call for game data
-    this.gameService.homeTeam().subscribe((_homeTeam) => {
-      this.homeTeam = _homeTeam;
-    });
-    this.gameService.visitorTeam().subscribe((_visitorTeam) => {
-      this.visitorTeam = _visitorTeam;
-    });
-    this.gameService.datetimeGame().subscribe((_datetimeGame) => {
-      this.datetimeGame = new Date(_datetimeGame * 1000);
-    });
-    this.gameService.open().subscribe((_open) => {
-      this.open = _open;
-    });
-    this.gameService.finalized().subscribe((_finalized) => {
-      this.finalized = _finalized;
-      if (this.finalized) {
-        this.gameService.finalScore().subscribe((_finalScore) => {
-          this.finalScore = _finalScore;
-        });
-      }
-    });
+    this.homeTeam = this.gameCompound.game.homeTeam;
+    this.visitorTeam = this.gameCompound.game.visitorTeam;
+    this.datetimeGame = new Date(this.gameCompound.game.datetimeGame * 1000);
+    this.open = this.gameCompound.game.open;
+    this.finalized = this.gameCompound.game.finalized;
+
+    this.finalScore = this.gameCompound.game.finalScore;
+
     //events listeners
-    this.gameService.addEventListener(
+    this.gameCompound.gameService.addEventListener(
       GameService.EVENTS.GAME_OPENED,
-      'admin-games-game',
+      'games-game',
       (g: GameEvent) => {
-        if (this.gameService.address == g.addressGame) {
+        if (this.gameCompound.gameService.address == g.addressGame) {
           this.open = true;
         } else {
           this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
+            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
           );
+          console.log('games-listener opened this.open', this.open);
+          this._changeDetectorRefs.detectChanges();
         }
       }
     );
-    this.gameService.addEventListener(
+    this.gameCompound.gameService.addEventListener(
       GameService.EVENTS.GAME_CLOSED,
-      'admin-games-game',
+      'games-game',
       (g: GameEvent) => {
-        if (this.gameService.address == g.addressGame) {
+        if (this.gameCompound.gameService.address == g.addressGame) {
           this.open = false;
         } else {
           this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
+            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
           );
         }
+        console.log('games-listener closed this.open', this.open);
+        this._changeDetectorRefs.detectChanges();
       }
     );
-    this.gameService.addEventListener(
+    this.gameCompound.gameService.addEventListener(
       GameService.EVENTS.GAME_FINALIZED,
-      'admin-games-game',
+      'games-game',
       (g: GameFinalizedEvent) => {
-        if (this.gameService.address == g.addressGame) {
+        if (this.gameCompound.gameService.address == g.addressGame) {
           this.finalized = true;
           this.finalScore = g.score;
         } else {
           this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameService.address}' x  event.addressGame '${g.addressGame}'`
+            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
           );
         }
       }
@@ -92,15 +85,19 @@ export class GamesGameComponent implements OnInit {
   }
 
   openForBetting() {
-    this.gameService.openForBetting().subscribe((transactionResult) => {
-      this._messageService.show(transactionResult.message);
-    });
+    this.gameCompound.gameService
+      .openForBetting()
+      .subscribe((transactionResult) => {
+        this._messageService.show(transactionResult.message);
+      });
   }
 
   closeForBetting() {
-    this.gameService.closeForBetting().subscribe((transactionResult) => {
-      this._messageService.show(transactionResult.message);
-    });
+    this.gameCompound.gameService
+      .closeForBetting()
+      .subscribe((transactionResult) => {
+        this._messageService.show(transactionResult.message);
+      });
   }
 
   finalizeGame() {
@@ -115,7 +112,7 @@ export class GamesGameComponent implements OnInit {
     dialogRef.afterClosed().subscribe((score) => {
       if (score) {
         if (score.home != null && score.visitor != null) {
-          this.gameService
+          this.gameCompound.gameService
             .finalizeGame(score)
             .subscribe((transactionResult) => {
               this._messageService.show(transactionResult.message);

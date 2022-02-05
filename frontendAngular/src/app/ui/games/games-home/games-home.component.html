@@ -11,22 +11,24 @@
   <mat-tab-group (selectedTabChange)="executeSelectedChange($event)">
     <mat-tab label="Open">
       <div class="game-list">
-        <ng-container *ngFor="let gameService of games">
-          <dapp-games-game [gameService]="gameService"></dapp-games-game>
+        <ng-container *ngFor="let game of gamesOpen">
+          <dapp-games-game [gameCompound]="game"></dapp-games-game>
         </ng-container>
       </div>
     </mat-tab>
     <mat-tab label="Closed">
-      <p>
-        We will consume our .NET Core application. Basically, we will create
-        complete CRUD client app.
-      </p>
+      <div class="game-list">
+        <ng-container *ngFor="let game of gamesClosed">
+          <dapp-games-game [gameCompound]="game"></dapp-games-game>
+        </ng-container>
+      </div>
     </mat-tab>
     <mat-tab label="Finalized">
-      <p>
-        By using material components, we are going to create fully responsive
-        navigation menu, with its side-bar as well.
-      </p>
+      <div class="game-list">
+        <ng-container *ngFor="let game of gamesFinalized">
+          <dapp-games-game [gameCompound]="game"></dapp-games-game>
+        </ng-container>
+      </div>
     </mat-tab>
   </mat-tab-group>
 </section>

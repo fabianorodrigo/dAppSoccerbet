@@ -9,7 +9,7 @@ export const environment = {
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
   //notebook Vaio
   betTokenAddress: '0x3cF7D6B9CaAa13c2902a830b2fd4851Cb898eaBB',
-  gameFactoryAddress: '0x84DC58f2538675596b9fc6fdE38EEf34f24c3DA7',
+  gameFactoryAddress: '0x497f058d7efF20D69eBA407364173d27B2DE87c6',
 };
 
 /*

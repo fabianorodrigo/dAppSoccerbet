@@ -24,6 +24,7 @@ import "./Game.sol";
 import "./libs/StringUtils.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./structs/GameDTO.sol";
 
 /**
  * @title Contract responsible for generate Game contracts and maintain a list of them
@@ -146,9 +147,27 @@ contract GameFactory is Ownable {
      * retrieve single elements of the array via the generated getter function.
      * This mechanism exists to avoid high gas costs when returning an entire array.
      * If you want to return an entire array in one call, then you need to write a function
+     *
+     * @dev We're returning the struct GameDTO so as the frontEnd has all the basic data without
+     * make requests to provider. Otherwise, the frontend receives just the contract address:
+     * https://docs.soliditylang.org/en/v0.7.5/abi-spec.html#contract-abi-specification
      */
-    function listGames() public view returns (Game[] memory games) {
-        return _games;
+    function listGames() public view returns (GameDTO[] memory games) {
+        GameDTO[] memory result = new GameDTO[](_games.length);
+        for (uint256 i = 0; i < _games.length; i++) {
+            Game g = _games[i];
+            (uint8 home, uint8 visitor) = g.finalScore();
+            result[i] = GameDTO(
+                address(g),
+                g.homeTeam(),
+                g.visitorTeam(),
+                g.datetimeGame(),
+                g.open(),
+                g.finalized(),
+                Score(home, visitor)
+            );
+        }
+        return result;
     }
 
     /**

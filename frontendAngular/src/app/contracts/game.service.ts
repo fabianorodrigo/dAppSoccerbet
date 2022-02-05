@@ -1,12 +1,10 @@
+import { Observable } from 'rxjs';
+import { AbiItem } from 'web3-utils';
+import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
+import { ProviderErrors, Score } from '../model';
+import { Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 import { BaseContract } from './baseContract';
-import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import { MessageService, NumbersService, Web3Service } from '../services';
-import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
-import { AbiItem } from 'web3-utils';
-import { Observable, Subscriber } from 'rxjs';
-import { ProviderErrors, Score } from '../model';
 
 export class GameService extends BaseContract {
   static EVENTS = {

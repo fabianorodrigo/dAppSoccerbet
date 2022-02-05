@@ -7,8 +7,9 @@ import { MessageService, Web3Service } from '../services';
 
 export class BaseContract {
   protected contract!: Contract;
-  protected _eventListeners: { [key: string]: { [key: string]: Function } } =
-    {};
+  protected _eventListeners: {
+    [eventName: string]: { [alias: string]: Function };
+  } = {};
 
   public address: string;
 
@@ -138,7 +139,9 @@ export class BaseContract {
       _contract.events[_eventName]()
         .on('data', (event: any) => {
           if (this._eventListeners[_eventName]) {
-            Object.values(this._eventListeners[_eventName]).forEach((_f) => {
+            Object.keys(this._eventListeners[_eventName]).forEach((_alias) => {
+              console.warn(`eventos`, _alias);
+              const _f = this._eventListeners[_eventName][_alias];
               _f(event.returnValues);
             });
           }
@@ -162,6 +165,11 @@ export class BaseContract {
       this._eventListeners[_eventName] = {};
     }
     this._eventListeners[_eventName][_listenerAlias] = _function;
+    console.log(
+      'quantidade ',
+      _eventName,
+      Object.keys(this._eventListeners[_eventName])
+    );
   }
 
   /**
@@ -180,7 +188,7 @@ export class BaseContract {
    * @param _propertyName name of the property of type string
    * @param _subscriber Instance of the subscriber that will receive the result
    */
-  private getProperty(
+  protected getProperty(
     _abi: AbiItem[],
     _propertyName: string,
     _subscriber: any
