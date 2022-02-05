@@ -15,4 +15,13 @@ export class NumbersService {
   convertTimeJSToChain(timeInMillisJS: number) {
     return new BigNumber(timeInMillisJS / 1000);
   }
+
+  /**
+   * Time in Ethereum are represented in 'seconds' since 1/1/1970. While in Javascript, it's in milliseconds
+   * @param timeInSeconds Time in seconds since 1/1/1970 UTC
+   * @returns Time in milliseconds since 1/1/1970 UTC
+   */
+  convertTimeChainToJS(timeInSeconds: number) {
+    return timeInSeconds * 1000;
+  }
 }
