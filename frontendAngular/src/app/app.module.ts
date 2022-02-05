@@ -1,3 +1,4 @@
+import { CoreModule } from './core/core.module';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -13,6 +14,7 @@ import { UiModule } from './ui/ui.module';
     AppRoutingModule,
     BrowserAnimationsModule,
     MaterialModule,
+    CoreModule,
     UiModule,
   ],
   providers: [],

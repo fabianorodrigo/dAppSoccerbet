@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
@@ -12,8 +12,11 @@ declare let window: any;
   providedIn: 'root',
 })
 export class Web3Service {
-  // functions fired when event 'gameCreated' happen
-  private _accountChangedListeners: { [key: string]: Function } = {};
+  /**
+   * Subject to handle the current user account address and it's changes
+   */
+  private _userAccountAddressSubject = new BehaviorSubject<string | null>(null);
+  private _userAccountAddress!: string | null;
 
   constructor(@Inject(WEB3) private _web3: Web3) {
     if (this.hasEthereumProvider()) {
@@ -33,37 +36,43 @@ export class Web3Service {
   }
 
   /**
-   * Add a function to the list of listeners for WEB3 provider event 'accountChanged'
-   * @param _alias Alias of the listener
-   * @param _function Function that will be fired when accountChanged event be catched
+   * @returns Observable to monitor changes in the user account address in the wallet
    */
-  addAccountChangedListener(_alias: string, _function: Function) {
-    this._accountChangedListeners[_alias] = _function;
-  }
-  /**
-   * Remove the function registered under _alias name of the list os listeners for event accountChanged
-   * @param _alias Alias of the listener to be removed
-   */
-  removeAccountChangedListener(_alias: string) {
-    delete this._accountChangedListeners[_alias];
+  getUserAccountAddressSubject() {
+    return this._userAccountAddressSubject.asObservable();
   }
 
-  currentAccount(): Observable<string> {
+  /**
+   * @returns The current user account address in the provider (wallet)
+   */
+  getUserAccountAddress(): Observable<string | null> {
     return new Observable((_subscriber) => {
-      if (this.hasEthereumProvider()) {
-        window.ethereum
-          .request({
-            method: 'eth_requestAccounts',
-          })
-          .then((_accounts: any[]) => {
-            _subscriber.next(
-              _accounts.length > 0
-                ? this.toCheckSumAddress(_accounts[0])
-                : undefined
-            );
-          });
+      if (this._userAccountAddress) {
+        _subscriber.next(this._userAccountAddress);
+      } else {
+        this._userAccountAddressSubject.subscribe((_address) => {
+          _subscriber.next(_address);
+        });
+        this.fetchCurrentAccount();
       }
     });
+  }
+
+  /**
+   * Request accounts to the provider (wallet) and triggers the {userAccountAddressSubject} when done
+   */
+  fetchCurrentAccount(): void {
+    if (this.hasEthereumProvider()) {
+      window.ethereum
+        .request({
+          method: 'eth_requestAccounts',
+        })
+        .then((_accounts: any[]) => {
+          this._userAccountAddress =
+            _accounts.length > 0 ? this.toCheckSumAddress(_accounts[0]) : null;
+          this._userAccountAddressSubject.next(this._userAccountAddress);
+        });
+    }
   }
 
   /**
@@ -122,10 +131,9 @@ export class Web3Service {
    * @param connectInfo ProviderRpcError
    */
   private handleOnAccountsChanged(_accounts: string[]) {
-    console.log('web3.service.handleOnAccountChanged', _accounts);
-    Object.values(this._accountChangedListeners).forEach((_f) => {
-      _f(_accounts);
-    });
+    this._userAccountAddress =
+      _accounts.length > 0 ? this.toCheckSumAddress(_accounts[0]) : null;
+    this._userAccountAddressSubject.next(this._userAccountAddress);
   }
 
   /**

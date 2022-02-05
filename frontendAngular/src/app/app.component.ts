@@ -2,7 +2,7 @@ import { environment } from 'src/environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { GameFactoryService } from './contracts';
-import { Web3Service } from './services';
+import { MessageService, Web3Service } from './services';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +15,11 @@ export class AppComponent implements OnInit {
   userAccountAddress: string | null = null;
   owner: string | null = null;
 
-  constructor(private _gameFactory: GameFactoryService) {}
+  constructor(
+    private _web3Service: Web3Service,
+    private _gameFactory: GameFactoryService,
+    private _messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     console.log(`BetToken.address`, environment.betTokenAddress);
@@ -23,23 +27,28 @@ export class AppComponent implements OnInit {
 
     this.getOwner().subscribe((ownerAddress) => {
       this.owner = ownerAddress;
-      console.log(`OnInit subscribe owner`, this.owner);
+    });
+
+    this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
+      this.changeWalletAccount(address);
     });
   }
 
   changeWalletAccount(_address: string | null) {
-    this.userAccountAddress = _address;
     //if owner was not set yet, try again
     if (!this.owner) {
       this.getOwner().subscribe((ownerAddress) => {
         this.owner = ownerAddress;
-        console.log(`changeWalletAccount subscribe owner`, this.owner);
         if (!ownerAddress) {
-          alert(
+          this._messageService.show(
             `Connection with contract failed. Check if you are connected with your account in the right chain`
           );
+        } else {
+          this.userAccountAddress = _address;
         }
       });
+    } else {
+      this.userAccountAddress = _address;
     }
   }
 

@@ -1,4 +1,4 @@
-import { ScoreDialogComponent } from './../../components/score-dialog/score-dialog.component';
+import { ScoreDialogComponent } from '../../components/score-dialog/score-dialog.component';
 import { Component, Input, OnInit } from '@angular/core';
 import { GameService } from 'src/app/contracts';
 import { GameEvent, GameFinalizedEvent, Score } from 'src/app/model';
@@ -6,11 +6,11 @@ import { MessageService } from 'src/app/services';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'dapp-admin-games-game',
-  templateUrl: './admin-games-game.component.html',
-  styleUrls: ['./admin-games-game.component.css'],
+  selector: 'dapp-games-game',
+  templateUrl: './games-game.component.html',
+  styleUrls: ['./games-game.component.css'],
 })
-export class AdminGamesGameComponent implements OnInit {
+export class GamesGameComponent implements OnInit {
   @Input()
   gameService!: GameService;
 

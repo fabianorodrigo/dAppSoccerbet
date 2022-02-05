@@ -43,22 +43,24 @@ export class GameFactoryService extends BaseContract {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (_contract) => {
           let result;
-          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods
-                .newGame(
-                  _game.homeTeam,
-                  _game.visitorTeam,
-                  this._numberService.convertTimeJSToChain(_game.datetimeGame)
-                )
-                .send({ from: fromAccount });
-              console.log(`newGame chamado`, _game);
-              subscriber.next(true);
-            } catch (e) {
-              console.warn(e);
-              subscriber.next(false);
-            }
-          });
+          this._web3Service
+            .getUserAccountAddress()
+            .subscribe(async (fromAccount) => {
+              try {
+                result = await _contract.methods
+                  .newGame(
+                    _game.homeTeam,
+                    _game.visitorTeam,
+                    this._numberService.convertTimeJSToChain(_game.datetimeGame)
+                  )
+                  .send({ from: fromAccount });
+                console.log(`newGame chamado`, _game);
+                subscriber.next(true);
+              } catch (e) {
+                console.warn(e);
+                subscriber.next(false);
+              }
+            });
         }
       );
     });

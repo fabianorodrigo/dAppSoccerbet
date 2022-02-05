@@ -4,11 +4,15 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { AdminGamesFormComponent } from './admin-games-form/admin-games-form.component';
-import { AdminGamesHomeComponent } from './admin-games-home/admin-games-home.component';
-import { AdminGamesGameComponent } from './admin-games-game/admin-games-game.component';
+import { GamesHomeComponent } from './games-home/games-home.component';
+import { GamesGameComponent } from './game/games-game.component';
 
 @NgModule({
-  declarations: [AdminGamesHomeComponent, AdminGamesFormComponent, AdminGamesGameComponent],
+  declarations: [
+    GamesHomeComponent,
+    AdminGamesFormComponent,
+    GamesGameComponent,
+  ],
   imports: [
     CommonModule,
     MaterialModule,
@@ -17,4 +21,4 @@ import { AdminGamesGameComponent } from './admin-games-game/admin-games-game.com
     ReactiveFormsModule,
   ],
 })
-export class AdminGamesModule {}
+export class GamesModule {}

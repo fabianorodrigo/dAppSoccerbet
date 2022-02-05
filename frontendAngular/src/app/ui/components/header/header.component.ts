@@ -18,10 +18,6 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  changeWalletAccount(address: string | null) {
-    this.onChangeAccount.emit(address);
-  }
-
   public onToggleSidenav = () => {
     this.sidenavToggle.emit();
   };

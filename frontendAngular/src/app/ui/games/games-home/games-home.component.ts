@@ -1,16 +1,15 @@
-import { GameEvent } from '../../../model/events/game-event.interface';
 import { Component, OnInit } from '@angular/core';
-import { catchError, finalize, of } from 'rxjs';
 import { GameFactoryService, GameService } from 'src/app/contracts';
 import { Game } from 'src/app/model/game.interface';
-import { MessageService, Web3Service } from './../../../services';
+import { GameEvent } from '../../../model/events/game-event.interface';
+import { MessageService, Web3Service } from '../../../services';
 
 @Component({
-  selector: 'dapp-admin-games-home',
-  templateUrl: './admin-games-home.component.html',
-  styleUrls: ['./admin-games-home.component.css'],
+  selector: 'dapp-games-home',
+  templateUrl: './games-home.component.html',
+  styleUrls: ['./games-home.component.css'],
 })
-export class AdminGamesHomeComponent implements OnInit {
+export class GamesHomeComponent implements OnInit {
   constructor(
     private _webService: Web3Service,
     private _gameFactory: GameFactoryService,
@@ -24,9 +23,11 @@ export class AdminGamesHomeComponent implements OnInit {
   ngOnInit(): void {
     this._gameFactory.addEventListener(
       GameFactoryService.EVENTS.GAME_CREATED,
-      'adminGamesHome',
+      'gamesHome',
       (eventData: GameEvent) => {
-        alert(eventData.addressGame);
+        this.games.push(
+          new GameService(this._webService, eventData.addressGame)
+        );
       }
     );
     //recover the list of games and for each one instanciate a GameService
@@ -54,4 +55,8 @@ export class AdminGamesHomeComponent implements OnInit {
     }
     this.editing = false;
   }
+
+  public executeSelectedChange = (event: any) => {
+    console.log(event);
+  };
 }

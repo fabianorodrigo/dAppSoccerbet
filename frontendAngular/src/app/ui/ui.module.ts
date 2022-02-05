@@ -1,23 +1,22 @@
-import { AdminGamesModule } from './admin-games/admin-games.module';
+import { GamesModule } from './games/games.module';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from './../material.module';
 import { ComponentsModule } from './components/components.module';
-import { GamesComponent } from './games/games.component';
 import { HomeComponent } from './home/home.component';
 import { UiRoutingModule } from './ui.routes';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
 @NgModule({
-  declarations: [HomeComponent, GamesComponent],
+  declarations: [HomeComponent],
   imports: [
     CommonModule,
     RouterModule,
     MaterialModule,
     UiRoutingModule,
     ComponentsModule,
-    AdminGamesModule,
+    GamesModule,
   ],
   //snackbar global default options
   providers: [

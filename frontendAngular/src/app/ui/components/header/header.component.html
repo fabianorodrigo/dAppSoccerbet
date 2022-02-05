@@ -11,8 +11,8 @@
     <ul fxLayout fxLayoutGap="15px" class="navigation-items">
       <li>
         <dapp-wallet
+          [userAccountAddress]="userAccountAddress"
           fxFlexAlign="center"
-          (onChangeAccount)="changeWalletAccount($event)"
         ></dapp-wallet>
       </li>
     </ul>

@@ -57,26 +57,28 @@ export class GameService extends BaseContract {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (_contract) => {
           let result;
-          this._web3Service.currentAccount().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods.finalizeGame(_score).send({
-                from: fromAccount,
-              });
-              subscriber.next({
-                success: true,
-                message:
-                  'Transaction to finalize the game for betting was sent successfully',
-              });
-            } catch (e: any) {
-              const providerError = ProviderErrors[e.code];
-              let message = `We had some problem. The transaction wasn't sent.`;
-              if (providerError) {
-                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+          this._web3Service
+            .getUserAccountAddress()
+            .subscribe(async (fromAccount) => {
+              try {
+                result = await _contract.methods.finalizeGame(_score).send({
+                  from: fromAccount,
+                });
+                subscriber.next({
+                  success: true,
+                  message:
+                    'Transaction to finalize the game for betting was sent successfully',
+                });
+              } catch (e: any) {
+                const providerError = ProviderErrors[e.code];
+                let message = `We had some problem. The transaction wasn't sent.`;
+                if (providerError) {
+                  message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+                }
+                console.warn(e);
+                subscriber.next({ success: false, message: message });
               }
-              console.warn(e);
-              subscriber.next({ success: false, message: message });
-            }
-          });
+            });
         }
       );
     });

@@ -1,7 +1,9 @@
+import { MessageService } from './../../../services/message.service';
 import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Input,
   OnInit,
   Output,
 } from '@angular/core';
@@ -17,21 +19,16 @@ declare let window: any;
   styleUrls: ['./wallet.component.css'],
 })
 export class WalletComponent implements OnInit {
-  @Output() onChangeAccount = new EventEmitter<string | null>();
-  accountAddress: string | null = null;
+  @Input() userAccountAddress: string | null = null;
 
   constructor(
-    private _changeDetectorRefs: ChangeDetectorRef,
+    private _web3Service: Web3Service,
+    //private _changeDetectorRefs: ChangeDetectorRef,
     private _betTokenContractService: BetTokenService,
-    private _web3Service: Web3Service
+    private _messageService: MessageService
   ) {}
 
-  async ngOnInit() {
-    this._web3Service.addAccountChangedListener(
-      'wallet',
-      this.handleOnAccountsChanged.bind(this)
-    );
-  }
+  ngOnInit() {}
 
   /**
    * Ask permission to connect to the Wallet (eg. Metamask) accounts
@@ -40,19 +37,16 @@ export class WalletComponent implements OnInit {
    */
   async connect(event: MouseEvent): Promise<void> {
     try {
-      this._web3Service.currentAccount().subscribe((_account) => {
-        this.accountAddress = _account;
-        this.handleOnAccountsChanged([_account]);
-      });
+      this._web3Service.fetchCurrentAccount();
     } catch (err: any) {
       console.error(err);
       const providerError = ProviderErrors[err.code];
       if (providerError) {
-        alert(
+        this._messageService.show(
           `${providerError.title}: ${providerError.message}. You need to connect with an account in your wallet in order to make use of this Ðapp`
         );
       } else {
-        alert('We had some problem connecting you wallet');
+        this._messageService.show('We had some problem connecting you wallet');
       }
     }
   }
@@ -68,22 +62,5 @@ export class WalletComponent implements OnInit {
       .subscribe((value) => {
         console.log(value);
       });
-  }
-  /**
-   * Handles disconnect event. This event is emited when becomes unable to submit RPC
-   * requests to any chain. In general, this will only happen due to network connectivity
-   * issues or some unforeseen error.
-   *
-   * @param connectInfo ProviderRpcError
-   */
-  private handleOnAccountsChanged(_accounts: string[]) {
-    if (_accounts.length > 0) {
-      this.accountAddress = this._web3Service.toCheckSumAddress(_accounts[0]);
-    } else {
-      this.accountAddress = null;
-    }
-    //Angular not rerendering in spite of changing this.accountAddress
-    this._changeDetectorRefs.detectChanges();
-    this.onChangeAccount.emit(this.accountAddress);
   }
 }

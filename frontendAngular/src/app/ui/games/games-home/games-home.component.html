@@ -1,12 +1,20 @@
+<p class="title">Games</p>
+<button mat-raised-button color="primary" (click)="newGame($event)">
+  New Game ...
+</button>
+<mat-spinner *ngIf="processing"></mat-spinner>
+<dapp-admin-games-form
+  *ngIf="this.editing"
+  (onCloseEdition)="closeForm($event)"
+></dapp-admin-games-form>
 <section fxLayout="column" fxFlexAlign="stretch">
-  <p class="title">Games</p>
-
   <mat-tab-group (selectedTabChange)="executeSelectedChange($event)">
     <mat-tab label="Open">
-      <p>
-        We are going to use different material components to create nice looking
-        angular app.
-      </p>
+      <div class="game-list">
+        <ng-container *ngFor="let gameService of games">
+          <dapp-games-game [gameService]="gameService"></dapp-games-game>
+        </ng-container>
+      </div>
     </mat-tab>
     <mat-tab label="Closed">
       <p>

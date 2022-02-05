@@ -2,12 +2,12 @@
   mat-raised-button
   color="secondary"
   (click)="connect($event)"
-  *ngIf="!accountAddress"
+  *ngIf="!userAccountAddress"
 >
   Connect Wallet
 </button>
 
-<div class="connected-account" *ngIf="accountAddress">
+<div class="connected-account" *ngIf="userAccountAddress">
   <div class="label">Connected Account address:</div>
-  <div class="accountAddress">{{ accountAddress }}</div>
+  <div class="accountAddress">{{ userAccountAddress }}</div>
 </div>
