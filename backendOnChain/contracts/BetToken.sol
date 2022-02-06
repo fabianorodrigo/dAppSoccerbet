@@ -59,7 +59,7 @@ contract BetToken is ERC20, Ownable {
         return 10;
     }*/
 
-    function destroyContract() public onlyOwner {
+    function destroyContract() external onlyOwner {
         selfdestruct(payable(this.owner()));
     }
 }
