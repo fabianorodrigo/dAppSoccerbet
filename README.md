@@ -71,4 +71,7 @@ Score: A score composed by number of goals scored by home team and number of goa
 - Na mesma linha do tópico acima: Prover um ICO para os interessados ganharem participação nos lucros da casa/banca?
 - Implementar lógica do valor da aposta/prêmio de acordo com as probabilidades: https://www.pinnacle.com/en/betting-resources/glossary
 - https://docs.openzeppelin.com/contracts/4.x/governance
+- Executar Manticore
+- Executar Slither
+- Aplicar Scribble
 - Como visualizar o formato SARIF exportado pelo Slither no CircleCI ou Github Actions?

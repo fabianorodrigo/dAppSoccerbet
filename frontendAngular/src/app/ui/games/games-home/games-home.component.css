@@ -1,8 +1,10 @@
 .game-list {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
+  gap: 15px;
+  padding: 5px;
 }
 
 .title {
