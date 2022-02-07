@@ -25,10 +25,11 @@ export class GamesHomeComponent implements OnInit {
   gamesFinalized: GameCompound[] = [];
 
   ngOnInit(): void {
-    this._gameFactory.addEventListener(
-      GameFactoryService.EVENTS.GAME_CREATED,
-      'gamesHome',
-      (eventData: GameEvent) => {
+    this._gameFactory
+      .getEventBehaviorSubject(GameFactoryService.EVENTS.GAME_CREATED)
+      .subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameEvent = evt;
         this.gamesClosed.push(
           new GameCompound(
             {
@@ -43,8 +44,7 @@ export class GamesHomeComponent implements OnInit {
             new GameService(this._webService, eventData.addressGame)
           )
         );
-      }
-    );
+      });
 
     //recover the list of games and for each one instanciate a GameService
     this._gameFactory.listGamesDTO().subscribe((_gamesDTO: Game[]) => {
@@ -59,7 +59,9 @@ export class GamesHomeComponent implements OnInit {
           _game.addressGame as string
         );
         this.addListeners(gameService);
-        targetArray.push(new GameCompound(_game, gameService));
+        // destructing spread on _game because it's variable come readonly from web3 and when the UI receive
+        // OPENEDGAME and CLOSEDGAME events, it's necessary update
+        targetArray.push(new GameCompound({ ..._game }, gameService));
       }
     });
   }
@@ -90,46 +92,51 @@ export class GamesHomeComponent implements OnInit {
    * Add function listeners to the Game events in order to handle the UI interface properly
    */
   private addListeners(_gameService: GameService): void {
-    _gameService.addEventListener(
-      GameService.EVENTS.GAME_OPENED,
-      'gamesHome',
-      (event: GameEvent) => {
+    _gameService
+      .getEventBehaviorSubject(GameService.EVENTS.GAME_OPENED)
+      .subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameEvent = evt;
         const index = this.gamesClosed.findIndex(
-          (g) => g.game.addressGame == event.addressGame
+          (g) => g.game.addressGame == eventData.addressGame
         );
-        console.log('executou games-home-listener opened', index);
+        //add the GameCompound of the array of OPEN GAMES and remove it from array of CLOSED GAMES
         if (index > -1) {
+          this.gamesClosed[index].game.open = true;
           this.gamesOpen.push(this.gamesClosed[index]);
           this.gamesClosed.splice(index, 1);
         }
-      }
-    );
-    _gameService.addEventListener(
-      GameService.EVENTS.GAME_CLOSED,
-      'gamesHome',
-      (event: GameEvent) => {
+      });
+
+    _gameService
+      .getEventBehaviorSubject(GameService.EVENTS.GAME_CLOSED)
+      .subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameEvent = evt;
         const index = this.gamesOpen.findIndex(
-          (g) => g.game.addressGame == event.addressGame
+          (g) => g.game.addressGame == eventData.addressGame
         );
-        console.log('executou games-home-listener closed', index);
+        //add the GameCompound of the array of CLOSED GAMES and remove it from array of OPENED GAMES
         if (index > -1) {
+          this.gamesOpen[index].game.open = false;
           this.gamesClosed.push(this.gamesOpen[index]);
           this.gamesOpen.splice(index, 1);
         }
-      }
-    );
-    _gameService.addEventListener(
-      GameService.EVENTS.GAME_FINALIZED,
-      'gamesHome',
-      (event: GameFinalizedEvent) => {
+      });
+
+    _gameService
+      .getEventBehaviorSubject(GameService.EVENTS.GAME_FINALIZED)
+      .subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameFinalizedEvent = evt;
         const index = this.gamesClosed.findIndex(
-          (g) => g.game.addressGame == event.addressGame
+          (g) => g.game.addressGame == eventData.addressGame
         );
         if (index > -1) {
+          this.gamesClosed[index].game.finalized = true;
           this.gamesFinalized.push(this.gamesClosed[index]);
           this.gamesClosed.splice(index, 1);
         }
-      }
-    );
+      });
   }
 }

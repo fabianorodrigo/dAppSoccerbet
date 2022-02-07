@@ -1,15 +1,13 @@
-import { TransactionResult } from './../model/transaction-result.interface';
-import { Observable, Subscriber } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { ProviderErrors } from '../model';
-import { MessageService, Web3Service } from '../services';
+import { Web3Service } from '../services';
+import { TransactionResult } from './../model/transaction-result.interface';
 
 export class BaseContract {
   protected contract!: Contract;
-  protected _eventListeners: {
-    [eventName: string]: { [alias: string]: Function };
-  } = {};
+  protected _eventListeners: { [event: string]: BehaviorSubject<any> } = {};
 
   public address: string;
 
@@ -27,6 +25,17 @@ export class BaseContract {
         throw new Error(`Web3 not instanciated`);
       }
     });
+  }
+
+  /**
+   * For each event passed in the {initializeListeners}, there is a BehaviorSubject.
+   * This method returns the instance of BehaviorSubject associated with the event {_eventName}
+   *
+   * @param _eventName Name of the event which BehaviorSubject
+   * @returns instance of BehaviorSubject associated with the event {_eventName}
+   */
+  getEventBehaviorSubject(_eventName: string): BehaviorSubject<any> {
+    return this._eventListeners[_eventName];
   }
 
   /**
@@ -124,7 +133,7 @@ export class BaseContract {
   }
 
   /**
-   * Initialize the monitoring of the events specified in {_evenNames} of {_contract}
+   * Creates a BehaviorSubject for each event specified in {_evenNames} of {_contract}
    *
    * @param _contract Contract that will have a function attached on it's events
    * @param _eventNames Name of events of Contract to be monitored
@@ -135,50 +144,17 @@ export class BaseContract {
         throw new Error(
           `Event '${_eventName}' does not exists in the contract`
         );
+      } else {
+        this._eventListeners[_eventName] = new BehaviorSubject<any>(null);
       }
       _contract.events[_eventName]()
         .on('data', (event: any) => {
           if (this._eventListeners[_eventName]) {
-            Object.keys(this._eventListeners[_eventName]).forEach((_alias) => {
-              console.warn(`eventos`, _alias);
-              const _f = this._eventListeners[_eventName][_alias];
-              _f(event.returnValues);
-            });
+            this._eventListeners[_eventName].next(event.returnValues);
           }
         })
         .on('error', console.error);
     });
-  }
-
-  /**
-   * Add a function to the list of listeners for event _eventName
-   * @param _eventName Name of event to which the listener is being added
-   * @param _listenerAlias Alias of the listener
-   * @param _function Function that will be fired when GameOpened event be catched
-   */
-  addEventListener(
-    _eventName: string,
-    _listenerAlias: string,
-    _function: Function
-  ) {
-    if (!this._eventListeners[_eventName]) {
-      this._eventListeners[_eventName] = {};
-    }
-    this._eventListeners[_eventName][_listenerAlias] = _function;
-    console.log(
-      'quantidade ',
-      _eventName,
-      Object.keys(this._eventListeners[_eventName])
-    );
-  }
-
-  /**
-   * Remove the function registered under _alias name of the list os listeners for event _eventName
-   * @param _eventName Name of event to which the listener is being removed
-   * @param _listenerAlias Alias of the listener to be removed
-   */
-  removeEventListener(_eventName: string, _listenerAlias: string) {
-    delete this._eventListeners[_eventName][_listenerAlias];
   }
 
   /**
