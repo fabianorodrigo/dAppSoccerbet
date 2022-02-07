@@ -22,16 +22,16 @@ export class MessageService {
     action: Partial<Observer<void>> | undefined
   ) {
     this.snackBarRef = this._snackBar.open(message, actionLabel);
-    this.snackBarRef.afterDismissed().subscribe((x) => {
+    /*this.snackBarRef.afterDismissed().subscribe((x) => {
       console.log(`afterdismisses`, x);
-    });
+    });*/
     this.snackBarRef.onAction().subscribe(action);
   }
 
   show(message: string) {
     this.snackBarRef = this._snackBar.open(message);
-    this.snackBarRef.afterDismissed().subscribe((x) => {
+    /*this.snackBarRef.afterDismissed().subscribe((x) => {
       console.log(`afterdismisses`, x);
-    });
+    });*/
   }
 }
