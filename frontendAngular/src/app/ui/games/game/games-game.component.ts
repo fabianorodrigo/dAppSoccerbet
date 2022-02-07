@@ -36,52 +36,6 @@ export class GamesGameComponent implements OnInit {
     this.finalized = this.gameCompound.game.finalized;
 
     this.finalScore = this.gameCompound.game.finalScore;
-
-    //events listeners
-    this.gameCompound.gameService.addEventListener(
-      GameService.EVENTS.GAME_OPENED,
-      'games-game',
-      (g: GameEvent) => {
-        if (this.gameCompound.gameService.address == g.addressGame) {
-          this.open = true;
-        } else {
-          this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
-          );
-          console.log('games-listener opened this.open', this.open);
-          this._changeDetectorRefs.detectChanges();
-        }
-      }
-    );
-    this.gameCompound.gameService.addEventListener(
-      GameService.EVENTS.GAME_CLOSED,
-      'games-game',
-      (g: GameEvent) => {
-        if (this.gameCompound.gameService.address == g.addressGame) {
-          this.open = false;
-        } else {
-          this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
-          );
-        }
-        console.log('games-listener closed this.open', this.open);
-        this._changeDetectorRefs.detectChanges();
-      }
-    );
-    this.gameCompound.gameService.addEventListener(
-      GameService.EVENTS.GAME_FINALIZED,
-      'games-game',
-      (g: GameFinalizedEvent) => {
-        if (this.gameCompound.gameService.address == g.addressGame) {
-          this.finalized = true;
-          this.finalScore = g.score;
-        } else {
-          this._messageService.show(
-            `Falha na captura do evento. GameService.address '${this.gameCompound.gameService.address}' x  event.addressGame '${g.addressGame}'`
-          );
-        }
-      }
-    );
   }
 
   openForBetting() {
