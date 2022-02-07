@@ -63,7 +63,6 @@ export class GameFactoryService extends BaseContract {
                     this._numberService.convertTimeJSToChain(_game.datetimeGame)
                   )
                   .send({ from: fromAccount });
-                console.log(`newGame chamado`, _game);
                 subscriber.next(true);
               } catch (e) {
                 console.warn(e);
