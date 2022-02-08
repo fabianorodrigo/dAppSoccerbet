@@ -26,7 +26,10 @@
     <mat-tab label="Finalized">
       <div class="game-list">
         <ng-container *ngFor="let game of gamesFinalized">
-          <dapp-games-game [gameCompound]="game"></dapp-games-game>
+          <dapp-games-game
+            [gameCompound]="game"
+            [isAdmin]="isAdmin"
+          ></dapp-games-game>
         </ng-container>
       </div>
     </mat-tab>

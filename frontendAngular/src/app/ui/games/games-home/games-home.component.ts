@@ -23,8 +23,13 @@ export class GamesHomeComponent implements OnInit {
   gamesOpen: GameCompound[] = [];
   gamesClosed: GameCompound[] = [];
   gamesFinalized: GameCompound[] = [];
+  isAdmin: boolean = false;
 
   ngOnInit(): void {
+    this._gameFactory.isAdmin().subscribe((is) => {
+      this.isAdmin = is;
+    });
+
     this._gameFactory
       .getEventBehaviorSubject(GameFactoryService.EVENTS.GAME_CREATED)
       .subscribe((evt) => {

@@ -14,6 +14,7 @@ import { GameCompound } from '../game-compound.class';
 export class GameComponent implements OnInit {
   @Input()
   gameCompound!: GameCompound;
+  @Input()
   isAdmin: boolean = false;
 
   homeTeam!: string;
@@ -37,11 +38,6 @@ export class GameComponent implements OnInit {
     this.finalized = this.gameCompound.game.finalized;
 
     this.finalScore = this.gameCompound.game.finalScore;
-
-    this.gameCompound.gameService.isAdmin().subscribe((is) => {
-      console.log('subscriber do isAdmin', is);
-      this.isAdmin = is;
-    });
   }
 
   openForBetting() {
