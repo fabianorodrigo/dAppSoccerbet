@@ -1,10 +1,12 @@
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { WEB3 } from '../core/web3';
-import { ProviderMessage } from '../model';
+import { ProviderMessage, TransactionResult } from '../model';
+import * as BN from 'bn.js';
 
 declare let window: any;
 
@@ -73,6 +75,80 @@ export class Web3Service {
           this._userAccountAddressSubject.next(this._userAccountAddress);
         });
     }
+  }
+
+  /**
+   * Send Ether a {_value} from account {_addressFrom} to account {_addressTo}
+   *
+   * @param _addressFrom origin of funds
+   * @param _addressTo destination of funds
+   * @param _valueInWei Value in Wei
+   *
+   * @returns a TransactionResult that indicates if successful or not and message
+   */
+  sendWei(
+    _addressFrom: string,
+    _addressTo: string,
+    _valueInWei: BN
+  ): Observable<TransactionResult> {
+    return new Observable<TransactionResult>((_subscriber) => {
+      if (this.hasEthereumProvider()) {
+        const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
+        window.ethereum
+          .request({
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: _addressFrom,
+                to: _addressTo,
+                value: weiAmmountHEX,
+                /*gasPrice: '0x09184e72a000',
+                gas: '0x2710',*/
+              },
+            ],
+          })
+          .then((_transaction: any) => {
+            _subscriber.next({ success: true, message: _transaction });
+          })
+          .catch((e: { message: any }) => {
+            _subscriber.next({ success: false, message: e.message });
+          });
+      } else {
+        _subscriber.next({
+          success: false,
+          message: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
+        });
+      }
+    });
+  }
+
+  async addTokenToWallet(): Promise<boolean> {
+    const tokenAddress = environment.betTokenAddress;
+    const tokenSymbol = 'BET';
+    const tokenDecimals = 18;
+    const tokenImage =
+      'https://cdn.iconscout.com/icon/premium/png-256-thumb/football-betting-2018363-1716872.png';
+
+    if (this.hasEthereumProvider()) {
+      try {
+        // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+        return await window.ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20', // Initially only supports ERC20, but eventually more!
+            options: {
+              address: tokenAddress, // The address that the token is at.
+              symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+              decimals: tokenDecimals, // The number of decimals in the token
+              image: tokenImage, // A string url of the token logo
+            },
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    return false;
   }
 
   /**
