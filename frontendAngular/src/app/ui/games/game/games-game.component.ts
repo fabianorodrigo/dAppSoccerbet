@@ -1,12 +1,10 @@
-import { Subscriber } from 'rxjs';
-import { GameCompound } from './../game-compound.class';
-import { ScoreDialogComponent } from '../../components/score-dialog/score-dialog.component';
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { GameService } from 'src/app/contracts';
-import { GameEvent, GameFinalizedEvent, Score } from 'src/app/model';
-import { MessageService } from 'src/app/services';
 import { MatDialog } from '@angular/material/dialog';
-import { BetDialogComponent } from '../../components/bet-dialog/bet-dialog.component';
+import { Score } from 'src/app/model';
+import { MessageService } from 'src/app/services';
+import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
+import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
+import { GameCompound } from './../game-compound.class';
 
 @Component({
   selector: 'dapp-games-game',

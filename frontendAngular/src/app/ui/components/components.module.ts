@@ -10,8 +10,8 @@ import { HeaderComponent } from './header/header.component';
 import { LayoutComponent } from './layout/layout.component';
 import { MenuComponent } from './menu/menu.component';
 import { WalletComponent } from './wallet/wallet.component';
-import { ScoreDialogComponent } from './score-dialog/score-dialog.component';
-import { BetDialogComponent } from './bet-dialog/bet-dialog.component';
+import { ScoreDialogComponent } from '../games/score-dialog/score-dialog.component';
+import { BetDialogComponent } from '../games/bet-dialog/bet-dialog.component';
 
 @NgModule({
   declarations: [
