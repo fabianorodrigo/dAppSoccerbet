@@ -14,7 +14,8 @@
     <mat-icon>schedule</mat-icon>
     <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
   </div>
-  <div class="row-action" *ngIf="!finalized">
+  <!-- ADMIN ROW ACTION -->
+  <div class="row-action" *ngIf="!finalized && isAdmin">
     <button
       class="button"
       *ngIf="!open"
@@ -43,6 +44,19 @@
       (click)="finalizeGame()"
     >
       Finalize ...
+    </button>
+  </div>
+  <!-- USER ROW ACTION -->
+  <div class="row-action" *ngIf="!finalized && !isAdmin">
+    <button
+      class="button"
+      [disabled]="!open"
+      mat-flat-button
+      color="primary"
+      matTooltip="Click to place your bet"
+      (click)="bet()"
+    >
+      Bet ...
     </button>
   </div>
 </div>

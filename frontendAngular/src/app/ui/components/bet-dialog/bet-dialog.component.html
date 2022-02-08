@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content class="mat-typography">
+  <form class="form" [formGroup]="form">
+    <div>
+      <mat-form-field class="full-width">
+        <input
+          type="number"
+          matInput
+          placeholder="Bet Value"
+          formControlName="value"
+        />
+      </mat-form-field>
+    </div>
+    <mat-form-field class="full-width">
+      <input
+        type="number"
+        matInput
+        [placeholder]="data.homeTeam"
+        formControlName="home"
+      />
+    </mat-form-field>
+    <mat-form-field class="full-width">
+      <input
+        type="number"
+        matInput
+        [placeholder]="data.visitorTeam"
+        formControlName="visitor"
+      />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false">Cancel</button>
+  <button
+    mat-button
+    [disabled]="
+      form.getRawValue().value == null ||
+      form.getRawValue().home == null ||
+      form.getRawValue().visitor == null
+    "
+    color="primary"
+    [mat-dialog-close]="form.getRawValue()"
+    cdkFocusInitial
+  >
+    Confirm
+  </button>
+</mat-dialog-actions>

@@ -6,6 +6,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { AdminGamesFormComponent } from './admin-games-form/admin-games-form.component';
 import { GamesHomeComponent } from './games-home/games-home.component';
 import { GamesGameComponent } from './game/games-game.component';
+import { ComponentsModule } from '../components/components.module';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { GamesGameComponent } from './game/games-game.component';
     FlexLayoutModule,
     FormsModule,
     ReactiveFormsModule,
+    ComponentsModule,
   ],
 })
 export class GamesModule {}

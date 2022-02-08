@@ -11,6 +11,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { MenuComponent } from './menu/menu.component';
 import { WalletComponent } from './wallet/wallet.component';
 import { ScoreDialogComponent } from './score-dialog/score-dialog.component';
+import { BetDialogComponent } from './bet-dialog/bet-dialog.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { ScoreDialogComponent } from './score-dialog/score-dialog.component';
     MenuComponent,
     LayoutComponent,
     ScoreDialogComponent,
+    BetDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -29,6 +31,12 @@ import { ScoreDialogComponent } from './score-dialog/score-dialog.component';
     FlexLayoutModule,
     ReactiveFormsModule,
   ],
-  exports: [HeaderComponent, WalletComponent, MenuComponent, LayoutComponent],
+  exports: [
+    HeaderComponent,
+    WalletComponent,
+    MenuComponent,
+    LayoutComponent,
+    BetDialogComponent,
+  ],
 })
 export class ComponentsModule {}
