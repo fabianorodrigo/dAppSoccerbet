@@ -4,14 +4,14 @@ import { Score } from 'src/app/model';
 import { MessageService } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
-import { GameCompound } from './../game-compound.class';
+import { GameCompound } from '../game-compound.class';
 
 @Component({
   selector: 'dapp-games-game',
-  templateUrl: './games-game.component.html',
-  styleUrls: ['./games-game.component.css'],
+  templateUrl: './game.component.html',
+  styleUrls: ['./game.component.css'],
 })
-export class GamesGameComponent implements OnInit {
+export class GameComponent implements OnInit {
   @Input()
   gameCompound!: GameCompound;
   isAdmin: boolean = false;

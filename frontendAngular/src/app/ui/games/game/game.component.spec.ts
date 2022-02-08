@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GamesGameComponent } from './games-game.component';
+import { GameComponent } from './game.component';
 
 describe('GamesGameComponent', () => {
-  let component: GamesGameComponent;
-  let fixture: ComponentFixture<GamesGameComponent>;
+  let component: GameComponent;
+  let fixture: ComponentFixture<GameComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [GamesGameComponent],
+      declarations: [GameComponent],
     }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GamesGameComponent);
+    fixture = TestBed.createComponent(GameComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
