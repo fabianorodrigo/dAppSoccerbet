@@ -4,12 +4,16 @@ import { GamesHomeComponent } from './games/games-home/games-home.component';
 // Components
 import { ErrorComponent } from './components/error/error.component';
 import { HomeComponent } from './home/home.component';
-import { OwnerGuard } from '../core';
+import { CurrentAccountResolver, OwnerGuard } from '../core';
+import { BettokenHomeComponent } from './bettoken/bettoken-home/bettoken-home.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  //{ path: 'money', component: TransactionComponent },
   { path: 'home', component: HomeComponent },
+  {
+    path: 'token',
+    component: BettokenHomeComponent,
+  },
   { path: 'games', component: GamesHomeComponent },
   {
     path: 'adminGames',

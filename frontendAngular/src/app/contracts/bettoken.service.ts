@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import BigNumber from 'bignumber.js';
+import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AbiItem } from 'web3-utils/types';
 import contractABI from '../../../../backendOnChain/build/contracts/BetToken.json';
+import { TransactionResult } from '../model';
 import { Web3Service } from '../services';
 import { BaseContract } from './baseContract';
 
@@ -19,8 +20,8 @@ export class BetTokenService extends BaseContract {
     return contractABI.abi as AbiItem[];
   }
 
-  balanceOf(_accountAddress: string): Observable<BigNumber> {
-    return new Observable<BigNumber>((subscriber) => {
+  balanceOf(_accountAddress: string): Observable<BN> {
+    return new Observable<BN>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(
         async (contract) => {
           let result;
@@ -33,5 +34,13 @@ export class BetTokenService extends BaseContract {
         }
       );
     });
+  }
+
+  buy(_fromAccountAddress: string, _value: BN): Observable<TransactionResult> {
+    return this._web3Service.sendWei(
+      _fromAccountAddress,
+      environment.betTokenAddress,
+      _value
+    );
   }
 }

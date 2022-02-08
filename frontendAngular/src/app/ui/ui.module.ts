@@ -7,6 +7,7 @@ import { ComponentsModule } from './components/components.module';
 import { HomeComponent } from './home/home.component';
 import { UiRoutingModule } from './ui.routes';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { BettokenModule } from './bettoken/bettoken.module';
 
 @NgModule({
   declarations: [HomeComponent],
@@ -17,6 +18,7 @@ import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
     UiRoutingModule,
     ComponentsModule,
     GamesModule,
+    BettokenModule,
   ],
   //snackbar global default options
   providers: [
