@@ -21,6 +21,10 @@ export class GameService extends BaseContract {
     });
   }
 
+  getContractABI(): AbiItem[] {
+    return contractABI.abi as AbiItem[];
+  }
+
   /**
    * Open the game for betting
    * @returns result of transaction submission
@@ -80,10 +84,6 @@ export class GameService extends BaseContract {
         }
       );
     });
-  }
-
-  owner(): Observable<string> {
-    return this.getString(contractABI.abi as AbiItem[], 'owner');
   }
 
   homeTeam(): Observable<string> {

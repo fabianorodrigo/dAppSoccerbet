@@ -15,6 +15,10 @@ export class BetTokenService extends BaseContract {
     super(_web3Service, environment.betTokenAddress);
   }
 
+  getContractABI(): AbiItem[] {
+    return contractABI.abi as AbiItem[];
+  }
+
   balanceOf(_accountAddress: string): Observable<BigNumber> {
     return new Observable<BigNumber>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).subscribe(

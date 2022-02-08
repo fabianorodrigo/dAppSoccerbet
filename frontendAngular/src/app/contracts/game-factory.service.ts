@@ -30,8 +30,8 @@ export class GameFactoryService extends BaseContract {
     });
   }
 
-  owner(): Observable<string> {
-    return this.getString(contractABI.abi as AbiItem[], 'owner');
+  getContractABI(): AbiItem[] {
+    return contractABI.abi as AbiItem[];
   }
 
   // listGames(): Observable<string[]> {

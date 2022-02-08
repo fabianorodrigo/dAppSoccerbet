@@ -5,9 +5,10 @@ import { ProviderErrors } from '../model';
 import { Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 
-export class BaseContract {
+export abstract class BaseContract {
   protected contract!: Contract;
   protected _eventListeners: { [event: string]: BehaviorSubject<any> } = {};
+  private _owner!: string;
 
   public address: string;
 
@@ -24,6 +25,40 @@ export class BaseContract {
       } else {
         throw new Error(`Web3 not instanciated`);
       }
+    });
+  }
+
+  /**
+   * Returns the contract ABI
+   */
+  abstract getContractABI(): AbiItem[];
+
+  /**
+   * @returns The owner of contract
+   */
+  owner(): Observable<string> {
+    return new Observable<string>((_subscriber) => {
+      if (this._owner) {
+        _subscriber.next(this._owner);
+      } else {
+        this.getString(this.getContractABI(), 'owner').subscribe((_address) => {
+          this._owner = _address;
+          _subscriber.next(this._owner);
+        });
+      }
+    });
+  }
+
+  /**
+   * @returns returns TRUE if the wallet address is equal to the contract owner
+   */
+  isAdmin(): Observable<boolean> {
+    return new Observable<boolean>((_subscriber) => {
+      this.owner().subscribe((_ownerAddress) => {
+        this._web3Service.getUserAccountAddress().subscribe((_userAddress) => {
+          _subscriber.next(_ownerAddress == _userAddress);
+        });
+      });
     });
   }
 
