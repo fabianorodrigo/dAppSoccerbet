@@ -1,5 +1,10 @@
 <p class="title">Games</p>
-<button mat-raised-button color="primary" (click)="newGame($event)">
+<button
+  mat-raised-button
+  color="primary"
+  (click)="newGame($event)"
+  *ngIf="isAdmin"
+>
   New Game ...
 </button>
 <mat-spinner *ngIf="processing"></mat-spinner>
