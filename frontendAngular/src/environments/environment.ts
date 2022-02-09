@@ -8,8 +8,9 @@ export const environment = {
   //betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
   //notebook Vaio
-  betTokenAddress: '0x3cF7D6B9CaAa13c2902a830b2fd4851Cb898eaBB',
-  gameFactoryAddress: '0x497f058d7efF20D69eBA407364173d27B2DE87c6',
+  betTokenAddress: '0x50C61F73460Fed75bFB5F1e3015C83E76411d236',
+  gameFactoryAddress: '0x2727603e9464c05Ec734395a78880C1709dd9566',
+  CalculatorAddress: '0x8d54A40De9f8A0858aA3810Cc05B29EbeE8F7a94',
 };
 
 /*
