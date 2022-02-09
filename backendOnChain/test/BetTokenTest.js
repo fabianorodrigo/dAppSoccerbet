@@ -24,7 +24,7 @@ contract("BetToken", (accounts) => {
     const erc20BalanceETH = await web3.eth.getBalance(erc20BetToken.address);
     let receipt = await buyOneWeiOfTokens(weiAmount);
     // Test for event
-    expectEvent(receipt, "Received", {
+    expectEvent(receipt, "TokenMinted", {
       tokenBuyer: bettor,
       quantity: weiAmount,
     });
