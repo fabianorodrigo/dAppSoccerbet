@@ -8,9 +8,9 @@ export const environment = {
   //betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
   //notebook Vaio
-  betTokenAddress: '0x50C61F73460Fed75bFB5F1e3015C83E76411d236',
-  gameFactoryAddress: '0x2727603e9464c05Ec734395a78880C1709dd9566',
-  CalculatorAddress: '0x8d54A40De9f8A0858aA3810Cc05B29EbeE8F7a94',
+  betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
+  gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
+  CalculatorAddress: '0x61A73d058D16D8d9cAabcfc9Da6a942Ef1C57C4A',
 };
 
 /*
