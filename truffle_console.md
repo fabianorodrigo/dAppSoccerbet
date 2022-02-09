@@ -4,6 +4,10 @@
 
 GameFactory.deployed().then(async gf=>{ const owner = (await web3.eth.getAccounts())[6]; await gf.newGame("A","B",0,{from: owner}); });
 
+## List games
+
+GameFactory.deployed().then( async gf =>{ console.log(await gf.listGames())});
+
 ## Open a created game for betting
 
 let g = await Game.at("0x1234...");
