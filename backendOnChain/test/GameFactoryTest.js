@@ -44,8 +44,8 @@ contract("GameFactory", (accounts) => {
       //since the owner of the games is the same owner of GameFactory,
       //not the GameFactory itself, its destroyContract function has
       //to be called by the owner
-      for (const gAddress of games) {
-        const game = await Game.at(gAddress);
+      for (const gameDTO of games) {
+        const game = await Game.at(gameDTO.addressGame);
         await game.destroyContract({from: owner});
       }
       await gameFactoryContract.destroyContract({from: owner}); //, gasLimit: 500000});
@@ -81,7 +81,7 @@ contract("GameFactory", (accounts) => {
     const games = await gameFactoryContract.listGames();
     expect(games).to.be.an("array");
     expect(games).to.have.lengthOf(1);
-    const g = await Game.at(games[0]);
+    const g = await Game.at(games[0].addressGame);
     expect(await g.open()).to.be.false;
     expect(await g.finalized()).to.be.false;
   });
