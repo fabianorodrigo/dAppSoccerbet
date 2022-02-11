@@ -6,6 +6,7 @@ module.exports = async function (deployer, network, accounts) {
   console.log(`NETWORK OF DEPLOY: ${network}`);
   if (
     network === "ganache" ||
+    network === "ganacheRemoto" ||
     network === "development" ||
     network === "test" ||
     network === "docker"
