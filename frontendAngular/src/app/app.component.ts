@@ -1,5 +1,5 @@
 import { environment } from 'src/environments/environment';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { GameFactoryService } from './contracts';
 import { MessageService, Web3Service } from './services';
@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
   owner: string | null = null;
 
   constructor(
+    private _changeDetectorRefs: ChangeDetectorRef,
     private _web3Service: Web3Service,
     private _gameFactory: GameFactoryService,
     private _messageService: MessageService
@@ -45,10 +46,12 @@ export class AppComponent implements OnInit {
           );
         } else {
           this.userAccountAddress = _address;
+          this._changeDetectorRefs.detectChanges();
         }
       });
     } else {
       this.userAccountAddress = _address;
+      this._changeDetectorRefs.detectChanges();
     }
   }
 
