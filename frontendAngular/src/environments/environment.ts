@@ -10,7 +10,7 @@ export const environment = {
   //notebook Vaio - Ganache v7
   betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
   gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
-  CalculatorAddress: '0xAF2C33A3763d78885d4A7980Fb5344F34d7aeD3a',
+  CalculatorAddress: '0x61A73d058D16D8d9cAabcfc9Da6a942Ef1C57C4A',
   //GANACHE 2.5.4
   // betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
   // gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',

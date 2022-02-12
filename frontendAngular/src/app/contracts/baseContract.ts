@@ -55,11 +55,12 @@ export abstract class BaseContract {
    * @returns The owner of contract
    */
   owner(): Observable<string> {
+    //TODO: retornar Promise ao invés de Observable?
     return new Observable<string>((_subscriber) => {
       if (this._owner) {
         _subscriber.next(this._owner);
       } else {
-        this.getString(this.getContractABI(), 'owner').subscribe((_address) => {
+        this.getString(this.getContractABI(), 'owner').then((_address) => {
           this._owner = _address;
           _subscriber.next(this._owner);
         });
@@ -193,13 +194,8 @@ export abstract class BaseContract {
    * @param _abi Contract's ABI
    * @param _propertyName name of the property of type string
    */
-  protected getString(
-    _abi: AbiItem[],
-    _propertyName: string
-  ): Observable<string> {
-    return new Observable<string>((_subscriber) => {
-      this.getProperty(_abi, _propertyName, _subscriber);
-    });
+  protected getString(_abi: AbiItem[], _propertyName: string): Promise<string> {
+    return this.getProperty(_abi, _propertyName);
   }
 
   /**
@@ -210,10 +206,8 @@ export abstract class BaseContract {
   protected getStringArray(
     _abi: AbiItem[],
     _propertyName: string
-  ): Observable<string[]> {
-    return new Observable<string[]>((_subscriber) => {
-      this.getProperty(_abi, _propertyName, _subscriber);
-    });
+  ): Promise<string[]> {
+    return this.getProperty(_abi, _propertyName);
   }
 
   /**
@@ -221,26 +215,19 @@ export abstract class BaseContract {
    * @param _abi Contract's ABI
    * @param _propertyName name of the property of type boolean
    */
-  protected getBoolean(
+  protected async getBoolean(
     _abi: AbiItem[],
     _propertyName: string
-  ): Observable<boolean> {
-    return new Observable<boolean>((_subscriber) => {
-      this.getProperty(_abi, _propertyName, _subscriber);
-    });
+  ): Promise<boolean> {
+    return this.getProperty(_abi, _propertyName);
   }
 
   /**
    * Calls the GET function of the contract with the name {_propertyName}
    * @param _propertyName name of the property of type number
    */
-  protected getNumber(
-    _abi: AbiItem[],
-    _propertyName: string
-  ): Observable<number> {
-    return new Observable<number>((_subscriber) => {
-      this.getProperty(_abi, _propertyName, _subscriber);
-    });
+  protected getNumber(_abi: AbiItem[], _propertyName: string): Promise<number> {
+    return this.getProperty(_abi, _propertyName);
   }
 
   /**
@@ -250,23 +237,18 @@ export abstract class BaseContract {
    * @param _propertyName name of the property of type string
    * @param _subscriber Instance of the subscriber that will receive the result
    */
-  protected getProperty(
+  protected async getProperty(
     _abi: AbiItem[],
-    _propertyName: string,
-    _subscriber: any
-  ) {
-    this.getContract(_abi)
-      .then(async (_contract) => {
-        let result;
-        try {
-          result = await _contract.methods[_propertyName]().call();
-        } catch (e) {
-          console.warn(e);
-        }
-        _subscriber.next(result);
-      })
-      .catch((e) => {
-        this._messageService.show(e.message);
-      });
+    _propertyName: string
+  ): Promise<any> {
+    try {
+      const _contract = await this.getContract(_abi);
+      console.log('pré call', _propertyName);
+      const _result = await _contract.methods[_propertyName]().call();
+      console.log('Olha o resultado aí, gente', _result);
+      return _result;
+    } catch (e: any) {
+      this._messageService.show(e.message);
+    }
   }
 }

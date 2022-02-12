@@ -129,19 +129,19 @@ export class GameService extends BaseContract {
     });
   }
 
-  homeTeam(): Observable<string> {
+  homeTeam(): Promise<string> {
     return this.getString(contractABI.abi as AbiItem[], 'homeTeam');
   }
-  visitorTeam(): Observable<string> {
+  visitorTeam(): Promise<string> {
     return this.getString(contractABI.abi as AbiItem[], 'visitorTeam');
   }
-  datetimeGame(): Observable<number> {
+  datetimeGame(): Promise<number> {
     return this.getNumber(contractABI.abi as AbiItem[], 'datetimeGame');
   }
-  open(): Observable<boolean> {
+  open(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'open');
   }
-  finalized(): Observable<boolean> {
+  finalized(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'finalized');
   }
 

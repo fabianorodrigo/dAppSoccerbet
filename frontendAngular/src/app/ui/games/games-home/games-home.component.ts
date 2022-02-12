@@ -62,8 +62,9 @@ export class GamesHomeComponent implements OnInit {
     }
 
     //recover the list of games and for each one instanciate a GameService
-    this._gameFactory.listGamesDTO().subscribe((_gamesDTO: Game[]) => {
-      console.log(_gamesDTO);
+    //TODO: usar await
+    const _gamesDTO = await this._gameFactory.listGamesDTO();
+    if (_gamesDTO) {
       for (let _game of _gamesDTO) {
         const targetArray = _game.finalized
           ? this.gamesFinalized
@@ -80,7 +81,9 @@ export class GamesHomeComponent implements OnInit {
         // OPENEDGAME and CLOSEDGAME events, it's necessary update
         targetArray.push(new GameCompound({ ..._game }, gameService));
       }
-    });
+    } else {
+      console.warn(`gameFactory.listGamesDTO has no return`);
+    }
   }
   newGame(event: MouseEvent) {
     this.editing = true;
