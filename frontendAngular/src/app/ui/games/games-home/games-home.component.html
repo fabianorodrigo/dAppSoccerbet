@@ -17,14 +17,20 @@
     <mat-tab label="Open">
       <div class="game-list">
         <ng-container *ngFor="let game of gamesOpen">
-          <dapp-games-game [gameCompound]="game"></dapp-games-game>
+          <dapp-games-game
+            [gameCompound]="game"
+            [isAdmin]="isAdmin"
+          ></dapp-games-game>
         </ng-container>
       </div>
     </mat-tab>
     <mat-tab label="Closed">
       <div class="game-list">
         <ng-container *ngFor="let game of gamesClosed">
-          <dapp-games-game [gameCompound]="game"></dapp-games-game>
+          <dapp-games-game
+            [gameCompound]="game"
+            [isAdmin]="isAdmin"
+          ></dapp-games-game>
         </ng-container>
       </div>
     </mat-tab>

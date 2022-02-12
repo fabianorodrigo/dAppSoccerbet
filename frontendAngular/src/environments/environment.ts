@@ -7,10 +7,13 @@ export const environment = {
   //notebook Dell
   //betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
-  //notebook Vaio
+  //notebook Vaio - Ganache v7
   betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
   gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
-  CalculatorAddress: '0x61A73d058D16D8d9cAabcfc9Da6a942Ef1C57C4A',
+  CalculatorAddress: '0xAF2C33A3763d78885d4A7980Fb5344F34d7aeD3a',
+  //GANACHE 2.5.4
+  // betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
+  // gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
 };
 
 /*

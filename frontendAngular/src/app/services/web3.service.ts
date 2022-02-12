@@ -5,8 +5,9 @@ import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { WEB3 } from '../core/web3';
-import { ProviderMessage, TransactionResult } from '../model';
+import { ProviderMessage, ProviderRpcError, TransactionResult } from '../model';
 import * as BN from 'bn.js';
+import detectEthereumProvider from '@metamask/detect-provider';
 
 declare let window: any;
 
@@ -20,21 +21,14 @@ export class Web3Service {
   private _userAccountAddressSubject = new BehaviorSubject<string | null>(null);
   private _userAccountAddress!: string | null;
 
+  private _chainId!: string;
+
   constructor(@Inject(WEB3) private _web3: Web3) {
-    if (this.hasEthereumProvider()) {
-      //const chainId = await ethereum.request({ method: 'eth_chainId' });
-      window.ethereum.on('connect', this.handleOnConnect.bind(this));
-      window.ethereum.on('disconnect', this.handleOnDisconnect.bind(this));
-      window.ethereum.on(
-        'accountsChanged',
-        this.handleOnAccountsChanged.bind(this)
-      );
-      window.ethereum.on('message', this.handleOnMessage);
-      //Metamask Docs strongly recommend reloading the page on chain changes, unless you have good reason not to.
-      window.ethereum.on('chainChanged', (_chainId: string) =>
-        window.location.reload()
-      );
-    }
+    this.hasEthereumProvider();
+  }
+
+  public get chaindId() {
+    return this._chainId;
   }
 
   /**
@@ -64,17 +58,20 @@ export class Web3Service {
    * Request accounts to the provider (wallet) and triggers the {userAccountAddressSubject} when done
    */
   fetchCurrentAccount(): void {
-    if (this.hasEthereumProvider()) {
-      window.ethereum
-        .request({
-          method: 'eth_requestAccounts',
-        })
-        .then((_accounts: any[]) => {
-          this._userAccountAddress =
-            _accounts.length > 0 ? this.toCheckSumAddress(_accounts[0]) : null;
-          this._userAccountAddressSubject.next(this._userAccountAddress);
-        });
-    }
+    window.ethereum
+      .request({
+        method: 'eth_requestAccounts',
+      })
+      .then(this.handleOnAccountsChanged.bind(this));
+    /*.catch((err: ProviderRpcError) => {
+        if (err.code === 4001) {
+          // EIP-1193 userRejectedRequest error
+          // If this happens, the user rejected the connection request.
+          console.log('Please connect to MetaMask.');
+        } else {
+          console.error(err);
+        }
+      });*/
   }
 
   /**
@@ -92,7 +89,7 @@ export class Web3Service {
     _valueInWei: BN
   ): Observable<TransactionResult> {
     return new Observable<TransactionResult>((_subscriber) => {
-      if (this.hasEthereumProvider()) {
+      if (window.ethereum) {
         const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
         window.ethereum
           .request({
@@ -129,35 +126,43 @@ export class Web3Service {
     const tokenImage =
       'https://cdn.iconscout.com/icon/premium/png-256-thumb/football-betting-2018363-1716872.png';
 
-    if (this.hasEthereumProvider()) {
-      try {
-        // wasAdded is a boolean. Like any RPC method, an error may be thrown.
-        return await window.ethereum.request({
-          method: 'wallet_watchAsset',
-          params: {
-            type: 'ERC20', // Initially only supports ERC20, but eventually more!
-            options: {
-              address: tokenAddress, // The address that the token is at.
-              symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
-              decimals: tokenDecimals, // The number of decimals in the token
-              image: tokenImage, // A string url of the token logo
-            },
+    try {
+      // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+      return await window.ethereum.request({
+        method: 'wallet_watchAsset',
+        params: {
+          type: 'ERC20', // Initially only supports ERC20, but eventually more!
+          options: {
+            address: tokenAddress, // The address that the token is at.
+            symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+            decimals: tokenDecimals, // The number of decimals in the token
+            image: tokenImage, // A string url of the token logo
           },
-        });
-      } catch (error) {
-        console.log(error);
-      }
+        },
+      });
+    } catch (error) {
+      console.log(error);
     }
+
     return false;
   }
 
   /**
-   * Return an observable of the contrat based on ABIs and address informed
+   * Return the contrat based on ABIs and address informed
    *
    * @param _abis Abis of contract
    * @param _address Address of contract
    */
-  getContract(_abis: AbiItem[], _address: string): Contract {
+  async getContract(
+    _abis: AbiItem[],
+    _address: string
+  ): Promise<Contract | null> {
+    if ((await this._web3.eth.getCode(_address)) === '0x') {
+      console.error(
+        `Address ${_address} is not a contract at the connected chain`
+      );
+      return null;
+    }
     return new this._web3.eth.Contract(_abis, _address);
   }
 
@@ -171,9 +176,31 @@ export class Web3Service {
     return this._web3.utils.toChecksumAddress(_address);
   }
 
-  private hasEthereumProvider(): boolean {
-    if (window.ethereum) {
-      return true;
+  private async hasEthereumProvider(): Promise<boolean> {
+    // this returns the provider, or null if it wasn't detected
+    const provider = await detectEthereumProvider();
+    if (provider) {
+      // If the provider returned by detectEthereumProvider is not the same as
+      // window.ethereum, something is overwriting it, perhaps another wallet.
+      if (provider !== window.ethereum) {
+        alert('Do you have multiple wallets installed?');
+      } else {
+        this._chainId = await window.ethereum.request({
+          method: 'eth_chainId',
+        });
+        window.ethereum.on('connect', this.handleOnConnect.bind(this));
+        window.ethereum.on('disconnect', this.handleOnDisconnect.bind(this));
+        window.ethereum.on(
+          'accountsChanged',
+          this.handleOnAccountsChanged.bind(this)
+        );
+        window.ethereum.on('message', this.handleOnMessage);
+        //Metamask Docs strongly recommend reloading the page on chain changes, unless you have good reason not to.
+        window.ethereum.on('chainChanged', (_chainId: string) =>
+          window.location.reload()
+        );
+        return true;
+      }
     }
     alert(
       `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`

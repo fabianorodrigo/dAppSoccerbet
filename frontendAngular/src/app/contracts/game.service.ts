@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
 import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
 import { Bet, ProviderErrors, Score } from '../model';
-import { Web3Service } from '../services';
+import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 import { BaseContract } from './baseContract';
 
@@ -13,12 +13,12 @@ export class GameService extends BaseContract {
     GAME_FINALIZED: 'GameFinalized',
   };
 
-  constructor(_web3Service: Web3Service, _address: string) {
-    super(_web3Service, _address);
-    this.getContract(contractABI.abi as AbiItem[]).subscribe((_contract) => {
-      //For all events in the static member EVENTS
-      this.initEventListeners(_contract, Object.values(GameService.EVENTS));
-    });
+  constructor(
+    _messageService: MessageService,
+    _web3Service: Web3Service,
+    _address: string
+  ) {
+    super(_messageService, _web3Service, _address);
   }
 
   getContractABI(): AbiItem[] {
@@ -58,8 +58,8 @@ export class GameService extends BaseContract {
    */
   bet(_score: Score, _value: number): Observable<TransactionResult> {
     return new Observable<TransactionResult>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (_contract) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (_contract) => {
           let result;
           this._web3Service
             .getUserAccountAddress()
@@ -83,8 +83,10 @@ export class GameService extends BaseContract {
                 subscriber.next({ success: false, message: message });
               }
             });
-        }
-      );
+        })
+        .catch((e) => {
+          console.warn(`gameservice`, e);
+        });
     });
   }
 
@@ -95,8 +97,8 @@ export class GameService extends BaseContract {
    */
   finalizeGame(_score: Score): Observable<TransactionResult> {
     return new Observable<TransactionResult>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (_contract) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (_contract) => {
           let result;
           this._web3Service
             .getUserAccountAddress()
@@ -120,8 +122,10 @@ export class GameService extends BaseContract {
                 subscriber.next({ success: false, message: message });
               }
             });
-        }
-      );
+        })
+        .catch((e) => {
+          console.warn(`bettoken`, e);
+        });
     });
   }
 
@@ -143,17 +147,27 @@ export class GameService extends BaseContract {
 
   finalScore(): Observable<Score> {
     return new Observable<Score>((_subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[]).subscribe(
-        async (_contract) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then((_contract) => {
           let result;
           try {
-            result = await _contract.methods.finalScore().call();
+            _contract.methods
+              .finalScore()
+              .call()
+              .then((result: Score | undefined) => {
+                _subscriber.next(result);
+              })
+              .catch((e: any) => {
+                _subscriber.next(undefined);
+              });
           } catch (e) {
             console.warn(e);
           }
           _subscriber.next(result);
-        }
-      );
+        })
+        .catch((e) => {
+          console.warn(`gameservice final`, e);
+        });
     });
   }
 }

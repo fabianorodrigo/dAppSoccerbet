@@ -13,9 +13,9 @@ import { GameFinalizedEvent } from 'src/app/model';
 })
 export class GamesHomeComponent implements OnInit {
   constructor(
+    private _messageService: MessageService,
     private _webService: Web3Service,
-    private _gameFactory: GameFactoryService,
-    private _messageService: MessageService
+    private _gameFactory: GameFactoryService
   ) {}
 
   editing: boolean = false;
@@ -25,14 +25,17 @@ export class GamesHomeComponent implements OnInit {
   gamesFinalized: GameCompound[] = [];
   isAdmin: boolean = false;
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this._gameFactory.isAdmin().subscribe((is) => {
       this.isAdmin = is;
     });
 
-    this._gameFactory
-      .getEventBehaviorSubject(GameFactoryService.EVENTS.GAME_CREATED)
-      .subscribe((evt) => {
+    try {
+      (
+        await this._gameFactory.getEventBehaviorSubject(
+          GameFactoryService.EVENTS.GAME_CREATED
+        )
+      ).subscribe((evt) => {
         if (evt == null) return;
         const eventData: GameEvent = evt;
         this.gamesClosed.push(
@@ -46,13 +49,21 @@ export class GamesHomeComponent implements OnInit {
               open: false,
               finalized: false,
             },
-            new GameService(this._webService, eventData.addressGame)
+            new GameService(
+              this._messageService,
+              this._webService,
+              eventData.addressGame
+            )
           )
         );
       });
+    } catch (e: any) {
+      this._messageService.show(e.message);
+    }
 
     //recover the list of games and for each one instanciate a GameService
     this._gameFactory.listGamesDTO().subscribe((_gamesDTO: Game[]) => {
+      console.log(_gamesDTO);
       for (let _game of _gamesDTO) {
         const targetArray = _game.finalized
           ? this.gamesFinalized
@@ -60,6 +71,7 @@ export class GamesHomeComponent implements OnInit {
           ? this.gamesOpen
           : this.gamesClosed;
         const gameService = new GameService(
+          this._messageService,
           this._webService,
           _game.addressGame as string
         );
@@ -96,52 +108,81 @@ export class GamesHomeComponent implements OnInit {
   /**
    * Add function listeners to the Game events in order to handle the UI interface properly
    */
-  private addListeners(_gameService: GameService): void {
-    _gameService
-      .getEventBehaviorSubject(GameService.EVENTS.GAME_OPENED)
-      .subscribe((evt) => {
-        if (evt == null) return;
-        const eventData: GameEvent = evt;
-        const index = this.gamesClosed.findIndex(
-          (g) => g.game.addressGame == eventData.addressGame
-        );
-        //add the GameCompound of the array of OPEN GAMES and remove it from array of CLOSED GAMES
-        if (index > -1) {
-          this.gamesClosed[index].game.open = true;
-          this.gamesOpen.push(this.gamesClosed[index]);
-          this.gamesClosed.splice(index, 1);
-        }
+  private async addListeners(_gameService: GameService): Promise<void> {
+    try {
+      (
+        await _gameService.getEventBehaviorSubject(
+          GameService.EVENTS.GAME_OPENED
+        )
+      ).subscribe({
+        complete: this.handleOpenedEvent,
+        error: this.handleError,
       });
 
-    _gameService
-      .getEventBehaviorSubject(GameService.EVENTS.GAME_CLOSED)
-      .subscribe((evt) => {
-        if (evt == null) return;
-        const eventData: GameEvent = evt;
-        const index = this.gamesOpen.findIndex(
-          (g) => g.game.addressGame == eventData.addressGame
-        );
-        //add the GameCompound of the array of CLOSED GAMES and remove it from array of OPENED GAMES
-        if (index > -1) {
-          this.gamesOpen[index].game.open = false;
-          this.gamesClosed.push(this.gamesOpen[index]);
-          this.gamesOpen.splice(index, 1);
-        }
+      (
+        await _gameService.getEventBehaviorSubject(
+          GameService.EVENTS.GAME_CLOSED
+        )
+      ).subscribe({
+        complete: this.handleClosedEvent,
+        error: this.handleError,
       });
 
-    _gameService
-      .getEventBehaviorSubject(GameService.EVENTS.GAME_FINALIZED)
-      .subscribe((evt) => {
-        if (evt == null) return;
-        const eventData: GameFinalizedEvent = evt;
-        const index = this.gamesClosed.findIndex(
-          (g) => g.game.addressGame == eventData.addressGame
-        );
-        if (index > -1) {
-          this.gamesClosed[index].game.finalized = true;
-          this.gamesFinalized.push(this.gamesClosed[index]);
-          this.gamesClosed.splice(index, 1);
-        }
+      (
+        await _gameService.getEventBehaviorSubject(
+          GameService.EVENTS.GAME_FINALIZED
+        )
+      ).subscribe({
+        complete: this.handleFinalizedEvent,
+        error: this.handleError,
       });
+    } catch (e: any) {
+      this._messageService.show(e.message);
+    }
+  }
+
+  private handleOpenedEvent(...evt: any): void {
+    if (evt == null) return;
+    const eventData: GameEvent = evt;
+    const index = this.gamesClosed.findIndex(
+      (g) => g.game.addressGame == eventData.addressGame
+    );
+    //add the GameCompound of the array of OPEN GAMES and remove it from array of CLOSED GAMES
+    if (index > -1) {
+      this.gamesClosed[index].game.open = true;
+      this.gamesOpen.push(this.gamesClosed[index]);
+      this.gamesClosed.splice(index, 1);
+    }
+  }
+
+  private handleClosedEvent(...evt: any): void {
+    if (evt == null) return;
+    const eventData: GameEvent = evt;
+    const index = this.gamesOpen.findIndex(
+      (g) => g.game.addressGame == eventData.addressGame
+    );
+    //add the GameCompound of the array of CLOSED GAMES and remove it from array of OPENED GAMES
+    if (index > -1) {
+      this.gamesOpen[index].game.open = false;
+      this.gamesClosed.push(this.gamesOpen[index]);
+      this.gamesOpen.splice(index, 1);
+    }
+  }
+
+  private handleFinalizedEvent(...evt: any): void {
+    if (evt == null) return;
+    const eventData: GameFinalizedEvent = evt;
+    const index = this.gamesClosed.findIndex(
+      (g) => g.game.addressGame == eventData.addressGame
+    );
+    if (index > -1) {
+      this.gamesClosed[index].game.finalized = true;
+      this.gamesFinalized.push(this.gamesClosed[index]);
+      this.gamesClosed.splice(index, 1);
+    }
+  }
+
+  private handleError(e: Error): void {
+    this._messageService.show(e.message);
   }
 }

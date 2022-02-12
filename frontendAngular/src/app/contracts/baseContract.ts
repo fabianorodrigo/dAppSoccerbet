@@ -1,8 +1,8 @@
-import { Observable, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, catchError } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { ProviderErrors } from '../model';
-import { Web3Service } from '../services';
+import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 
 export abstract class BaseContract {
@@ -12,20 +12,38 @@ export abstract class BaseContract {
 
   public address: string;
 
-  constructor(protected _web3Service: Web3Service, _address: string) {
+  constructor(
+    protected _messageService: MessageService,
+    protected _web3Service: Web3Service,
+    _address: string
+  ) {
     this.address = _address;
   }
 
-  protected getContract(_abis: AbiItem[]): Observable<Contract> {
-    return new Observable((_subscriber) => {
-      if (this.contract != null) {
-        _subscriber.next(this.contract);
-      } else if (this._web3Service) {
-        _subscriber.next(this._web3Service.getContract(_abis, this.address));
+  protected async getContract(_abis: AbiItem[]): Promise<Contract> {
+    /*if (this.contract != null) {
+      return this.contract;
+    } else if (this._web3Service) {
+      return this._web3Service.getContract(_abis, this.address);
+    } else {
+      throw new Error(`Web3 not instanciated`);
+    }*/
+    if (this.contract != null) {
+      return this.contract;
+    } else if (this._web3Service) {
+      const _contract = await this._web3Service.getContract(
+        _abis,
+        this.address
+      );
+      if (_contract == null) {
+        throw new Error(
+          `Contract not found. Confirm that your wallet is connected on the right chain`
+        );
       } else {
-        throw new Error(`Web3 not instanciated`);
+        return _contract;
       }
-    });
+    }
+    throw new Error(`Web3 not instanciated`);
   }
 
   /**
@@ -56,21 +74,79 @@ export abstract class BaseContract {
     return new Observable<boolean>((_subscriber) => {
       this.owner().subscribe((_ownerAddress) => {
         this._web3Service.getUserAccountAddress().subscribe((_userAddress) => {
-          _subscriber.next(_ownerAddress == _userAddress);
+          _subscriber.next(_ownerAddress === _userAddress);
         });
       });
     });
   }
 
   /**
-   * For each event passed in the {initializeListeners}, there is a BehaviorSubject.
-   * This method returns the instance of BehaviorSubject associated with the event {_eventName}
+   * If already exists an BehaviorSubject associated to the event {_eventName}, returns it
+   * Otherwise, instances a BehaviorSubject associated to the event and returns it
    *
-   * @param _eventName Name of the event which BehaviorSubject
-   * @returns instance of BehaviorSubject associated with the event {_eventName}
+   * @param _contract Contract that will have a function attached on it's events
+   * @param _eventName Name of the event which BehaviorSubject will be associated
+   * @returns Promise of instance of BehaviorSubject associated with the event {_eventName}
    */
-  getEventBehaviorSubject(_eventName: string): BehaviorSubject<any> {
+  async getEventBehaviorSubject(
+    _eventName: string
+  ): Promise<BehaviorSubject<any>> {
+    const _contract = await this.getContract(this.getContractABI());
+    if (!this._eventListeners[_eventName]) {
+      this._validateEventAndInstanceSubject(_contract, _eventName);
+      _contract.events[_eventName]()
+        .on('data', (event: any) => {
+          if (this._eventListeners[_eventName]) {
+            this._eventListeners[_eventName].next(event.returnValues);
+          }
+        })
+        .on('error', (e: any) => {
+          console.error(_eventName, e);
+          //throw e;
+        });
+    }
     return this._eventListeners[_eventName];
+  }
+
+  /**
+   * Creates a BehaviorSubject for each event specified in {_evenNames} of {_contract}
+   *
+   * @param _contract Contract that will have a function attached on it's events
+   * @param _eventNames Name of events of Contract to be monitored. If {_contract} doesn't
+   * have a event with one of the names passed throgh {_eventNames}, a exception is thrown
+   */
+  protected initEventsBehaviorSubject(
+    _contract: Contract,
+    _eventNames: string[]
+  ): void {
+    _eventNames.forEach((_eventName) => {
+      this._validateEventAndInstanceSubject(_contract, _eventName);
+      _contract.events[_eventName]()
+        .on('data', (event: any) => {
+          if (this._eventListeners[_eventName]) {
+            this._eventListeners[_eventName].next(event.returnValues);
+          }
+        })
+        .on('error', console.error);
+    });
+  }
+
+  /**
+   * Check if {_contract} has a event named {_eventName}. If not, throws an exception
+   * If exists, create a instance of BehaviorSubject at this._eventListeners[_eventName]
+   *
+   * @param _contract Contract evaluated
+   * @param _eventName Name of the event
+   */
+  private _validateEventAndInstanceSubject(
+    _contract: Contract,
+    _eventName: string
+  ) {
+    if (!_contract.events[_eventName]) {
+      throw new Error(`Event '${_eventName}' does not exists in the contract`);
+    } else {
+      this._eventListeners[_eventName] = new BehaviorSubject<any>(null);
+    }
   }
 
   /**
@@ -88,7 +164,7 @@ export abstract class BaseContract {
     _successMessage: string
   ): Observable<TransactionResult> {
     return new Observable<TransactionResult>((subscriber) => {
-      this.getContract(_abi as AbiItem[]).subscribe(async (_contract) => {
+      this.getContract(_abi as AbiItem[]).then((_contract) => {
         let result;
         this._web3Service
           .getUserAccountAddress()
@@ -168,31 +244,6 @@ export abstract class BaseContract {
   }
 
   /**
-   * Creates a BehaviorSubject for each event specified in {_evenNames} of {_contract}
-   *
-   * @param _contract Contract that will have a function attached on it's events
-   * @param _eventNames Name of events of Contract to be monitored
-   */
-  protected initEventListeners(_contract: Contract, _eventNames: string[]) {
-    _eventNames.forEach((_eventName) => {
-      if (!_contract.events[_eventName]) {
-        throw new Error(
-          `Event '${_eventName}' does not exists in the contract`
-        );
-      } else {
-        this._eventListeners[_eventName] = new BehaviorSubject<any>(null);
-      }
-      _contract.events[_eventName]()
-        .on('data', (event: any) => {
-          if (this._eventListeners[_eventName]) {
-            this._eventListeners[_eventName].next(event.returnValues);
-          }
-        })
-        .on('error', console.error);
-    });
-  }
-
-  /**
    * Calls the GET function of the contract with the name {_propertyName}
    *
    * @param _abi Contract's ABI
@@ -204,14 +255,18 @@ export abstract class BaseContract {
     _propertyName: string,
     _subscriber: any
   ) {
-    this.getContract(_abi).subscribe(async (_contract) => {
-      let result;
-      try {
-        result = await _contract.methods[_propertyName]().call();
-      } catch (e) {
-        console.warn(e);
-      }
-      _subscriber.next(result);
-    });
+    this.getContract(_abi)
+      .then(async (_contract) => {
+        let result;
+        try {
+          result = await _contract.methods[_propertyName]().call();
+        } catch (e) {
+          console.warn(e);
+        }
+        _subscriber.next(result);
+      })
+      .catch((e) => {
+        this._messageService.show(e.message);
+      });
   }
 }
