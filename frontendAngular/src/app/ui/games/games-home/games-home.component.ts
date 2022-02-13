@@ -117,34 +117,25 @@ export class GamesHomeComponent implements OnInit {
         await _gameService.getEventBehaviorSubject(
           GameService.EVENTS.GAME_OPENED
         )
-      ).subscribe({
-        complete: this.handleOpenedEvent,
-        error: this.handleError,
-      });
+      ).subscribe(this.handleOpenedEvent.bind(this));
 
       (
         await _gameService.getEventBehaviorSubject(
           GameService.EVENTS.GAME_CLOSED
         )
-      ).subscribe({
-        complete: this.handleClosedEvent,
-        error: this.handleError,
-      });
+      ).subscribe(this.handleClosedEvent.bind(this));
 
       (
         await _gameService.getEventBehaviorSubject(
           GameService.EVENTS.GAME_FINALIZED
         )
-      ).subscribe({
-        complete: this.handleFinalizedEvent,
-        error: this.handleError,
-      });
+      ).subscribe(this.handleFinalizedEvent.bind(this));
     } catch (e: any) {
       this._messageService.show(e.message);
     }
   }
 
-  private handleOpenedEvent(...evt: any): void {
+  private handleOpenedEvent(evt: any): void {
     if (evt == null) return;
     const eventData: GameEvent = evt;
     const index = this.gamesClosed.findIndex(
@@ -158,7 +149,7 @@ export class GamesHomeComponent implements OnInit {
     }
   }
 
-  private handleClosedEvent(...evt: any): void {
+  private handleClosedEvent(evt: any): void {
     if (evt == null) return;
     const eventData: GameEvent = evt;
     const index = this.gamesOpen.findIndex(
@@ -172,7 +163,7 @@ export class GamesHomeComponent implements OnInit {
     }
   }
 
-  private handleFinalizedEvent(...evt: any): void {
+  private handleFinalizedEvent(evt: any): void {
     if (evt == null) return;
     const eventData: GameFinalizedEvent = evt;
     const index = this.gamesClosed.findIndex(

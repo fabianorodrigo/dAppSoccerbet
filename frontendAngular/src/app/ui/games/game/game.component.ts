@@ -38,7 +38,6 @@ export class GameComponent implements OnInit {
     this.finalized = this.gameCompound.game.finalized;
 
     this.finalScore = this.gameCompound.game.finalScore;
-    console.log('addressGame', this.gameCompound.game.addressGame);
   }
 
   openForBetting() {

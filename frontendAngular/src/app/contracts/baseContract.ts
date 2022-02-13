@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, throwError, catchError } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { ProviderErrors } from '../model';
@@ -107,29 +107,6 @@ export abstract class BaseContract {
         });
     }
     return this._eventListeners[_eventName];
-  }
-
-  /**
-   * Creates a BehaviorSubject for each event specified in {_evenNames} of {_contract}
-   *
-   * @param _contract Contract that will have a function attached on it's events
-   * @param _eventNames Name of events of Contract to be monitored. If {_contract} doesn't
-   * have a event with one of the names passed throgh {_eventNames}, a exception is thrown
-   */
-  protected initEventsBehaviorSubject(
-    _contract: Contract,
-    _eventNames: string[]
-  ): void {
-    _eventNames.forEach((_eventName) => {
-      this._validateEventAndInstanceSubject(_contract, _eventName);
-      _contract.events[_eventName]()
-        .on('data', (event: any) => {
-          if (this._eventListeners[_eventName]) {
-            this._eventListeners[_eventName].next(event.returnValues);
-          }
-        })
-        .on('error', console.error);
-    });
   }
 
   /**
@@ -243,9 +220,7 @@ export abstract class BaseContract {
   ): Promise<any> {
     try {
       const _contract = await this.getContract(_abi);
-      console.log('pré call', _propertyName);
       const _result = await _contract.methods[_propertyName]().call();
-      console.log('Olha o resultado aí, gente', _result);
       return _result;
     } catch (e: any) {
       this._messageService.show(e.message);

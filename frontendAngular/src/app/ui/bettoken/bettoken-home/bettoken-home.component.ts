@@ -39,7 +39,7 @@ export class BettokenHomeComponent implements OnInit {
         if (evt == null) return;
         const eventData: BetTokenReceivedEvent = evt;
         this._messageService.show(
-          `A transaction of ${eventData.value} tokens was confirmed`
+          `A transaction of ${eventData.quantity} tokens was confirmed`
         );
         this.getBalance();
       });
@@ -66,7 +66,8 @@ export class BettokenHomeComponent implements OnInit {
             this._betTokenService
               .buy(this.userAccountAddress, new BN(_purchaseData.value))
               .subscribe((_result) => {
-                this._messageService.show(_result.message);
+                console.log(_result);
+                //this._messageService.show(_result.message);
               });
           } else {
             this._messageService.show(`Quantity of BetTokens is not valid`);
