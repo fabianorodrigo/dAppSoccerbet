@@ -20,7 +20,7 @@ export class GameFactoryService extends BaseContract {
     _web3Service: Web3Service,
     private _numberService: NumbersService
   ) {
-    super(_messageService, _web3Service, environment.betTokenAddress);
+    super(_messageService, _web3Service, environment.gameFactoryAddress);
   }
 
   getContractABI(): AbiItem[] {
