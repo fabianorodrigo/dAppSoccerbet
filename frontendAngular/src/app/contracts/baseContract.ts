@@ -82,23 +82,28 @@ export abstract class BaseContract {
   }
 
   /**
-   * If already exists an BehaviorSubject associated to the event {_eventName}, returns it
+   * If already exists an BehaviorSubject associated to the event {_eventName} and {_filter}, returns it
    * Otherwise, instances a BehaviorSubject associated to the event and returns it
    *
-   * @param _contract Contract that will have a function attached on it's events
    * @param _eventName Name of the event which BehaviorSubject will be associated
+   * @param _filter a optional object of type Key:Value that is used to filter events
    * @returns Promise of instance of BehaviorSubject associated with the event {_eventName}
    */
   async getEventBehaviorSubject(
-    _eventName: string
+    _eventName: string,
+    _filter?: { [key: string]: any }
   ): Promise<BehaviorSubject<any>> {
     const _contract = await this.getContract(this.getContractABI());
     if (!this._eventListeners[_eventName]) {
-      this._validateEventAndInstanceSubject(_contract, _eventName);
-      _contract.events[_eventName]()
+      const _key = this._validateEventAndInstanceSubject(
+        _contract,
+        _eventName,
+        _filter
+      );
+      _contract.events[_eventName](_filter ? { filter: _filter } : undefined)
         .on('data', (event: any) => {
-          if (this._eventListeners[_eventName]) {
-            this._eventListeners[_eventName].next(event.returnValues);
+          if (this._eventListeners[_key]) {
+            this._eventListeners[_key].next(event.returnValues);
           }
         })
         .on('error', (e: any) => {
@@ -115,15 +120,23 @@ export abstract class BaseContract {
    *
    * @param _contract Contract evaluated
    * @param _eventName Name of the event
+   * @param _filter Optional filter that may be used as index along with _eventName
+   *
+   * @returns The key of BehaviorSubject
    */
   private _validateEventAndInstanceSubject(
     _contract: Contract,
-    _eventName: string
-  ) {
+    _eventName: string,
+    _filter?: { [key: string]: any }
+  ): string {
     if (!_contract.events[_eventName]) {
       throw new Error(`Event '${_eventName}' does not exists in the contract`);
     } else {
-      this._eventListeners[_eventName] = new BehaviorSubject<any>(null);
+      const _key = _filter
+        ? _eventName.concat(JSON.stringify(_filter))
+        : _eventName;
+      this._eventListeners[_key] = new BehaviorSubject<any>(null);
+      return _key;
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
@@ -16,6 +16,7 @@ export class BettokenHomeComponent implements OnInit {
   balance: BN = new BN(0);
 
   constructor(
+    private _changeDetectorRefs: ChangeDetectorRef,
     private _web3Service: Web3Service,
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
@@ -86,6 +87,7 @@ export class BettokenHomeComponent implements OnInit {
         .balanceOf(this.userAccountAddress)
         .subscribe((_balance) => {
           this.balance = _balance;
+          this._changeDetectorRefs.detectChanges();
         });
     }
   }
