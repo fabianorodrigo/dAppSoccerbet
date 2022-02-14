@@ -10,7 +10,7 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker: 
       - image: fabianorodrigo/contratosintel_truffle:1.1.0
-    working_directory: ~/repos/handson_solidity/backendOnChain
+    working_directory: ~/repos/handson_solidity/backend-truffle
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
@@ -32,12 +32,12 @@ jobs:
   test:
       docker: 
         - image: fabianorodrigo/contratosintel_truffle:1.1.0
-      working_directory: ~/repos/handson_solidity/backendOnChain        
+      working_directory: ~/repos/handson_solidity/backend-truffle
       steps:
         - checkout:
             path: ~/repos/handson_solidity/
         - attach_workspace:
-            at: ~/repos/handson_solidity/backendOnChain
+            at: ~/repos/handson_solidity/backend-truffle
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
@@ -53,12 +53,12 @@ jobs:
   slither:
       docker: 
         - image: fabianorodrigo/contratosintel_truffle:1.1.0
-      working_directory: ~/repos/handson_solidity/backendOnChain        
+      working_directory: ~/repos/handson_solidity/backend-truffle
       steps:
         - checkout:
             path: ~/repos/handson_solidity/
         - attach_workspace:
-            at: ~/repos/handson_solidity/backendOnChain
+            at: ~/repos/handson_solidity/backend-truffle
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
