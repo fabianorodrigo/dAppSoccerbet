@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AbiItem } from 'web3-utils';
-import contractABI from '../../../../backendOnChain/build/contracts/GameFactory.json';
+import contractABI from '../../../../backend-truffle/build/contracts/GameFactory.json';
 import { Game } from '../model';
 import { MessageService, NumbersService, Web3Service } from './../services';
 import { BaseContract } from './baseContract';

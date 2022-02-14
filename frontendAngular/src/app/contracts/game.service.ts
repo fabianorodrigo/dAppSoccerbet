@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
-import contractABI from '../../../../backendOnChain/build/contracts/Game.json';
+import contractABI from '../../../../backend-truffle/build/contracts/Game.json';
 import { Bet, ProviderErrors, Score } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';

@@ -3,7 +3,7 @@ import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AbiItem } from 'web3-utils/types';
-import contractABI from '../../../../backendOnChain/build/contracts/BetToken.json';
+import contractABI from '../../../../backend-truffle/build/contracts/BetToken.json';
 import { TransactionResult } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { BaseContract } from './baseContract';
