@@ -1,10 +1,10 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AbiItem } from 'web3-utils/types';
 import contractABI from '../../../../backend-truffle/build/contracts/BetToken.json';
-import { TransactionResult } from '../model';
+import { ProviderErrors, TransactionResult } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { BaseContract } from './baseContract';
 
@@ -28,13 +28,13 @@ export class BetTokenService extends BaseContract {
     return new Observable<BN>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (contract) => {
-          let result;
+          let _balance;
           try {
-            result = await contract.methods.balanceOf(_accountAddress).call();
+            _balance = await contract.methods.balanceOf(_accountAddress).call();
           } catch (e: any) {
             alert(e.message);
           }
-          subscriber.next(result);
+          subscriber.next(new BN(_balance));
         })
         .catch((e) => {
           console.warn(`bettoken`, e);
@@ -48,5 +48,41 @@ export class BetTokenService extends BaseContract {
       environment.betTokenAddress,
       _value
     );
+  }
+
+  approve(
+    _fromAccountAddress: string,
+    _toAccountAddress: string,
+    _value: BN
+  ): Observable<TransactionResult> {
+    return new Observable<TransactionResult>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (contract) => {
+          let result;
+          try {
+            result = await contract.methods
+              .approve(_toAccountAddress, _value)
+              .send({
+                from: _fromAccountAddress,
+              });
+            subscriber.next({
+              success: true,
+              message:
+                'Transaction to approve allowance of BetTokens was sent successfully',
+            });
+          } catch (e: any) {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            subscriber.next({ success: false, message: message });
+          }
+        })
+        .catch((e) => {
+          console.warn(`bettoken`, e);
+        });
+    });
   }
 }

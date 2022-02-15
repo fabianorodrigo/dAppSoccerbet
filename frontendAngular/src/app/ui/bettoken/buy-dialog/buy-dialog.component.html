@@ -15,9 +15,9 @@
   <button mat-button [mat-dialog-close]="false">Cancel</button>
   <button
     mat-button
-    [disabled]="form.getRawValue().value == null"
+    [disabled]="!form.valid"
     color="primary"
-    [mat-dialog-close]="form.getRawValue()"
+    [mat-dialog-close]="convertNumberToString(form.getRawValue())"
     cdkFocusInitial
   >
     Confirm

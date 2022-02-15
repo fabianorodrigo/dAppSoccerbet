@@ -1,10 +1,13 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Score } from 'src/app/model';
-import { MessageService } from 'src/app/services';
+import { MessageService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
 import { GameCompound } from '../game-compound.class';
+import { BuyDialogComponent } from '../../bettoken/buy-dialog/buy-dialog.component';
+import { BetTokenService } from 'src/app/contracts';
+import BN from 'bn.js';
 
 @Component({
   selector: 'dapp-games-game',
@@ -17,6 +20,8 @@ export class GameComponent implements OnInit {
   @Input()
   isAdmin: boolean = false;
 
+  userAccountAddress: string | null = null;
+
   homeTeam!: string;
   visitorTeam!: string;
   datetimeGame!: Date;
@@ -25,9 +30,10 @@ export class GameComponent implements OnInit {
   finalScore!: Score | undefined;
 
   constructor(
+    private _web3Service: Web3Service,
+    private _betTokenService: BetTokenService,
     private _messageService: MessageService,
-    private dialog: MatDialog,
-    private _changeDetectorRefs: ChangeDetectorRef
+    private _dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +44,11 @@ export class GameComponent implements OnInit {
     this.finalized = this.gameCompound.game.finalized;
 
     this.finalScore = this.gameCompound.game.finalScore;
+
+    // Subscribing for account address changes in the provider
+    this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
+      this.userAccountAddress = address;
+    });
   }
 
   openForBetting() {
@@ -57,7 +68,7 @@ export class GameComponent implements OnInit {
   }
 
   finalizeGame() {
-    const dialogRef = this.dialog.open(ScoreDialogComponent, {
+    const dialogRef = this._dialog.open(ScoreDialogComponent, {
       data: {
         title: `Game's Final Score`,
         homeTeam: this.homeTeam,
@@ -81,8 +92,42 @@ export class GameComponent implements OnInit {
     });
   }
 
+  approve(event: MouseEvent) {
+    if (!this.userAccountAddress) return;
+    this._betTokenService
+      .balanceOf(this.userAccountAddress)
+      .subscribe((_balance) => {
+        const dialogRef = this._dialog.open(BuyDialogComponent, {
+          data: {
+            title: `Approve BetTokens for: ${this.homeTeam} x ${this.visitorTeam}`,
+            maxAmmount: _balance,
+          },
+        });
+
+        dialogRef.afterClosed().subscribe((_allowanceData) => {
+          if (_allowanceData) {
+            if (_allowanceData.value != null && this.userAccountAddress) {
+              this._betTokenService
+                .approve(
+                  this.userAccountAddress,
+                  this.gameCompound.game.addressGame as string,
+                  new BN(_allowanceData.value)
+                )
+                .subscribe((_result) => {
+                  console.log(_result);
+                  this._messageService.show(_result.message);
+                });
+            } else {
+              this._messageService.show(`Quantity of BetTokens is not valid`);
+            }
+          }
+          console.log(`Dialog result`, _allowanceData);
+        });
+      });
+  }
+
   bet() {
-    const dialogRef = this.dialog.open(BetDialogComponent, {
+    const dialogRef = this._dialog.open(BetDialogComponent, {
       data: {
         title: `Place your Bet`,
         homeTeam: this.homeTeam,

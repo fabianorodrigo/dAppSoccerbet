@@ -20,6 +20,7 @@
       class="button"
       *ngIf="!open"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
       color="primary"
       matTooltip="The game is not receiving bets. Click to open it for betting"
       (click)="openForBetting()"
@@ -30,6 +31,7 @@
       class="button"
       *ngIf="open"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
       color="accent"
       matTooltip="The game is open for betting. Click to close it"
       (click)="closeForBetting()"
@@ -38,7 +40,7 @@
     </button>
     <button
       class="button"
-      [disabled]="open"
+      [disabled]="open || !this.userAccountAddress"
       mat-flat-button
       color="warn"
       (click)="finalizeGame()"
@@ -50,8 +52,20 @@
   <div class="row-action" *ngIf="!finalized && !isAdmin">
     <button
       class="button"
+      mat-flat-button
+      [disabled]="!this.userAccountAddress"
+      color="accent"
+      matTooltip="Approve a maximum ammount of BetTokens to be spent on bettings on this Game"
+      (click)="approve($event)"
+    >
+      Approve BetTokens ...
+    </button>
+
+    <button
+      class="button"
       [disabled]="!open"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
       color="primary"
       matTooltip="Click to place your bet"
       (click)="bet()"

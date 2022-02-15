@@ -4,6 +4,7 @@ import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
 import { BetTokenMintedEvent as BetTokenReceivedEvent } from 'src/app/model';
 import { MessageService, Web3Service } from 'src/app/services';
+import { environment } from 'src/environments/environment';
 import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 
 @Component({
@@ -14,6 +15,7 @@ import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 export class BettokenHomeComponent implements OnInit {
   userAccountAddress: string | null = null;
   balance: BN = new BN(0);
+  chainCurrencyName: string = environment.chainCurrencyName;
 
   constructor(
     private _changeDetectorRefs: ChangeDetectorRef,
@@ -50,33 +52,34 @@ export class BettokenHomeComponent implements OnInit {
   }
 
   buy(event: MouseEvent) {
-    if (!this.userAccountAddress) {
-      this._messageService.show(
-        `You have to connect your wallet in order to buy BetTokens`
-      );
-    } else {
-      const dialogRef = this._dialog.open(BuyDialogComponent, {
-        data: {
-          title: `Buy BetTokens`,
-        },
-      });
+    if (!this.userAccountAddress) return;
+    this._web3Service
+      .chainCurrencyBalanceOf(this.userAccountAddress)
+      .subscribe((_balance) => {
+        console.log('olha o balance', _balance);
+        const dialogRef = this._dialog.open(BuyDialogComponent, {
+          data: {
+            title: `Buy BetTokens`,
+            maxAmmount: new BN(_balance),
+          },
+        });
 
-      dialogRef.afterClosed().subscribe((_purchaseData) => {
-        if (_purchaseData) {
-          if (_purchaseData.value != null && this.userAccountAddress) {
-            this._betTokenService
-              .buy(this.userAccountAddress, new BN(_purchaseData.value))
-              .subscribe((_result) => {
-                console.log(_result);
-                //this._messageService.show(_result.message);
-              });
-          } else {
-            this._messageService.show(`Quantity of BetTokens is not valid`);
+        dialogRef.afterClosed().subscribe((_purchaseData) => {
+          if (_purchaseData) {
+            if (_purchaseData.value != null && this.userAccountAddress) {
+              this._betTokenService
+                .buy(this.userAccountAddress, new BN(_purchaseData.value))
+                .subscribe((_result) => {
+                  console.log(_result);
+                  //this._messageService.show(_result.message);
+                });
+            } else {
+              this._messageService.show(`Quantity of BetTokens is not valid`);
+            }
           }
-        }
-        console.log(`Dialog result`, _purchaseData);
+          console.log(`Dialog result`, _purchaseData);
+        });
       });
-    }
   }
 
   addTokenToWallet(event: MouseEvent) {}
