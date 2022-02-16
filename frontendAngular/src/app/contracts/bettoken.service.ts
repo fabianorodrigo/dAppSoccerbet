@@ -85,4 +85,35 @@ export class BetTokenService extends BaseContract {
         });
     });
   }
+
+  /**
+   * Returns the remaining number of BetTokens that the {_gameContractAddress} will be allowed to spend on behalf
+   * of the owner {_accountAddress} through transferFrom. This is zero by default
+   *
+   * @param _accountAddress Bettor account address
+   * @param _gameContractAddress Game Contract address
+   * @returns The quantity of BetTokens remaining
+   */
+  allowance(
+    _accountAddress: string,
+    _gameContractAddress: string
+  ): Observable<BN> {
+    return new Observable<BN>((_subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (contract) => {
+          let _remainingAllowance;
+          try {
+            _remainingAllowance = await contract.methods
+              .allowance(_accountAddress, _gameContractAddress)
+              .call();
+          } catch (e: any) {
+            alert(e.message);
+          }
+          _subscriber.next(new BN(_remainingAllowance));
+        })
+        .catch((e) => {
+          console.warn(`bettoken.allowance`, e);
+        });
+    });
+  }
 }

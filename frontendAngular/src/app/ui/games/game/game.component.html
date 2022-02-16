@@ -13,6 +13,11 @@
     <span>{{ datetimeGame?.toLocaleDateString() }}</span>
     <mat-icon>schedule</mat-icon>
     <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
+    <span class="spanSpace"></span>
+    <mat-icon *ngIf="formatedRemainingAllowance">sell</mat-icon>
+    <span *ngIf="formatedRemainingAllowance">{{
+      formatedRemainingAllowance
+    }}</span>
   </div>
   <!-- ADMIN ROW ACTION -->
   <div class="row-action" *ngIf="!finalized && isAdmin">
@@ -51,7 +56,24 @@
   <!-- USER ROW ACTION -->
   <div class="row-action" *ngIf="!finalized && !isAdmin">
     <button
-      class="button"
+      mat-stroked-button
+      color="primary"
+      [matMenuTriggerFor]="menu"
+      matTooltip="Info about this game"
+    >
+      <mat-icon>info</mat-icon> Info
+    </button>
+    <mat-menu #menu="matMenu">
+      <button
+        mat-menu-item
+        (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"
+      >
+        {{ formatedRemainingAllowance ? "Hide" : "Show" }} remaining BetTokens
+        approved
+      </button>
+      <button mat-menu-item>Show bettings ...</button>
+    </mat-menu>
+    <button
       mat-flat-button
       [disabled]="!this.userAccountAddress"
       color="accent"
@@ -61,7 +83,6 @@
       Approve BetTokens ...
     </button>
     <button
-      class="button"
       mat-flat-button
       [disabled]="!this.userAccountAddress || !open"
       color="primary"

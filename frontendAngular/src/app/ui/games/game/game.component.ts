@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Score } from 'src/app/model';
-import { MessageService, Web3Service } from 'src/app/services';
+import { GameBetEvent, Score } from 'src/app/model';
+import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
 import { GameCompound } from '../game-compound.class';
 import { BuyDialogComponent } from '../../bettoken/buy-dialog/buy-dialog.component';
-import { BetTokenService } from 'src/app/contracts';
+import { BetTokenService, GameService } from 'src/app/contracts';
 import BN from 'bn.js';
 
 @Component({
@@ -29,14 +29,17 @@ export class GameComponent implements OnInit {
   finalized!: boolean;
   finalScore!: Score | undefined;
 
+  formatedRemainingAllowance!: string | null;
+
   constructor(
     private _web3Service: Web3Service,
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
+    private _numberService: NumbersService,
     private _dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.homeTeam = this.gameCompound.game.homeTeam;
     this.visitorTeam = this.gameCompound.game.visitorTeam;
     this.datetimeGame = new Date(this.gameCompound.game.datetimeGame * 1000);
@@ -49,6 +52,21 @@ export class GameComponent implements OnInit {
     this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
       this.userAccountAddress = address;
     });
+
+    //monitorando eventos
+    try {
+      (
+        await this.gameCompound.gameService.getEventBehaviorSubject(
+          GameService.EVENTS.BET_ON_GAME
+        )
+      ).subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameBetEvent = evt;
+        this.showAllowance();
+      });
+    } catch (e: any) {
+      this._messageService.show(e.message);
+    }
   }
 
   openForBetting() {
@@ -149,5 +167,21 @@ export class GameComponent implements OnInit {
       }
       console.log(`Dialog result`, _bet);
     });
+  }
+
+  hideAllowance() {
+    this.formatedRemainingAllowance = null;
+  }
+  showAllowance() {
+    if (!this.userAccountAddress) return;
+    this._betTokenService
+      .allowance(
+        this.userAccountAddress,
+        this.gameCompound.game.addressGame as string
+      )
+      .subscribe((_remainingAllowance) => {
+        this.formatedRemainingAllowance =
+          this._numberService.formatBN(_remainingAllowance);
+      });
   }
 }

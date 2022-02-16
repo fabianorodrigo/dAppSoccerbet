@@ -5,7 +5,7 @@
   background-color: #e8e8e8;
   border-radius: 5px;
   padding: 10px;
-  min-width: 250px;
+  min-width: 320px;
   width: 50%;
   min-height: 80px;
   box-shadow: 1px 1px 5px #555;
@@ -32,6 +32,9 @@
   flex-direction: row;
   align-items: center;
   gap: 2px;
+}
+.spanSpace {
+  width: 10px;
 }
 
 .row-action {

@@ -11,6 +11,7 @@ export class GameService extends BaseContract {
     GAME_OPENED: 'GameOpened',
     GAME_CLOSED: 'GameClosed',
     GAME_FINALIZED: 'GameFinalized',
+    BET_ON_GAME: 'BetOnGame',
   };
 
   constructor(
