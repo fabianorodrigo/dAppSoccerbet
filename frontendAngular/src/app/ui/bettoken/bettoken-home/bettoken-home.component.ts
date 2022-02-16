@@ -3,7 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
 import { BetTokenMintedEvent as BetTokenReceivedEvent } from 'src/app/model';
-import { MessageService, Web3Service } from 'src/app/services';
+import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 
@@ -14,7 +14,7 @@ import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 })
 export class BettokenHomeComponent implements OnInit {
   userAccountAddress: string | null = null;
-  balance: BN = new BN(0);
+  formatedBalance: string = '0';
   chainCurrencyName: string = environment.chainCurrencyName;
 
   constructor(
@@ -22,6 +22,7 @@ export class BettokenHomeComponent implements OnInit {
     private _web3Service: Web3Service,
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
+    private _numberService: NumbersService,
     private _dialog: MatDialog
   ) {}
 
@@ -89,7 +90,7 @@ export class BettokenHomeComponent implements OnInit {
       this._betTokenService
         .balanceOf(this.userAccountAddress)
         .subscribe((_balance) => {
-          this.balance = _balance;
+          this.formatedBalance = this._numberService.formatBN(_balance);
           this._changeDetectorRefs.detectChanges();
         });
     }

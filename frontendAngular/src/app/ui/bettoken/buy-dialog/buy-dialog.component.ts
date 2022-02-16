@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import BN from 'bn.js';
+import { NumbersService } from 'src/app/services';
 import { createBigNumberMaxValidator } from 'src/app/shared';
 
 @Component({
@@ -11,6 +12,7 @@ import { createBigNumberMaxValidator } from 'src/app/shared';
 })
 export class BuyDialogComponent implements OnInit {
   form!: FormGroup;
+  formattedMax!: string;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -20,10 +22,14 @@ export class BuyDialogComponent implements OnInit {
       homeTeam: string;
       visitorTeam: string;
       maxAmmount: BN;
-    }
+    },
+    private _numberService: NumbersService
   ) {}
 
   ngOnInit(): void {
+    if (this.data.maxAmmount) {
+      this.formattedMax = this._numberService.formatBN(this.data.maxAmmount);
+    }
     this.form = this.formBuilder.group({
       value: [
         null,
@@ -35,6 +41,18 @@ export class BuyDialogComponent implements OnInit {
         ],
       ],
     });
+  }
+
+  /**
+   * @returns The error message accordingly to the error found
+   */
+  getErrorMessage() {
+    if (this.form.controls['value'].hasError('required')) {
+      return 'You must enter a quantity of BetToken';
+    }
+    return this.form.controls['value'].hasError('bigNumberMaxOverflow')
+      ? `Max: ${this.formattedMax}`
+      : '';
   }
 
   /**
