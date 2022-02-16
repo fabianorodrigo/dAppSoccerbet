@@ -60,12 +60,10 @@
     >
       Approve BetTokens ...
     </button>
-
     <button
       class="button"
-      [disabled]="!open"
       mat-flat-button
-      [disabled]="!this.userAccountAddress"
+      [disabled]="!this.userAccountAddress || !open"
       color="primary"
       matTooltip="Click to place your bet"
       (click)="bet()"
