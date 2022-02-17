@@ -105,8 +105,8 @@ export class Web3Service {
     _addressFrom: string,
     _addressTo: string,
     _valueInWei: BN
-  ): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((_subscriber) => {
+  ): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((_subscriber) => {
       if (window.ethereum) {
         const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
         window.ethereum
@@ -123,15 +123,15 @@ export class Web3Service {
             ],
           })
           .then((_transaction: any) => {
-            _subscriber.next({ success: true, message: _transaction });
+            _subscriber.next({ success: true, result: _transaction });
           })
           .catch((e: { message: any }) => {
-            _subscriber.next({ success: false, message: e.message });
+            _subscriber.next({ success: false, result: e.message });
           });
       } else {
         _subscriber.next({
           success: false,
-          message: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
+          result: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
         });
       }
     });

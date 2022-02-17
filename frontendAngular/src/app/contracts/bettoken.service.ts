@@ -42,7 +42,10 @@ export class BetTokenService extends BaseContract {
     });
   }
 
-  buy(_fromAccountAddress: string, _value: BN): Observable<TransactionResult> {
+  buy(
+    _fromAccountAddress: string,
+    _value: BN
+  ): Observable<TransactionResult<string>> {
     return this._web3Service.sendWei(
       _fromAccountAddress,
       environment.betTokenAddress,
@@ -54,8 +57,8 @@ export class BetTokenService extends BaseContract {
     _fromAccountAddress: string,
     _toAccountAddress: string,
     _value: BN
-  ): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((subscriber) => {
+  ): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (contract) => {
           let result;
@@ -67,7 +70,7 @@ export class BetTokenService extends BaseContract {
               });
             subscriber.next({
               success: true,
-              message:
+              result:
                 'Transaction to approve allowance of BetTokens was sent successfully',
             });
           } catch (e: any) {
@@ -77,7 +80,7 @@ export class BetTokenService extends BaseContract {
               message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
             }
             console.warn(e);
-            subscriber.next({ success: false, message: message });
+            subscriber.next({ success: false, result: message });
           }
         })
         .catch((e) => {

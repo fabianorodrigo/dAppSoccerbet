@@ -153,8 +153,8 @@ export abstract class BaseContract {
     _abi: AbiItem[],
     _functionName: string,
     _successMessage: string
-  ): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((subscriber) => {
+  ): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(_abi as AbiItem[]).then((_contract) => {
         let result;
         this._web3Service
@@ -164,7 +164,7 @@ export abstract class BaseContract {
               result = await _contract.methods[_functionName]().send({
                 from: fromAccount,
               });
-              subscriber.next({ success: true, message: _successMessage });
+              subscriber.next({ success: true, result: _successMessage });
             } catch (e: any) {
               const providerError = ProviderErrors[e.code];
               let message = `We had some problem. The transaction wasn't sent.`;
@@ -172,7 +172,7 @@ export abstract class BaseContract {
                 message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
               }
               console.warn(e);
-              subscriber.next({ success: false, message: message });
+              subscriber.next({ success: false, result: message });
             }
           });
       });

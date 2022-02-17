@@ -1,4 +1,4 @@
-export interface TransactionResult {
+export interface TransactionResult<T> {
   success: boolean;
-  message: string;
+  result: T | string;
 }
