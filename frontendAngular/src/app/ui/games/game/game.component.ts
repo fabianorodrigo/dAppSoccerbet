@@ -8,6 +8,7 @@ import { GameCompound } from '../game-compound.class';
 import { BuyDialogComponent } from '../../bettoken/buy-dialog/buy-dialog.component';
 import { BetTokenService, GameService } from 'src/app/contracts';
 import BN from 'bn.js';
+import { GameBetsDialogComponent } from '../game-bets-dialog/game-bets-dialog.component';
 
 @Component({
   selector: 'dapp-games-game',
@@ -73,7 +74,7 @@ export class GameComponent implements OnInit {
     this.gameCompound.gameService
       .openForBetting()
       .subscribe((transactionResult) => {
-        this._messageService.show(transactionResult.message);
+        this._messageService.show(transactionResult.result);
       });
   }
 
@@ -81,7 +82,7 @@ export class GameComponent implements OnInit {
     this.gameCompound.gameService
       .closeForBetting()
       .subscribe((transactionResult) => {
-        this._messageService.show(transactionResult.message);
+        this._messageService.show(transactionResult.result);
       });
   }
 
@@ -100,7 +101,7 @@ export class GameComponent implements OnInit {
           this.gameCompound.gameService
             .finalizeGame(score)
             .subscribe((transactionResult) => {
-              this._messageService.show(transactionResult.message);
+              this._messageService.show(transactionResult.result);
             });
         } else {
           this._messageService.show(`Score is not valid`);
@@ -133,7 +134,7 @@ export class GameComponent implements OnInit {
                 )
                 .subscribe((_result) => {
                   console.log(_result);
-                  this._messageService.show(_result.message);
+                  this._messageService.show(_result.result);
                 });
             } else {
               this._messageService.show(`Quantity of BetTokens is not valid`);
@@ -159,7 +160,7 @@ export class GameComponent implements OnInit {
           this.gameCompound.gameService
             .bet({ home: _bet.home, visitor: _bet.visitor }, _bet.value)
             .subscribe((transactionResult) => {
-              this._messageService.show(transactionResult.message);
+              this._messageService.show(transactionResult.result);
             });
         } else {
           this._messageService.show(`Bet is not valid`);
@@ -183,5 +184,26 @@ export class GameComponent implements OnInit {
         this.formatedRemainingAllowance =
           this._numberService.formatBN(_remainingAllowance);
       });
+  }
+
+  listBets() {
+    this.gameCompound.gameService.listBets().subscribe((_result) => {
+      if (!_result.success) {
+        this._messageService.show(_result.result as string);
+      } else {
+        if (_result.result.length > 0) {
+          this._dialog.open(GameBetsDialogComponent, {
+            data: {
+              homeTeam: this.homeTeam,
+              visitorTeam: this.visitorTeam,
+              bets: _result.result,
+            },
+            minWidth: 900,
+          });
+        } else {
+          this._messageService.show(`There is no betting for this game yet`);
+        }
+      }
+    });
   }
 }

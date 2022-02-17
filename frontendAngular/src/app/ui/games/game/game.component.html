@@ -71,7 +71,7 @@
         {{ formatedRemainingAllowance ? "Hide" : "Show" }} remaining BetTokens
         approved
       </button>
-      <button mat-menu-item>Show bettings ...</button>
+      <button mat-menu-item (click)="listBets()">Show bettings ...</button>
     </mat-menu>
     <button
       mat-flat-button
