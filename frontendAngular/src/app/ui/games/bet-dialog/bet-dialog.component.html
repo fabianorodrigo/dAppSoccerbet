@@ -9,6 +9,12 @@
           placeholder="Bet Value"
           formControlName="value"
         />
+        <mat-hint *ngIf="this.data.allowance" align="end"
+          >Max: {{ formattedMax }}</mat-hint
+        >
+        <mat-error *ngIf="form.controls['value'].invalid" align="end">{{
+          getErrorMessage()
+        }}</mat-error>
       </mat-form-field>
     </div>
     <mat-form-field class="full-width">
@@ -33,11 +39,7 @@
   <button mat-button [mat-dialog-close]="false">Cancel</button>
   <button
     mat-button
-    [disabled]="
-      form.getRawValue().value == null ||
-      form.getRawValue().home == null ||
-      form.getRawValue().visitor == null
-    "
+    [disabled]="!form.valid"
     color="primary"
     [mat-dialog-close]="form.getRawValue()"
     cdkFocusInitial

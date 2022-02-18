@@ -146,28 +146,45 @@ export class GameComponent implements OnInit {
   }
 
   bet() {
-    const dialogRef = this._dialog.open(BetDialogComponent, {
-      data: {
-        title: `Place your Bet`,
-        homeTeam: this.homeTeam,
-        visitorTeam: this.visitorTeam,
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((_bet) => {
-      if (_bet) {
-        if (_bet.home != null && _bet.visitor != null && _bet.value != null) {
-          this.gameCompound.gameService
-            .bet({ home: _bet.home, visitor: _bet.visitor }, _bet.value)
-            .subscribe((transactionResult) => {
-              this._messageService.show(transactionResult.result);
-            });
+    if (!this.userAccountAddress || !this.gameCompound?.game?.addressGame)
+      return;
+    this._betTokenService
+      .allowance(this.userAccountAddress, this.gameCompound.game.addressGame)
+      .subscribe((_allowance) => {
+        if (!_allowance || _allowance.eq(new BN(0))) {
+          this._messageService.show(
+            `There is no BetTokens approved to be spent on this game`
+          );
         } else {
-          this._messageService.show(`Bet is not valid`);
+          const dialogRef = this._dialog.open(BetDialogComponent, {
+            data: {
+              title: `Place your Bet`,
+              homeTeam: this.homeTeam,
+              visitorTeam: this.visitorTeam,
+              allowance: _allowance,
+            },
+          });
+
+          dialogRef.afterClosed().subscribe((_bet) => {
+            if (_bet) {
+              if (
+                _bet.home != null &&
+                _bet.visitor != null &&
+                _bet.value != null
+              ) {
+                this.gameCompound.gameService
+                  .bet({ home: _bet.home, visitor: _bet.visitor }, _bet.value)
+                  .subscribe((transactionResult) => {
+                    this._messageService.show(transactionResult.result);
+                  });
+              } else {
+                this._messageService.show(`Bet is not valid`);
+              }
+            }
+            console.log(`Dialog result`, _bet);
+          });
         }
-      }
-      console.log(`Dialog result`, _bet);
-    });
+      });
   }
 
   hideAllowance() {
