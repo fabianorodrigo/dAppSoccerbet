@@ -13,6 +13,11 @@
     <span>{{ datetimeGame?.toLocaleDateString() }}</span>
     <mat-icon>schedule</mat-icon>
     <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
+    <span class="spanSpace"></span>
+    <mat-icon *ngIf="formatedRemainingAllowance">sell</mat-icon>
+    <span *ngIf="formatedRemainingAllowance">{{
+      formatedRemainingAllowance
+    }}</span>
   </div>
   <!-- ADMIN ROW ACTION -->
   <div class="row-action" *ngIf="!finalized && isAdmin">
@@ -20,6 +25,7 @@
       class="button"
       *ngIf="!open"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
       color="primary"
       matTooltip="The game is not receiving bets. Click to open it for betting"
       (click)="openForBetting()"
@@ -30,6 +36,7 @@
       class="button"
       *ngIf="open"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
       color="accent"
       matTooltip="The game is open for betting. Click to close it"
       (click)="closeForBetting()"
@@ -38,7 +45,7 @@
     </button>
     <button
       class="button"
-      [disabled]="open"
+      [disabled]="open || !this.userAccountAddress"
       mat-flat-button
       color="warn"
       (click)="finalizeGame()"
@@ -49,9 +56,35 @@
   <!-- USER ROW ACTION -->
   <div class="row-action" *ngIf="!finalized && !isAdmin">
     <button
-      class="button"
-      [disabled]="!open"
+      mat-stroked-button
+      color="primary"
+      [matMenuTriggerFor]="menu"
+      matTooltip="Info about this game"
+    >
+      <mat-icon>info</mat-icon> Info
+    </button>
+    <mat-menu #menu="matMenu">
+      <button
+        mat-menu-item
+        (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"
+      >
+        {{ formatedRemainingAllowance ? "Hide" : "Show" }} remaining BetTokens
+        approved
+      </button>
+      <button mat-menu-item (click)="listBets()">Show bettings ...</button>
+    </mat-menu>
+    <button
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
+      color="accent"
+      matTooltip="Approve a maximum ammount of BetTokens to be spent on bettings on this Game"
+      (click)="approve($event)"
+    >
+      Approve BetTokens ...
+    </button>
+    <button
+      mat-flat-button
+      [disabled]="!this.userAccountAddress || !open"
       color="primary"
       matTooltip="Click to place your bet"
       (click)="bet()"

@@ -75,6 +75,24 @@ export class Web3Service {
   }
 
   /**
+   * Gets the balance of the {_accountAddress} in the official currency of chain in use (ex. Ether in case of Ethereum)
+   * @param _accountAddress The account address which balance is wanted
+   * @returns The string value in Wei
+   */
+  chainCurrencyBalanceOf(_accountAddress: string): Observable<string> {
+    return new Observable<string>((_subscriber) => {
+      this._web3.eth
+        .getBalance(_accountAddress)
+        .then((_balance) => {
+          _subscriber.next(_balance);
+        })
+        .catch((e) => {
+          console.warn(`web3Service`, e);
+        });
+    });
+  }
+
+  /**
    * Send Ether a {_value} from account {_addressFrom} to account {_addressTo}
    *
    * @param _addressFrom origin of funds
@@ -87,8 +105,8 @@ export class Web3Service {
     _addressFrom: string,
     _addressTo: string,
     _valueInWei: BN
-  ): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((_subscriber) => {
+  ): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((_subscriber) => {
       if (window.ethereum) {
         const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
         window.ethereum
@@ -105,15 +123,15 @@ export class Web3Service {
             ],
           })
           .then((_transaction: any) => {
-            _subscriber.next({ success: true, message: _transaction });
+            _subscriber.next({ success: true, result: _transaction });
           })
           .catch((e: { message: any }) => {
-            _subscriber.next({ success: false, message: e.message });
+            _subscriber.next({ success: false, result: e.message });
           });
       } else {
         _subscriber.next({
           success: false,
-          message: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
+          result: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
         });
       }
     });

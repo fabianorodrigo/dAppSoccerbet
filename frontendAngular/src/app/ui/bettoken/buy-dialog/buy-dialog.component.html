@@ -8,6 +8,12 @@
         placeholder="Value"
         formControlName="value"
       />
+      <mat-hint *ngIf="this.data.maxAmmount" align="end"
+        >Max: {{ formattedMax }}</mat-hint
+      >
+      <mat-error *ngIf="form.controls['value'].invalid" align="end">{{
+        getErrorMessage()
+      }}</mat-error>
     </mat-form-field>
   </form>
 </mat-dialog-content>
@@ -15,9 +21,9 @@
   <button mat-button [mat-dialog-close]="false">Cancel</button>
   <button
     mat-button
-    [disabled]="form.getRawValue().value == null"
+    [disabled]="!form.valid"
     color="primary"
-    [mat-dialog-close]="form.getRawValue()"
+    [mat-dialog-close]="convertNumberToString(form.getRawValue())"
     cdkFocusInitial
   >
     Confirm

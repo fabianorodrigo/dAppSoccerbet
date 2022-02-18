@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
 import contractABI from '../../../../backend-truffle/build/contracts/Game.json';
@@ -11,6 +12,7 @@ export class GameService extends BaseContract {
     GAME_OPENED: 'GameOpened',
     GAME_CLOSED: 'GameClosed',
     GAME_FINALIZED: 'GameFinalized',
+    BET_ON_GAME: 'BetOnGame',
   };
 
   constructor(
@@ -29,7 +31,7 @@ export class GameService extends BaseContract {
    * Open the game for betting
    * @returns result of transaction submission
    */
-  openForBetting(): Observable<TransactionResult> {
+  openForBetting(): Observable<TransactionResult<string>> {
     return this.sendParamlessVoidFunction(
       contractABI.abi as AbiItem[],
       'openForBetting',
@@ -41,7 +43,7 @@ export class GameService extends BaseContract {
    * Close the game for betting
    * @returns result of transaction submission
    */
-  closeForBetting(): Observable<TransactionResult> {
+  closeForBetting(): Observable<TransactionResult<string>> {
     return this.sendParamlessVoidFunction(
       contractABI.abi as AbiItem[],
       'closeForBetting',
@@ -56,8 +58,8 @@ export class GameService extends BaseContract {
    * @param _value The quantity of BetTokens bet
    * @returns result of transaction submission
    */
-  bet(_score: Score, _value: number): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((subscriber) => {
+  bet(_score: Score, _value: number): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
           let result;
@@ -70,7 +72,7 @@ export class GameService extends BaseContract {
                 });
                 subscriber.next({
                   success: true,
-                  message:
+                  result:
                     'Transaction to place the bet on the game was sent successfully',
                 });
               } catch (e: any) {
@@ -80,7 +82,7 @@ export class GameService extends BaseContract {
                   message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
                 }
                 console.warn(e);
-                subscriber.next({ success: false, message: message });
+                subscriber.next({ success: false, result: message });
               }
             });
         })
@@ -95,8 +97,8 @@ export class GameService extends BaseContract {
    * @param _score The final score of the game
    * @returns result of transaction submission
    */
-  finalizeGame(_score: Score): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((subscriber) => {
+  finalizeGame(_score: Score): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
           let result;
@@ -109,7 +111,7 @@ export class GameService extends BaseContract {
                 });
                 subscriber.next({
                   success: true,
-                  message:
+                  result:
                     'Transaction to finalize the game for betting was sent successfully',
                 });
               } catch (e: any) {
@@ -119,7 +121,7 @@ export class GameService extends BaseContract {
                   message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
                 }
                 console.warn(e);
-                subscriber.next({ success: false, message: message });
+                subscriber.next({ success: false, result: message });
               }
             });
         })
@@ -144,6 +146,9 @@ export class GameService extends BaseContract {
   finalized(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'finalized');
   }
+  getPrize(): Promise<BN> {
+    return this.getBN(contractABI.abi as AbiItem[], 'getPrize');
+  }
 
   finalScore(): Observable<Score> {
     return new Observable<Score>((_subscriber) => {
@@ -167,6 +172,32 @@ export class GameService extends BaseContract {
         })
         .catch((e) => {
           console.warn(`gameservice final`, e);
+        });
+    });
+  }
+
+  listBets(): Observable<TransactionResult<Bet[]>> {
+    return new Observable<TransactionResult<Bet[]>>((_subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then((_contract) => {
+          try {
+            _contract.methods
+              .listBets()
+              .call()
+              .then((_result: Bet[]) => {
+                _subscriber.next({ success: true, result: _result });
+              })
+              .catch((e: any) => {
+                _subscriber.next({ success: false, result: e.message });
+              });
+          } catch (e: any) {
+            _subscriber.next({ success: false, result: e.message });
+            console.warn(e);
+          }
+        })
+        .catch((e) => {
+          console.warn(`gameservice final`, e);
+          _subscriber.next({ success: false, result: e.message });
         });
     });
   }

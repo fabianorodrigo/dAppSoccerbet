@@ -7,9 +7,10 @@ import { AdminGamesFormComponent } from './admin-games-form/admin-games-form.com
 import { GamesHomeComponent } from './games-home/games-home.component';
 import { GameComponent } from './game/game.component';
 import { ComponentsModule } from '../components/components.module';
+import { GameBetsDialogComponent } from './game-bets-dialog/game-bets-dialog.component';
 
 @NgModule({
-  declarations: [GamesHomeComponent, AdminGamesFormComponent, GameComponent],
+  declarations: [GamesHomeComponent, AdminGamesFormComponent, GameComponent, GameBetsDialogComponent],
   imports: [
     CommonModule,
     MaterialModule,
