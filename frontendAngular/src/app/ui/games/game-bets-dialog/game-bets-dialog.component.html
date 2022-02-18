@@ -24,7 +24,9 @@
 
     <ng-container matColumnDef="value">
       <th mat-header-cell class="td-right" *matHeaderCellDef>BetTokens</th>
-      <td mat-cell class="td-right" *matCellDef="let bet">{{ bet.value }}</td>
+      <td mat-cell class="td-right" *matCellDef="let bet">
+        {{ format(bet.value) }}
+      </td>
     </ng-container>
     <ng-container matColumnDef="bettor">
       <th mat-header-cell *matHeaderCellDef>Bettor address</th>
@@ -34,6 +36,13 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+  <div class="bottom-info" *ngIf="prize">
+    <span
+      >{{ data.gameCompound.game.finalized ? "Final" : "Current" }} prize:</span
+    >
+    <span class="prize-symbol">SBT</span>
+    <span class="prize-value">{{ format(prize) }} </span>
+  </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Close</button>

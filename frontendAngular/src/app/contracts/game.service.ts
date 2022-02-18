@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
 import contractABI from '../../../../backend-truffle/build/contracts/Game.json';
@@ -144,6 +145,9 @@ export class GameService extends BaseContract {
   }
   finalized(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'finalized');
+  }
+  getPrize(): Promise<BN> {
+    return this.getBN(contractABI.abi as AbiItem[], 'getPrize');
   }
 
   finalScore(): Observable<Score> {

@@ -1,7 +1,11 @@
+import { GameCompound } from './../game-compound.class';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import BN from 'bn.js';
+import { GameService } from 'src/app/contracts';
 import { Bet } from 'src/app/model';
+import { NumbersService } from 'src/app/services';
 
 @Component({
   selector: 'dapp-game-bets-dialog',
@@ -23,9 +27,17 @@ export class GameBetsDialogComponent implements OnInit {
     visitorScore: number;
   }[] = [];
 
+  prize!: BN;
+
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    public data: { homeTeam: string; visitorTeam: string; bets: Bet[] }
+    public data: {
+      gameCompound: GameCompound;
+      homeTeam: string;
+      visitorTeam: string;
+      bets: Bet[];
+    },
+    private _numberService: NumbersService
   ) {}
 
   ngOnInit(): void {
@@ -37,5 +49,13 @@ export class GameBetsDialogComponent implements OnInit {
         visitorScore: bet.score.visitor,
       };
     });
+
+    this.data.gameCompound.gameService.getPrize().then((value) => {
+      this.prize = value;
+    });
+  }
+
+  format(value: BN): string {
+    return this._numberService.formatBN(value);
   }
 }

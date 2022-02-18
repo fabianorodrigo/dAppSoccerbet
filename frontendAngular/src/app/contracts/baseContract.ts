@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
@@ -217,6 +218,14 @@ export abstract class BaseContract {
    * @param _propertyName name of the property of type number
    */
   protected getNumber(_abi: AbiItem[], _propertyName: string): Promise<number> {
+    return this.getProperty(_abi, _propertyName);
+  }
+
+  /**
+   * Calls the GET function of the contract with the name {_propertyName}
+   * @param _propertyName name of the property of type BN (BigNumber)
+   */
+  protected getBN(_abi: AbiItem[], _propertyName: string): Promise<BN> {
     return this.getProperty(_abi, _propertyName);
   }
 

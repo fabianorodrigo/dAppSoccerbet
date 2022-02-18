@@ -194,6 +194,7 @@ export class GameComponent implements OnInit {
         if (_result.result.length > 0) {
           this._dialog.open(GameBetsDialogComponent, {
             data: {
+              gameCompound: this.gameCompound,
               homeTeam: this.homeTeam,
               visitorTeam: this.visitorTeam,
               bets: _result.result,
