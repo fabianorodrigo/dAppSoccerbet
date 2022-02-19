@@ -95,12 +95,13 @@ export abstract class BaseContract {
     _filter?: { [key: string]: any }
   ): Promise<BehaviorSubject<any>> {
     const _contract = await this.getContract(this.getContractABI());
-    if (!this._eventListeners[_eventName]) {
-      const _key = this._validateEventAndInstanceSubject(
-        _contract,
-        _eventName,
-        _filter
-      );
+    const _validationResult = this._validateEventAndInstanceSubject(
+      _contract,
+      _eventName,
+      _filter
+    );
+    const _key = _validationResult.key;
+    if (_validationResult.new) {
       _contract.events[_eventName](_filter ? { filter: _filter } : undefined)
         .on('data', (event: any) => {
           if (this._eventListeners[_key]) {
@@ -112,7 +113,7 @@ export abstract class BaseContract {
           //throw e;
         });
     }
-    return this._eventListeners[_eventName];
+    return this._eventListeners[_key];
   }
 
   /**
@@ -129,15 +130,19 @@ export abstract class BaseContract {
     _contract: Contract,
     _eventName: string,
     _filter?: { [key: string]: any }
-  ): string {
+  ): { new: boolean; key: string } {
     if (!_contract.events[_eventName]) {
       throw new Error(`Event '${_eventName}' does not exists in the contract`);
     } else {
+      let _new = false;
       const _key = _filter
         ? _eventName.concat(JSON.stringify(_filter))
         : _eventName;
-      this._eventListeners[_key] = new BehaviorSubject<any>(null);
-      return _key;
+      if (!this._eventListeners[_key]) {
+        this._eventListeners[_key] = new BehaviorSubject<any>(null);
+        _new = true;
+      }
+      return { new: _new, key: _key };
     }
   }
 
