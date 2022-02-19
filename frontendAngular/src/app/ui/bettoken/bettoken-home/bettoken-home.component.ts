@@ -15,6 +15,7 @@ import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 export class BettokenHomeComponent implements OnInit {
   userAccountAddress: string | null = null;
   formatedBalance: string = '0';
+  formatedBalanceTooltip: string = '0';
   chainCurrencyName: string = environment.chainCurrencyName;
 
   constructor(
@@ -90,7 +91,9 @@ export class BettokenHomeComponent implements OnInit {
       this._betTokenService
         .balanceOf(this.userAccountAddress)
         .subscribe((_balance) => {
-          this.formatedBalance = this._numberService.formatBN(_balance);
+          this.formatedBalance =
+            this._numberService.formatBNShortScale(_balance);
+          this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
           this._changeDetectorRefs.detectChanges();
         });
     }

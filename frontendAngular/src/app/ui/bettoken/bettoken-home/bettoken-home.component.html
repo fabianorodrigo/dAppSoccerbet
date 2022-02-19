@@ -5,13 +5,24 @@
 
 <div *ngIf="!userAccountAddress">Connect you wallet to check your balance</div>
 
-<button
-  class="button"
-  mat-raised-button
-  [disabled]="!this.userAccountAddress"
-  color="primary"
-  [matTooltip]="'Buy an ammount of BetTokens using ' + chainCurrencyName"
-  (click)="buy($event)"
->
-  Buy BetTokens...
-</button>
+<div class="actions">
+  <button
+    class="button"
+    mat-raised-button
+    [disabled]="!this.userAccountAddress"
+    color="primary"
+    [matTooltip]="'Buy an ammount of BetTokens using ' + chainCurrencyName"
+    (click)="buy($event)"
+  >
+    Buy BetTokens...
+  </button>
+  <button
+    class="button"
+    mat-raised-button
+    [disabled]="!this.userAccountAddress"
+    matTooltip="Withdraw an ammount of BetTokens"
+    (click)="buy($event)"
+  >
+    Withdraw BetTokens...
+  </button>
+</div>
