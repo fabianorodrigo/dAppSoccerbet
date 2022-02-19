@@ -33,6 +33,7 @@ export class GameComponent implements OnInit {
   formatedRemainingAllowance!: string | null;
 
   constructor(
+    private _changeDetectorRefs: ChangeDetectorRef,
     private _web3Service: Web3Service,
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
@@ -58,7 +59,8 @@ export class GameComponent implements OnInit {
     try {
       (
         await this.gameCompound.gameService.getEventBehaviorSubject(
-          GameService.EVENTS.BET_ON_GAME
+          GameService.EVENTS.BET_ON_GAME,
+          { addressBettor: this.userAccountAddress }
         )
       ).subscribe((evt) => {
         if (evt == null) return;
@@ -66,6 +68,7 @@ export class GameComponent implements OnInit {
         this.showAllowance();
       });
     } catch (e: any) {
+      console.log('deu ruim');
       this._messageService.show(e.message);
     }
   }
@@ -199,7 +202,8 @@ export class GameComponent implements OnInit {
       )
       .subscribe((_remainingAllowance) => {
         this.formatedRemainingAllowance =
-          this._numberService.formatBN(_remainingAllowance);
+          this._numberService.formatBNShortScale(_remainingAllowance);
+        this._changeDetectorRefs.detectChanges();
       });
   }
 
