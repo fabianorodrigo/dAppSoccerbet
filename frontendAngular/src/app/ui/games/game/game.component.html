@@ -14,8 +14,10 @@
     <mat-icon>schedule</mat-icon>
     <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
     <span class="spanSpace"></span>
-    <mat-icon *ngIf="formatedRemainingAllowance">sell</mat-icon>
-    <span *ngIf="formatedRemainingAllowance">{{
+    <mat-icon *ngIf="formatedRemainingAllowance && this.userAccountAddress"
+      >sell</mat-icon
+    >
+    <span *ngIf="formatedRemainingAllowance && this.userAccountAddress">{{
       formatedRemainingAllowance
     }}</span>
   </div>
@@ -67,9 +69,14 @@
       <button
         mat-menu-item
         (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"
+        [disabled]="!this.userAccountAddress"
       >
-        {{ formatedRemainingAllowance ? "Hide" : "Show" }} remaining BetTokens
-        approved
+        {{
+          formatedRemainingAllowance && this.userAccountAddress
+            ? "Hide"
+            : "Show"
+        }}
+        remaining BetTokens approved
       </button>
       <button mat-menu-item (click)="listBets()">Show bettings ...</button>
     </mat-menu>
