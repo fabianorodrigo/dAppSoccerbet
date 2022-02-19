@@ -63,9 +63,7 @@ export class BuyDialogComponent implements OnInit {
    */
   convertNumberToString(formRawValue: { value: number }): { value: string } {
     return {
-      value: formRawValue?.value?.toLocaleString('fullWide', {
-        useGrouping: false,
-      }),
+      value: this._numberService.convertNumberToString(formRawValue?.value),
     };
   }
 }

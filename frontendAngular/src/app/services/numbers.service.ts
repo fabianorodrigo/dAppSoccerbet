@@ -27,6 +27,18 @@ export class NumbersService {
   }
 
   /**
+   * We need to convert values to string on forms. If a huge number, the constructor of BN throws exception
+   *
+   * @param formRawValue Object with form values
+   * @returns Struct with form values in string format
+   */
+  convertNumberToString(value: number): string {
+    return value?.toLocaleString('fullWide', {
+      useGrouping: false,
+    });
+  }
+
+  /**
    * @param bn Return the {bn} formatted with thousands separator
    */
   formatBN(bn: BN): string {
@@ -39,4 +51,34 @@ export class NumbersService {
     }
     return result;
   }
+
+  /**
+   * @param bn format the {bn} formatted with expression in shortscale 'million', 'billion', 'trillion'.
+   * @see: https://www.antidote.info/en/blog/reports/millions-billions-and-other-large-numbers
+   */
+  formatBNShortScale(bn: BN): string {
+    let bnFormatted = this.formatBN(bn);
+    if (bnFormatted.indexOf(',') == -1) return bnFormatted;
+    const parts = bnFormatted.split(',');
+    if (parts.length <= 2) return bnFormatted;
+    return parts[0].concat(` ${this.SHORT_SCALE_TABLE[parts.length]}`);
+  }
+
+  /**
+   * @dev https://www.antidote.info/en/blog/reports/millions-billions-and-other-large-numbers
+   */
+  private SHORT_SCALE_TABLE = [
+    '',
+    '',
+    '',
+    'million',
+    'billion',
+    'trillion',
+    'quadrillion',
+    'quintillion',
+    'sextillion',
+    'septillion',
+    'octillion',
+    'nonillion',
+  ];
 }
