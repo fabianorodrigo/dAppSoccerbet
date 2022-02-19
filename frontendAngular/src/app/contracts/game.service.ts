@@ -58,7 +58,7 @@ export class GameService extends BaseContract {
    * @param _value The quantity of BetTokens bet
    * @returns result of transaction submission
    */
-  bet(_score: Score, _value: number): Observable<TransactionResult<string>> {
+  bet(_score: Score, _value: BN): Observable<TransactionResult<string>> {
     return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
