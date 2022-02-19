@@ -41,7 +41,7 @@
     mat-button
     [disabled]="!form.valid"
     color="primary"
-    [mat-dialog-close]="form.getRawValue()"
+    [mat-dialog-close]="convertNumberToString(form.getRawValue())"
     cdkFocusInitial
   >
     Confirm

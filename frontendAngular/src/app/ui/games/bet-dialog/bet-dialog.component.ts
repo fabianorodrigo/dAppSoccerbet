@@ -61,4 +61,21 @@ export class BetDialogComponent implements OnInit {
       ? `Max: ${this.formattedMax}`
       : '';
   }
+
+  /**
+   * We need to convert the value to string. If a huge number, the constructor of BN throws exception
+   *
+   * @param formRawValue Object with form values
+   * @returns Struct with form values in string format
+   */
+  convertNumberToString(formRawValue: {
+    home: number;
+    visitor: number;
+    value: number;
+  }): { home: number; visitor: number; value: string } {
+    return {
+      ...formRawValue,
+      value: this._numberService.convertNumberToString(formRawValue?.value),
+    };
+  }
 }
