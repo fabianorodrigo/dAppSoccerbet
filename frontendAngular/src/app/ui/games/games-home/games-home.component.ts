@@ -5,6 +5,7 @@ import { Game } from 'src/app/model/game.interface';
 import { GameEvent } from '../../../model/events/game-event.interface';
 import { MessageService, Web3Service } from '../../../services';
 import { GameFinalizedEvent } from 'src/app/model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'dapp-games-home',
@@ -15,7 +16,8 @@ export class GamesHomeComponent implements OnInit {
   constructor(
     private _messageService: MessageService,
     private _webService: Web3Service,
-    private _gameFactory: GameFactoryService
+    private _gameFactory: GameFactoryService,
+    private _router: Router
   ) {}
 
   editing: boolean = false;
@@ -27,7 +29,8 @@ export class GamesHomeComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this._gameFactory.isAdmin().subscribe((is) => {
-      this.isAdmin = is;
+      //It is admin if the user is the owner of GameFactory contract and the route starts with '/admin'
+      this.isAdmin = is && this._router.url.startsWith('/admin');
     });
 
     try {

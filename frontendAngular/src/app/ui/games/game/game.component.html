@@ -56,7 +56,7 @@
     </button>
   </div>
   <!-- USER ROW ACTION -->
-  <div class="row-action" *ngIf="!finalized">
+  <div class="row-action" *ngIf="!finalized && !isAdmin">
     <button
       mat-stroked-button
       color="primary"
