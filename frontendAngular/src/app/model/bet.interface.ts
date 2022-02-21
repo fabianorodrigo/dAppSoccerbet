@@ -6,4 +6,5 @@ export interface Bet {
   score: Score;
   value: number;
   result?: BetResult;
+  prize: number;
 }
