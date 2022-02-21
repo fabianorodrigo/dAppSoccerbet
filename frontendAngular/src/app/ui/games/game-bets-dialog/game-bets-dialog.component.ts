@@ -1,11 +1,9 @@
-import { GameCompound } from './../game-compound.class';
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import BN from 'bn.js';
-import { GameService } from 'src/app/contracts';
 import { Bet } from 'src/app/model';
 import { NumbersService } from 'src/app/services';
+import { GameCompound } from './../game-compound.class';
 
 @Component({
   selector: 'dapp-game-bets-dialog',
@@ -57,5 +55,8 @@ export class GameBetsDialogComponent implements OnInit {
 
   format(value: BN): string {
     return this._numberService.formatBN(value);
+  }
+  formatShortScale(value: BN): string {
+    return this._numberService.formatBNShortScale(value);
   }
 }
