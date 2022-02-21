@@ -190,7 +190,7 @@ contract Game is Ownable {
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
         if (_betTokenContract.transferFrom(msg.sender, address(this), _value)) {
-            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT));
+            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
             _totalStake += _value;
             emit BetOnGame(
                 address(this),
@@ -229,7 +229,7 @@ contract Game is Ownable {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
-        uint256 totalWinners = this.payPrizes();
+        uint256 totalWinners = payPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
