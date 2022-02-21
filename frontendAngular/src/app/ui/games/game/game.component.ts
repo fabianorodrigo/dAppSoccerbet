@@ -90,6 +90,9 @@ export class GameComponent implements OnInit {
   }
 
   finalizeGame() {
+    if (!this.userAccountAddress || !this.gameCompound?.game?.addressGame) {
+      return;
+    }
     const dialogRef = this._dialog.open(ScoreDialogComponent, {
       data: {
         title: `Game's Final Score`,
@@ -149,8 +152,9 @@ export class GameComponent implements OnInit {
   }
 
   bet() {
-    if (!this.userAccountAddress || !this.gameCompound?.game?.addressGame)
+    if (!this.userAccountAddress || !this.gameCompound?.game?.addressGame) {
       return;
+    }
     this._betTokenService
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame)
       .subscribe((_allowance) => {
