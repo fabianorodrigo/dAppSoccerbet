@@ -39,6 +39,8 @@
     </table>
   </div>
   <div class="bottom-info" *ngIf="prize">
+    <span>Total bets:</span>
+    <span class="total-bets-value">{{ data.bets.length }} </span>
     <span
       >{{ data.gameCompound.game.finalized ? "Final" : "Current" }} prize:</span
     >

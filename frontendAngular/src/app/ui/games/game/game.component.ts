@@ -216,19 +216,15 @@ export class GameComponent implements OnInit {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
       } else {
-        if (_result.result.length > 0) {
-          this._dialog.open(GameBetsDialogComponent, {
-            data: {
-              gameCompound: this.gameCompound,
-              homeTeam: this.homeTeam,
-              visitorTeam: this.visitorTeam,
-              bets: _result.result,
-            },
-            minWidth: 900,
-          });
-        } else {
-          this._messageService.show(`There is no betting for this game yet`);
-        }
+        this._dialog.open(GameBetsDialogComponent, {
+          data: {
+            gameCompound: this.gameCompound,
+            homeTeam: this.homeTeam,
+            visitorTeam: this.visitorTeam,
+            bets: _result.result,
+          },
+          minWidth: 900,
+        });
       }
     });
   }

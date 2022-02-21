@@ -14,7 +14,6 @@ table {
 }
 
 .prize-symbol {
-  padding-left: 20px;
   font-weight: bold;
 }
 
@@ -25,9 +24,17 @@ table {
   font-size: large;
 }
 
+.total-bets-value {
+  padding-right: 25px;
+  font-weight: bold;
+  color: #673ab7;
+  font-size: large;
+}
+
 .bottom-info {
   padding-top: 20px;
   display: flex;
+  gap: 5px;
 }
 
 .td-left {
