@@ -282,12 +282,13 @@ contract Game is Ownable {
         }
         for (uint256 i = 0; i < _bets.length; i++) {
             //If nobody matches the final score, _totalTokensBetWinners will be zero
-            //and if will always return TRUE. Otherwise, only when for bets that matched
+            //and it will always return TRUE. Otherwise, only when for bets that matched
             //the final score the IF will be TRUE
             if (_bets[i].result == WINNING || _totalTokensBetWinners == 0) {
                 // The value transfered will be proportional: prize * the value of bet divided by
                 // the total of tokens of the winning bets (if nobody wins, the total stake)
                 uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
+                _bets[i].prize = _prizeValue;
                 _betTokenContract.transfer(_bets[i].bettor, _prizeValue);
             }
         }

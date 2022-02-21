@@ -288,6 +288,7 @@ contract Game is Ownable {
                 // The value transfered will be proportional: prize * the value of bet divided by
                 // the total of tokens of the winning bets (if nobody wins, the total stake)
                 uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
+                _bets[i].prize = _prizeValue;
                 _betTokenContract.transfer(_bets[i].bettor, _prizeValue);
             }
         }
