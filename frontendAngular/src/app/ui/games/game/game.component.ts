@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { GameBetEvent, Score } from 'src/app/model';
+import { Bet, GameBetEvent, Score } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -9,6 +9,7 @@ import { BuyDialogComponent } from '../../bettoken/buy-dialog/buy-dialog.compone
 import { BetTokenService, GameService } from 'src/app/contracts';
 import BN from 'bn.js';
 import { GameBetsDialogComponent } from '../game-bets-dialog/game-bets-dialog.component';
+import { GameWinnersDialogComponent } from '../game-winners-dialog/game-winners-dialog.component';
 
 @Component({
   selector: 'dapp-games-game',
@@ -225,6 +226,31 @@ export class GameComponent implements OnInit {
           },
           minWidth: 900,
         });
+      }
+    });
+  }
+
+  listWinners() {
+    this.gameCompound.gameService.listBets().subscribe((_result) => {
+      if (!_result.success) {
+        this._messageService.show(_result.result as string);
+      } else {
+        const _winners = (_result.result as Bet[]).filter(
+          (b) => b.result === 2
+        );
+        if (_winners.length > 0) {
+          this._dialog.open(GameWinnersDialogComponent, {
+            data: {
+              gameCompound: this.gameCompound,
+              homeTeam: this.homeTeam,
+              visitorTeam: this.visitorTeam,
+              bets: _result.result,
+            },
+            minWidth: 900,
+          });
+        } else {
+          this._messageService.show(`No winners on this game`);
+        }
       }
     });
   }

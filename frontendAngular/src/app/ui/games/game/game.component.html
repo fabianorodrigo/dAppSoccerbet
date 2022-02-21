@@ -45,6 +45,9 @@
         remaining BetTokens approved
       </button>
       <button mat-menu-item (click)="listBets()">Show bettings ...</button>
+      <button mat-menu-item [disabled]="!finalized" (click)="listWinners()">
+        Show winners ...
+      </button>
     </mat-menu>
     <button
       class="button"
