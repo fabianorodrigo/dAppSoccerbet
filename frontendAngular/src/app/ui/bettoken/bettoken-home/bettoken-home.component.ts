@@ -36,7 +36,11 @@ export class BettokenHomeComponent implements OnInit {
     try {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
       // balance of BetTokens changes
-      (await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED))?.subscribe((evt) => {
+      (
+        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED, {
+          tokenBuyer: this.userAccountAddress,
+        })
+      )?.subscribe((evt) => {
         if (evt == null) return;
         const eventData: BetTokenReceivedEvent = evt;
         this._messageService.show(`A transaction of ${eventData.quantity} tokens was confirmed`);
@@ -62,7 +66,7 @@ export class BettokenHomeComponent implements OnInit {
         if (_purchaseData) {
           if (_purchaseData.value != null && this.userAccountAddress) {
             this._betTokenService.buy(this.userAccountAddress, new BN(_purchaseData.value)).subscribe((_result) => {
-              console.log(_result);
+              //console.log(_result);
               //this._messageService.show(_result.message);
             });
           } else {
