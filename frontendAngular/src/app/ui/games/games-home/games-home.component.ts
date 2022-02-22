@@ -128,6 +128,7 @@ export class GamesHomeComponent implements OnInit {
     if (index > -1) {
       this.gamesClosed[index].game.open = true;
       this.gamesOpen.push(this.gamesClosed[index]);
+      this.gamesOpen.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
       this.gamesClosed.splice(index, 1);
     }
   }
@@ -140,6 +141,7 @@ export class GamesHomeComponent implements OnInit {
     if (index > -1) {
       this.gamesOpen[index].game.open = false;
       this.gamesClosed.push(this.gamesOpen[index]);
+      this.gamesClosed.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
       this.gamesOpen.splice(index, 1);
     }
   }
@@ -151,6 +153,7 @@ export class GamesHomeComponent implements OnInit {
     if (index > -1) {
       this.gamesClosed[index].game.finalized = true;
       this.gamesFinalized.push(this.gamesClosed[index]);
+      this.gamesFinalized.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
       this.gamesClosed.splice(index, 1);
     }
   }
