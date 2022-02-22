@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Bet, GameBetEvent, Score } from 'src/app/model';
+import { Bet, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -56,8 +56,21 @@ export class GameComponent implements OnInit {
       this.userAccountAddress = address;
     });
 
-    //monitorando eventos
+    //events monitoring
     try {
+      //bettoken approve for game contract
+      (
+        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.APPROVAL, {
+          owner: this.userAccountAddress,
+          spender: this.gameCompound.game.addressGame,
+        })
+      ).subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: BetTokenApproval = evt;
+        this.formatedRemainingAllowance = this._numberService.formatBNShortScale(eventData.value);
+      });
+
+      //bet on game
       (
         await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.BET_ON_GAME, {
           addressBettor: this.userAccountAddress,

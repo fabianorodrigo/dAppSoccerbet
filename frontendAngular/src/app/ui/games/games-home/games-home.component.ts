@@ -57,7 +57,6 @@ export class GamesHomeComponent implements OnInit {
     }
 
     //recover the list of games and for each one instanciate a GameService
-    //TODO: usar await
     let _gamesDTO = await this._gameFactory.listGamesDTO();
     if (_gamesDTO) {
       for (let _game of _gamesDTO) {

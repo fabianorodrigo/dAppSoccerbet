@@ -14,6 +14,7 @@ import { BaseContract } from './baseContract';
 export class BetTokenService extends BaseContract {
   static EVENTS = {
     MINTED: 'TokenMinted',
+    APPROVAL: 'Approval',
   };
 
   constructor(_messageService: MessageService, _web3Service: Web3Service) {
@@ -42,36 +43,22 @@ export class BetTokenService extends BaseContract {
     });
   }
 
-  buy(
-    _fromAccountAddress: string,
-    _value: BN
-  ): Observable<TransactionResult<string>> {
-    return this._web3Service.sendWei(
-      _fromAccountAddress,
-      environment.betTokenAddress,
-      _value
-    );
+  buy(_fromAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
+    return this._web3Service.sendWei(_fromAccountAddress, environment.betTokenAddress, _value);
   }
 
-  approve(
-    _fromAccountAddress: string,
-    _toAccountAddress: string,
-    _value: BN
-  ): Observable<TransactionResult<string>> {
+  approve(_fromAccountAddress: string, _toAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
     return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (contract) => {
           let result;
           try {
-            result = await contract.methods
-              .approve(_toAccountAddress, _value)
-              .send({
-                from: _fromAccountAddress,
-              });
+            result = await contract.methods.approve(_toAccountAddress, _value).send({
+              from: _fromAccountAddress,
+            });
             subscriber.next({
               success: true,
-              result:
-                'Transaction to approve allowance of BetTokens was sent successfully',
+              result: 'Transaction to approve allowance of BetTokens was sent successfully',
             });
           } catch (e: any) {
             const providerError = ProviderErrors[e.code];
@@ -97,18 +84,13 @@ export class BetTokenService extends BaseContract {
    * @param _gameContractAddress Game Contract address
    * @returns The quantity of BetTokens remaining
    */
-  allowance(
-    _accountAddress: string,
-    _gameContractAddress: string
-  ): Observable<BN> {
+  allowance(_accountAddress: string, _gameContractAddress: string): Observable<BN> {
     return new Observable<BN>((_subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (contract) => {
           let _remainingAllowance;
           try {
-            _remainingAllowance = await contract.methods
-              .allowance(_accountAddress, _gameContractAddress)
-              .call();
+            _remainingAllowance = await contract.methods.allowance(_accountAddress, _gameContractAddress).call();
           } catch (e: any) {
             alert(e.message);
           }
