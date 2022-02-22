@@ -226,14 +226,12 @@ export class GameComponent implements OnInit {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
       } else {
-        const _winners = (_result.result as Bet[]).filter((b) => b.result === 2);
+        const _winners = (_result.result as Bet[]).filter((b) => b.result == '2');
         if (_winners.length > 0) {
           this._dialog.open(GameWinnersDialogComponent, {
             data: {
               gameCompound: this.gameCompound,
-              homeTeam: this.homeTeam,
-              visitorTeam: this.visitorTeam,
-              bets: _result.result,
+              winnerBets: _winners,
             },
             minWidth: 900,
           });
