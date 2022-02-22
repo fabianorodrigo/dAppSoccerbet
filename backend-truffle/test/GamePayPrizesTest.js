@@ -82,7 +82,6 @@ contract("Game", (accounts) => {
     //Finalize the game
     await gameContract.finalizeGame({home: "7", visitor: "7"}, {from: owner});
     //Pay prizes
-    await gameContract.payPrizes({from: owner});
     for (let bet of bets) {
       //the balance of bettokens should be equal 90% of each bet value
       //https://github.com/indutny/bn.js/
