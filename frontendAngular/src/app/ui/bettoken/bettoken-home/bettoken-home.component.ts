@@ -36,16 +36,10 @@ export class BettokenHomeComponent implements OnInit {
     try {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
       // balance of BetTokens changes
-      (
-        await this._betTokenService.getEventBehaviorSubject(
-          BetTokenService.EVENTS.MINTED
-        )
-      )?.subscribe((evt) => {
+      (await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED))?.subscribe((evt) => {
         if (evt == null) return;
         const eventData: BetTokenReceivedEvent = evt;
-        this._messageService.show(
-          `A transaction of ${eventData.quantity} tokens was confirmed`
-        );
+        this._messageService.show(`A transaction of ${eventData.quantity} tokens was confirmed`);
         this.getBalance();
       });
     } catch (e: any) {
@@ -55,47 +49,39 @@ export class BettokenHomeComponent implements OnInit {
 
   buy(event: MouseEvent) {
     if (!this.userAccountAddress) return;
-    this._web3Service
-      .chainCurrencyBalanceOf(this.userAccountAddress)
-      .subscribe((_balance) => {
-        console.log('olha o balance', _balance);
-        const dialogRef = this._dialog.open(BuyDialogComponent, {
-          data: {
-            title: `Buy BetTokens`,
-            maxAmmount: new BN(_balance),
-          },
-        });
-
-        dialogRef.afterClosed().subscribe((_purchaseData) => {
-          if (_purchaseData) {
-            if (_purchaseData.value != null && this.userAccountAddress) {
-              this._betTokenService
-                .buy(this.userAccountAddress, new BN(_purchaseData.value))
-                .subscribe((_result) => {
-                  console.log(_result);
-                  //this._messageService.show(_result.message);
-                });
-            } else {
-              this._messageService.show(`Quantity of BetTokens is not valid`);
-            }
-          }
-          console.log(`Dialog result`, _purchaseData);
-        });
+    this._web3Service.chainCurrencyBalanceOf(this.userAccountAddress).subscribe((_balance) => {
+      console.log('olha o balance', _balance);
+      const dialogRef = this._dialog.open(BuyDialogComponent, {
+        data: {
+          title: `Buy BetTokens`,
+          maxAmmount: new BN(_balance),
+        },
       });
+
+      dialogRef.afterClosed().subscribe((_purchaseData) => {
+        if (_purchaseData) {
+          if (_purchaseData.value != null && this.userAccountAddress) {
+            this._betTokenService.buy(this.userAccountAddress, new BN(_purchaseData.value)).subscribe((_result) => {
+              console.log(_result);
+              //this._messageService.show(_result.message);
+            });
+          } else {
+            this._messageService.show(`Quantity of BetTokens is not valid`);
+          }
+        }
+      });
+    });
   }
 
   addTokenToWallet(event: MouseEvent) {}
 
   private getBalance() {
     if (this.userAccountAddress) {
-      this._betTokenService
-        .balanceOf(this.userAccountAddress)
-        .subscribe((_balance) => {
-          this.formatedBalance =
-            this._numberService.formatBNShortScale(_balance);
-          this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
-          this._changeDetectorRefs.detectChanges();
-        });
+      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
+        this.formatedBalance = this._numberService.formatBNShortScale(_balance);
+        this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
+        this._changeDetectorRefs.detectChanges();
+      });
     }
   }
 }
