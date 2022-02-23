@@ -3,7 +3,9 @@
  */
 const {expect} = require("chai");
 // Import utilities from Test Helpers
-const {BN, expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
+const {BN} = require("@openzeppelin/test-helpers");
+
+const TestUtils = require("./TestUtils");
 
 const BetToken = artifacts.require("BetToken");
 const Calculator = artifacts.require("Calculator");
@@ -20,6 +22,34 @@ contract("Game", (accounts) => {
   const bettorC = accounts[3];
   const bettorD = accounts[4];
   const bettorE = accounts[5];
+
+  const BETS = [
+    {
+      bettorAddress: bettor,
+      tokenAmount: new BN(100),
+      score: {home: "2", visitor: "2"},
+    },
+    {
+      bettorAddress: bettorB,
+      tokenAmount: new BN(1000),
+      score: {home: "2", visitor: "2"},
+    },
+    {
+      bettorAddress: bettorC,
+      tokenAmount: new BN(10),
+      score: {home: "1", visitor: "0"},
+    },
+    {
+      bettorAddress: bettorD,
+      tokenAmount: new BN(600),
+      score: {home: "0", visitor: "1"},
+    },
+    {
+      bettorAddress: bettorE,
+      tokenAmount: new BN(215),
+      score: {home: "0", visitor: "3"},
+    },
+  ];
 
   let erc20BetToken = null,
     calculator = null,
@@ -47,48 +77,94 @@ contract("Game", (accounts) => {
   /**
    * PAYPRIZES
    */
-  it(`Should refund 90% of stake to all bets if nobody matches the final score`, async () => {
-    const bets = [
-      {
-        bettorAddress: bettor,
-        tokenAmount: new BN(100),
-        score: {home: "3", visitor: "1"},
-      },
-      {
-        bettorAddress: bettorB,
-        tokenAmount: new BN(1000),
-        score: {home: "2", visitor: "2"},
-      },
-      {
-        bettorAddress: bettorC,
-        tokenAmount: new BN(10),
-        score: {home: "1", visitor: "0"},
-      },
-      {
-        bettorAddress: bettorD,
-        tokenAmount: new BN(600),
-        score: {home: "0", visitor: "1"},
-      },
-      {
-        bettorAddress: bettorE,
-        tokenAmount: new BN(215),
-        score: {home: "0", visitor: "3"},
-      },
-    ];
+  it(`Should pay 90% of stake to the winner bet`, async () => {
     //make bets
-    await makeBets(gameContract, owner, bets);
+    await makeBets(gameContract, owner, BETS);
+    //Closed for betting
+    await gameContract.closeForBetting({from: owner});
+    //Finalize the game
+    await gameContract.finalizeGame({home: "0", visitor: "3"}, {from: owner});
+    //Pay prizes
+    const sumStake = TestUtils.sumBetsAmountBN(BETS);
+    //prize value (total stake minus the administration commision fee)
+    const prize = sumStake.sub(
+      TestUtils.calcPercentageBN(
+        sumStake,
+        TestUtils.getCommissionPercentageBN()
+      )
+    );
+
+    for (let bet of BETS) {
+      //the bettorE balance of bettokens should be equal 90% of all stake
+      if (bet.bettorAddress == bettorE) {
+        expect(
+          await erc20BetToken.balanceOf(bet.bettorAddress)
+        ).to.be.bignumber.equal(prize);
+      } else {
+        expect(
+          await erc20BetToken.balanceOf(bet.bettorAddress)
+        ).to.be.bignumber.equal("0");
+      }
+    }
+  });
+
+  it(`Should split proportionally 90% of stake to the winners bets`, async () => {
+    //make bets
+    await makeBets(gameContract, owner, BETS);
+    //Closed for betting
+    await gameContract.closeForBetting({from: owner});
+    //Finalize the game
+    await gameContract.finalizeGame({home: "2", visitor: "2"}, {from: owner});
+    //Pay prizes
+    const sumStake = TestUtils.sumBetsAmountBN(BETS);
+    //prize value (total stake minus the administration commision fee)
+    const prize = sumStake.sub(
+      TestUtils.calcPercentageBN(
+        sumStake,
+        TestUtils.getCommissionPercentageBN()
+      )
+    );
+
+    for (let bet of BETS) {
+      //90% of all stake should be proportionally splited between bettor and bettorB
+      if (bet.bettorAddress == bettor || bet.bettorAddress == bettorB) {
+        expect(
+          await erc20BetToken.balanceOf(bet.bettorAddress)
+        ).to.be.bignumber.equal(
+          prize
+            .mul(bet.tokenAmount)
+            .div(BETS[0].tokenAmount.add(BETS[1].tokenAmount))
+        );
+      } else {
+        expect(
+          await erc20BetToken.balanceOf(bet.bettorAddress)
+        ).to.be.bignumber.equal("0");
+      }
+    }
+  });
+
+  it(`Should refund 90% of stake to all bets if nobody matches the final score`, async () => {
+    //make bets
+    await makeBets(gameContract, owner, BETS);
     //Closed for betting
     await gameContract.closeForBetting({from: owner});
     //Finalize the game
     await gameContract.finalizeGame({home: "7", visitor: "7"}, {from: owner});
-    //Pay prizes
-    for (let bet of bets) {
-      //the balance of bettokens should be equal 90% of each bet value
-      //https://github.com/indutny/bn.js/
-      //Postfix "n": the argument of the function must be a plain JavaScript Number. Decimals are not supported.
+    //stake value
+    const sumStake = TestUtils.sumBetsAmountBN(BETS);
+    //prize value (total stake minus the administration commision fee)
+    const prize = sumStake.sub(
+      TestUtils.calcPercentageBN(
+        sumStake,
+        TestUtils.getCommissionPercentageBN()
+      )
+    );
+    //Verify payed prizes
+    for (let bet of BETS) {
+      //the balance of bettokens should be equal to amount proportional to the prize (90% of stake)
       expect(
         await erc20BetToken.balanceOf(bet.bettorAddress)
-      ).to.be.bignumber.equal(bet.tokenAmount.muln(90).divn(100));
+      ).to.be.bignumber.equal(prize.mul(bet.tokenAmount).div(sumStake));
     }
   });
 
