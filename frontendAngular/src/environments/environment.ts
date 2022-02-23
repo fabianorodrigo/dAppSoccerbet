@@ -8,9 +8,9 @@ export const environment = {
   //betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',
   //notebook Vaio - Ganache v7
-  betTokenAddress: '0x3cF7D6B9CaAa13c2902a830b2fd4851Cb898eaBB',
-  gameFactoryAddress: '0x84DC58f2538675596b9fc6fdE38EEf34f24c3DA7',
-  CalculatorAddress: '0x2De164c1B63D7Dcc686991c1C48a41c4E84A1413',
+  betTokenAddress: '0x02a0bE3A9f3B9680361462Fa3275327a16ecA2f4',
+  gameFactoryAddress: '0x754Cf0D53248D078CdF734e3747eefDB1Aae09e0',
+  CalculatorAddress: '0xF3510694bbbBaB4FB4C412FDe127EAF2eAC4F37f',
   chainCurrencyName: 'Ether',
   //GANACHE 2.5.4
   // betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',

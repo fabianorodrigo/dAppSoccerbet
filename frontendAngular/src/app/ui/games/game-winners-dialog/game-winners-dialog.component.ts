@@ -3,26 +3,19 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import BN from 'bn.js';
 import { Bet } from 'src/app/model';
 import { NumbersService } from 'src/app/services';
-import { GameCompound } from './../game-compound.class';
+import { GameCompound } from '../game-compound.class';
 
 @Component({
-  selector: 'dapp-game-bets-dialog',
-  templateUrl: './game-bets-dialog.component.html',
-  styleUrls: ['./game-bets-dialog.component.css'],
+  selector: 'dapp-game-winners-dialog',
+  templateUrl: './game-winners-dialog.component.html',
+  styleUrls: ['./game-winners-dialog.component.css'],
 })
-export class GameBetsDialogComponent implements OnInit {
-  displayedColumns: string[] = [
-    'homeScore',
-    'X',
-    'visitorScore',
-    'value',
-    'bettor',
-  ];
+export class GameWinnersDialogComponent implements OnInit {
+  displayedColumns: string[] = ['bettor', 'value', 'prize'];
   dataSource: {
     bettor: string;
     value: number;
-    homeScore: number;
-    visitorScore: number;
+    prize: number;
   }[] = [];
 
   prize!: BN;
@@ -31,20 +24,17 @@ export class GameBetsDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA)
     public data: {
       gameCompound: GameCompound;
-      homeTeam: string;
-      visitorTeam: string;
-      bets: Bet[];
+      winnerBets: Bet[];
     },
     private _numberService: NumbersService
   ) {}
 
   ngOnInit(): void {
-    this.dataSource = this.data.bets.map((bet) => {
+    this.dataSource = this.data.winnerBets.map((bet) => {
       return {
         bettor: bet.bettor as string,
         value: bet.value,
-        homeScore: bet.score.home,
-        visitorScore: bet.score.visitor,
+        prize: bet.prize,
       };
     });
 

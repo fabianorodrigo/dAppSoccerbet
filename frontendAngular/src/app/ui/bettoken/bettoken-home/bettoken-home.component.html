@@ -1,6 +1,8 @@
 <div class="label-balance" *ngIf="userAccountAddress">
   <mat-label>BetToken Balance:</mat-label>
-  <div class="balance">{{ formatedBalance }}</div>
+  <div class="balance" [matTooltip]="formatedBalanceTooltip">
+    {{ formatedBalance }}
+  </div>
 </div>
 
 <div *ngIf="!userAccountAddress">Connect you wallet to check your balance</div>

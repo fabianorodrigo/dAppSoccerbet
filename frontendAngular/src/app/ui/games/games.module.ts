@@ -8,9 +8,10 @@ import { GamesHomeComponent } from './games-home/games-home.component';
 import { GameComponent } from './game/game.component';
 import { ComponentsModule } from '../components/components.module';
 import { GameBetsDialogComponent } from './game-bets-dialog/game-bets-dialog.component';
+import { GameWinnersDialogComponent } from './game-winners-dialog/game-winners-dialog.component';
 
 @NgModule({
-  declarations: [GamesHomeComponent, AdminGamesFormComponent, GameComponent, GameBetsDialogComponent],
+  declarations: [GamesHomeComponent, AdminGamesFormComponent, GameComponent, GameBetsDialogComponent, GameWinnersDialogComponent],
   imports: [
     CommonModule,
     MaterialModule,

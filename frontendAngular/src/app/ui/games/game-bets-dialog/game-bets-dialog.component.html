@@ -39,11 +39,15 @@
     </table>
   </div>
   <div class="bottom-info" *ngIf="prize">
+    <span>Total bets:</span>
+    <span class="total-bets-value">{{ data.bets.length }} </span>
     <span
       >{{ data.gameCompound.game.finalized ? "Final" : "Current" }} prize:</span
     >
     <span class="prize-symbol">SBT</span>
-    <span class="prize-value">{{ format(prize) }} </span>
+    <span class="prize-value" [matTooltip]="format(prize)"
+      >{{ formatShortScale(prize) }}
+    </span>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

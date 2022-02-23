@@ -22,41 +22,7 @@
     }}</span>
   </div>
   <!-- ADMIN ROW ACTION -->
-  <div class="row-action" *ngIf="!finalized && isAdmin">
-    <button
-      class="button"
-      *ngIf="!open"
-      mat-flat-button
-      [disabled]="!this.userAccountAddress"
-      color="primary"
-      matTooltip="The game is not receiving bets. Click to open it for betting"
-      (click)="openForBetting()"
-    >
-      Open for betting
-    </button>
-    <button
-      class="button"
-      *ngIf="open"
-      mat-flat-button
-      [disabled]="!this.userAccountAddress"
-      color="accent"
-      matTooltip="The game is open for betting. Click to close it"
-      (click)="closeForBetting()"
-    >
-      Close for betting
-    </button>
-    <button
-      class="button"
-      [disabled]="open || !this.userAccountAddress"
-      mat-flat-button
-      color="warn"
-      (click)="finalizeGame()"
-    >
-      Finalize ...
-    </button>
-  </div>
-  <!-- USER ROW ACTION -->
-  <div class="row-action" *ngIf="!finalized && !isAdmin">
+  <div class="row-action">
     <button
       mat-stroked-button
       color="primary"
@@ -69,7 +35,7 @@
       <button
         mat-menu-item
         (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"
-        [disabled]="!this.userAccountAddress"
+        [disabled]="!this.userAccountAddress || finalized"
       >
         {{
           formatedRemainingAllowance && this.userAccountAddress
@@ -79,9 +45,45 @@
         remaining BetTokens approved
       </button>
       <button mat-menu-item (click)="listBets()">Show bettings ...</button>
+      <button mat-menu-item [disabled]="!finalized" (click)="listWinners()">
+        Show winners ...
+      </button>
     </mat-menu>
     <button
+      class="button"
+      *ngIf="!open && !finalized && isAdmin"
       mat-flat-button
+      [disabled]="!this.userAccountAddress"
+      color="primary"
+      matTooltip="The game is not receiving bets. Click to open it for betting"
+      (click)="openForBetting()"
+    >
+      Open for betting
+    </button>
+    <button
+      class="button"
+      *ngIf="open && !finalized && isAdmin"
+      mat-flat-button
+      [disabled]="!this.userAccountAddress"
+      color="accent"
+      matTooltip="The game is open for betting. Click to close it"
+      (click)="closeForBetting()"
+    >
+      Close for betting
+    </button>
+    <button
+      class="button"
+      *ngIf="!finalized && isAdmin"
+      [disabled]="open || !this.userAccountAddress"
+      mat-flat-button
+      color="warn"
+      (click)="finalizeGame()"
+    >
+      Finalize ...
+    </button>
+    <button
+      mat-flat-button
+      *ngIf="!finalized && !isAdmin"
       [disabled]="!this.userAccountAddress"
       color="accent"
       matTooltip="Approve a maximum ammount of BetTokens to be spent on bettings on this Game"
@@ -91,6 +93,7 @@
     </button>
     <button
       mat-flat-button
+      *ngIf="!finalized && !isAdmin"
       [disabled]="!this.userAccountAddress || !open"
       color="primary"
       matTooltip="Click to place your bet"
