@@ -9,6 +9,7 @@
     "build": "truffle compile",
     "migrate": "truffle migrate --network ganache",
     "test": "truffle test --network ganache",
+    "coverage": "truffle run coverage --network ganache",
     "trailofbits": "docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "-": "^0.0.1",
     "@openzeppelin/test-helpers": "^0.5.15",
     "mocha-junit-reporter": "^2.0.2",
-    "mocha-multi-reporters": "^1.5.1"
+    "mocha-multi-reporters": "^1.5.1",
+    "solidity-coverage": "^0.7.20"
   }
 }
