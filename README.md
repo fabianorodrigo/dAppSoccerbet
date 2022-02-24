@@ -7,6 +7,25 @@
 Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
 The BETTOR buy tokens using Ether and uses these tokens to make guess about score of one or more games registered by the ADMIN. After a game is finalized, the ADMIN register the final score and the prize is splitted among those BETTORS whose bets matched the final score.
 
+### Technology Stack
+
+- Solidity 0.8.11
+- Angular 13
+- Angular Material
+- Truffle 5.4
+- Hardhat 2.8
+- Javascript
+- Typescript 
+- Mocha
+- eth-gas-reporter
+- Chai
+- Web3.js
+- Ethers.js
+- Waffle
+- Openzeppelin
+- Openzeppelin/test_helpers
+- CircleCI
+- Solidity Coverage
 <!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
 
 The branch 'main' will always keep the latest stable version that is the greater version/tag. 
