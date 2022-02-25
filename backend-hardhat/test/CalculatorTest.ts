@@ -11,7 +11,7 @@ let Calculator;
 let calc: Contract;
 
 describe("Calculator", function () {
-  beforeEach(async function () {
+  before(async () => {
     //Contract
     Calculator = await ethers.getContractFactory("Calculator");
     calc = await Calculator.deploy();

@@ -1,14 +1,19 @@
-import {BigNumber} from "bignumber.js";
+import {expect} from "chai";
+import {
+  BigNumberish,
+  Contract,
+  ContractFactory,
+  Signer,
+  Transaction,
+} from "ethers";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
 import {ethers, waffle} from "hardhat";
-import {BigNumberish, Contract, Signer, Transaction} from "ethers";
-import {expect} from "chai";
 
-let ERC20BetToken;
+let ERC20BetToken: ContractFactory;
 let erc20BetToken: Contract;
 
 describe("Token", function () {
@@ -16,14 +21,18 @@ describe("Token", function () {
   let owner: Signer;
   let bettor: Signer;
 
-  beforeEach(async function () {
+  before(async () => {
     accounts = await ethers.getSigners();
     // The owner is gonna be sent by 1º account
     //When using the hardhat-ethers plugin ContractFactory and Contract instances are connected to the FIRST signer by default.
     owner = accounts[0];
     bettor = accounts[1];
-    //Contract
+    //Contract Factory
     ERC20BetToken = await ethers.getContractFactory("BetToken");
+  });
+
+  beforeEach(async () => {
+    //Contract
     erc20BetToken = await ERC20BetToken.deploy();
     await erc20BetToken.deployed();
   });
