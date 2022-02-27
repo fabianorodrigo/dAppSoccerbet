@@ -20,4 +20,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 export default {
   solidity: "0.8.11",
+  mocha: {
+    reporter: "mocha-multi-reporters",
+    reporterOptions: {
+      configFile: "./mocha-reporter-config.json",
+    },
+  },
 };
