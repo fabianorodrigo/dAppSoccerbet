@@ -9,13 +9,13 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker: 
-      - image: fabianorodrigo/contratosintel_hardhat:1.0.0
-    working_directory: ~/backend-hardhat
+      - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.2
+    working_directory: ~/repo
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout:
-          path: ~/
+          path: ~/repo
       - run: npm install && npm run build
 
       - save_cache:
@@ -31,13 +31,13 @@ jobs:
             - build
   test:
       docker: 
-        - image: fabianorodrigo/contratosintel_hardhat:1.0.0
-      working_directory: ~/backend-hardhat
+        - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.2
+      working_directory: ~/repo/backend-hardhat
       steps:
         - checkout:
-            path: ~/
+            path: ~/repo/
         - attach_workspace:
-            at: ~/backend-hardhat
+            at: ~/repo/backend-hardhat
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
@@ -48,13 +48,13 @@ jobs:
             path: ./test-results
   slither:
       docker: 
-        - image: fabianorodrigo/contratosintel_hardhat:1.0.0
-      working_directory: ~/backend-hardhat
+        - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.0
+      working_directory: ~/repo/backend-hardhat
       steps:
         - checkout:
-            path: ~/
+            path: ~/repo/
         - attach_workspace:
-            at: ~/backend-hardhat
+            at: ~/repo/backend-hardhat
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}

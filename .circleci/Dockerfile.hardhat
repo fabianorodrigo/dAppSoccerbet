@@ -38,7 +38,7 @@ ADD --chown=dappsoccerbet ./bundles/init.vim /home/dappsoccerbet/.config/nvim/in
 # Compilador Solidity
 ADD --chown=dappsoccerbet ./bundles/solc-0.8.11 /usr/bin/solc
 
-VOLUME /home/dappsoccerbet/
+VOLUME /home/dappsoccerbet/repo/
 VOLUME /home/dappsoccerbet/.vim/
 
 # Configuração de email e nome de usuário global no Git
