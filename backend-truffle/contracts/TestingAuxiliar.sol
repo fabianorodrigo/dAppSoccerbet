@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 /**
  * @title Contract to auxiliar during tests
  *
  * @author Fabiano Nascimento
  */
-contract TestingAuxiliar {
+contract TestingAuxiliar is Ownable {
     address payable public selfDestructRecipient;
 
     /**
@@ -26,7 +28,7 @@ contract TestingAuxiliar {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() external {
+    function destroyContract() external onlyOwner {
         selfdestruct(selfDestructRecipient);
     }
 }

@@ -331,7 +331,9 @@ contract Game is Ownable {
                 // the total of tokens of the winning bets (if nobody wins, the total stake)
                 uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
                 _bets[i].prize = _prizeValue;
-                _betTokenContract.transfer(_bets[i].bettor, _prizeValue);
+                require(
+                    _betTokenContract.transfer(_bets[i].bettor, _prizeValue)
+                );
             }
         }
         return _totalWinners;
