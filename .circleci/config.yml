@@ -43,9 +43,9 @@ jobs:
               - node_modules-{{ checksum "package.json" }}
         - run: npm run test
         - store_test_results:
-            path: ./test-results
+            path: ./test-results/test-contract-results.xml
         - store_artifacts:
-            path: ./test-results
+            path: ./test-results/
   slither:
       docker: 
         - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.3
@@ -59,10 +59,8 @@ jobs:
             keys:
               - node_modules-{{ checksum "package.json" }}
         - run: slither . --json slither_result.json
-        - store_test_results:
-            path: ./test-results
         - store_artifacts:
-            path: ./test-results            
+            path: ./slither_result.json           
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
