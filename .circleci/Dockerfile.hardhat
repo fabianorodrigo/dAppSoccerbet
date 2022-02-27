@@ -1,0 +1,50 @@
+FROM node:16-bullseye-slim
+
+LABEL src="https://github.com/fabianorodrigo/dappsoccerbet"
+LABEL creator=fabianorodrigo
+LABEL desc="Smart contracts Harhat build tools"
+
+RUN adduser --disabled-password --shell /bin/bash --home /home/dappsoccerbet dappsoccerbet
+# instalaçãoes SO
+RUN apt update
+RUN apt install -y neovim
+RUN apt install -y git
+RUN apt install -y curl
+RUN apt install -y build-essential
+RUN apt install -y python3-pip
+
+# instalações pip3
+RUN pip3 install slither-analyzer
+RUN pip3 install "manticore[native]"
+
+# intalações npm
+RUN npm install -g npm@latest
+
+# usuário dappsoccerbet e configurações
+USER dappsoccerbet
+RUN mkdir -p /home/dappsoccerbet/.local/share/nvim/site/autoload/
+RUN mkdir -p /home/dappsoccerbet/.config/nvim/
+RUN mkdir -p /home/dappsoccerbet/.local/share/fonts/
+ADD ./bundles/.bashrc /home/dappsoccerbet/.bashrc
+WORKDIR /home/dappsoccerbet/
+
+# Instalação fonte utilizada pelo plugin DEVICON do vim
+RUN curl -fLo "/home/dappsoccerbet/.local/share/fonts/Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
+
+# gerenciador de pacotes do vim
+ADD ./bundles/plug.vim /home/dappsoccerbet/.local/share/nvim/site/autoload/plug.vim
+# configuração do vim com plugins: TEM QUE EXECUTAR :PlugInstall
+ADD --chown=dappsoccerbet ./bundles/init.vim /home/dappsoccerbet/.config/nvim/init.vim
+# Compilador Solidity
+ADD --chown=dappsoccerbet ./bundles/solc-0.8.11 /usr/bin/solc
+
+VOLUME /home/dappsoccerbet/
+VOLUME /home/dappsoccerbet/.vim/
+
+# Configuração de email e nome de usuário global no Git
+RUN git config --global user.email "seasinformatica@gmail.com"
+RUN git config --global user.name "Fabiano Nascimento"
+
+
+ENTRYPOINT "/bin/bash"
+# ENV PS1 '\[\033[44m\]facebook\[\033[0m\]|\[\033[01;33m\]\[\033[01;45m\]instagram\[\033[0m\]|\[\033[30m\]\[\033[106m\]twitter\[\033[0m\]@\[\033[01;34m\]\u\[\033[0m\]:\[\033[01;33m\]\W \[\033[0m\]>'
