@@ -22,11 +22,12 @@ RUN npm install -g npm@latest
 
 # usuário dappsoccerbet e configurações
 USER dappsoccerbet
+RUN mkdir -p /home/dappsoccerbet/repo/
 RUN mkdir -p /home/dappsoccerbet/.local/share/nvim/site/autoload/
 RUN mkdir -p /home/dappsoccerbet/.config/nvim/
 RUN mkdir -p /home/dappsoccerbet/.local/share/fonts/
 ADD ./bundles/.bashrc /home/dappsoccerbet/.bashrc
-WORKDIR /home/dappsoccerbet/
+WORKDIR /home/dappsoccerbet/repo/
 
 # Instalação fonte utilizada pelo plugin DEVICON do vim
 RUN curl -fLo "/home/dappsoccerbet/.local/share/fonts/Droid Sans Mono for Powerline Nerd Font Complete.otf" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DroidSansMono/complete/Droid%20Sans%20Mono%20Nerd%20Font%20Complete.otf
