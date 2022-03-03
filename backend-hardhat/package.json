@@ -9,7 +9,14 @@
     "build": "npx hardhat compile",
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
-    "trailofbits": "docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox"
+    "trailofbits": "docker run -it -v \"$PWD\":/home/trufflecon trailofbits/eth-security-toolbox",
+    "slither": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither .",
+    "slither-check-erc": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither-check-erc . BetToken",
+    "slither-prop": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither-prop . --contract Game",
+    "slither-summary":"docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print function-summary",
+    "slither-inheritance":  "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print inheritance-graph",
+    "slither-statevars":  "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print vars-and-auth",
+    "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore ."
   },
   "author": "",
   "license": "ISC",

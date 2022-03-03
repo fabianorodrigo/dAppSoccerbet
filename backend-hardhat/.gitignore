@@ -7,3 +7,9 @@ typechain
 #Hardhat files
 cache
 artifacts
+
+# slither
+*.dot
+
+#manticore
+mcore_*
