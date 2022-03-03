@@ -37,7 +37,7 @@ ADD ./bundles/plug.vim /home/dappsoccerbet/.local/share/nvim/site/autoload/plug.
 # configuração do vim com plugins: TEM QUE EXECUTAR :PlugInstall
 ADD --chown=dappsoccerbet ./bundles/init.vim /home/dappsoccerbet/.config/nvim/init.vim
 # Compilador Solidity
-ADD --chown=dappsoccerbet ./bundles/solc-0.8.11 /usr/bin/solc
+ADD --chown=dappsoccerbet ./bundles/solc-0.8.9 /usr/bin/solc
 
 VOLUME /home/dappsoccerbet/repo/
 VOLUME /home/dappsoccerbet/.vim/
