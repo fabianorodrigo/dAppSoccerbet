@@ -11,7 +11,7 @@ import {
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
-import {ethers, waffle} from "hardhat";
+import {ethers, upgrades, waffle} from "hardhat";
 
 let ERC20BetToken: ContractFactory;
 let erc20BetToken: Contract;
@@ -28,12 +28,12 @@ describe("Token", function () {
     owner = accounts[0];
     bettor = accounts[1];
     //Contract Factory
-    ERC20BetToken = await ethers.getContractFactory("BetToken");
+    ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
   });
 
   beforeEach(async () => {
     //Contract
-    erc20BetToken = await ERC20BetToken.deploy();
+    erc20BetToken = await upgrades.deployProxy(ERC20BetToken);
     await erc20BetToken.deployed();
   });
 

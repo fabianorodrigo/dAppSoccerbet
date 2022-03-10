@@ -22,25 +22,26 @@ Functions
 import "./BetToken.sol";
 import "./Game.sol";
 import "./libs/StringUtils.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./structs/GameDTO.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @title Contract responsible for generate Game contracts and maintain a list of them
  * @author Fabiano Nascimento
  */
-contract GameFactory is Ownable {
-    // BetToken contract address
+contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
+    // BetToken proxy contract address
     address private betTokenContractAddress;
-    // Calculator contract address
+    // Calculator proxy contract address
     address private calculatorContractAddress;
     // All games registered
     Game[] private _games;
     // Percentage of administration costs passed in the constructor of Game
     // It can be changed along the time by ADMINISTRATOR for new games.
     // However, after a Game is created, it can't be changed for that Game
-    uint256 private commission = 10;
+    uint256 private commission;
 
     /**
      * Event triggered when a new game is created
@@ -70,12 +71,14 @@ contract GameFactory is Ownable {
         private
     **/
 
-    constructor(
+    function initialize(
         address _betTokenContractAddress,
         address _calculatorContractAddress
-    ) Ownable() {
+    ) external initializer {
+        __Ownable_init();
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
+        commission = 10;
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -179,6 +182,16 @@ contract GameFactory is Ownable {
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
     function destroyContract() external onlyOwner {
-        selfdestruct(payable(this.owner()));
+        // If gas costs are subject to change, then smart contracts can’t
+        // depend on any particular gas costs. Any smart contract that uses
+        // transfer() or send() is taking a hard dependency on gas costs by
+        // forwarding a fixed amount of gas: 2300.
+        //
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use
+        (bool sent, bytes memory data) = owner().call{
+            value: address(this).balance
+        }("");
+        require(sent, "Fail to empty the contract");
     }
 }

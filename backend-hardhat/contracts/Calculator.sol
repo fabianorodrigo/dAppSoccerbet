@@ -6,10 +6,8 @@ pragma solidity >=0.4.22 <0.9.0;
  *
  * @author Fabiano Nascimento
  */
-contract Calculator {
+contract CalculatorUpgradeable {
     event Debug(string msg, uint256 value);
-
-    constructor() {}
 
     /**
      * @notice calculates a percentage of a amount multiplying amount * percentage * 100

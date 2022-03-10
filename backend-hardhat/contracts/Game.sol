@@ -37,9 +37,9 @@ contract Game is Ownable {
     uint8 public immutable NO_RESULT = 0;
 
     //BetToken contract
-    BetToken private _betTokenContract;
+    BetTokenUpgradeable private _betTokenContract;
     // Calculator contract
-    Calculator private _calculator;
+    CalculatorUpgradeable private _calculator;
     // Percentage of all bets reverted for administration costs
     // After a Game is created, it can't be changed
     uint256 commission = 10;
@@ -137,8 +137,10 @@ contract Game is Ownable {
         datetimeGame = _datetimeGame;
         open = false;
         finalized = false;
-        _betTokenContract = BetToken(payable(_betTokenContractAddress));
-        _calculator = Calculator(_calculatorContractAddress);
+        _betTokenContract = BetTokenUpgradeable(
+            payable(_betTokenContractAddress)
+        );
+        _calculator = CalculatorUpgradeable(_calculatorContractAddress);
         commission = _commission;
         transferOwnership(_owner);
     }

@@ -5,7 +5,7 @@ import {Contract, ContractFactory, Signer, Transaction} from "ethers";
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
-import {ethers} from "hardhat";
+import {ethers, upgrades} from "hardhat";
 import {TestUtils} from "./TestUtils";
 
 const DATETIME_20220716_170000_IN_MINUTES =
@@ -40,21 +40,25 @@ describe("Game", function () {
     bettorAAddress = await bettorA.getAddress();
     bettorBAddress = await bettorB.getAddress();
     //Calculator contract
-    Calculator = await ethers.getContractFactory("Calculator");
-    calc = await Calculator.deploy();
+    Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
+    calc = await upgrades.deployProxy(Calculator);
     await calc.deployed();
     //Factories
-    ERC20BetToken = await ethers.getContractFactory("BetToken");
-    GameFactory = await ethers.getContractFactory("GameFactory");
+    ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
+    GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
     Game = await ethers.getContractFactory("Game");
     TestingAuxiliar = await ethers.getContractFactory("TestingAuxiliar");
   });
 
   beforeEach(async () => {
     //Contracts
-    erc20BetToken = await ERC20BetToken.deploy();
+    erc20BetToken = await upgrades.deployProxy(ERC20BetToken);
     await erc20BetToken.deployed();
-    gameFactory = await GameFactory.deploy(erc20BetToken.address, calc.address);
+    gameFactory = await upgrades.deployProxy(
+      GameFactory,
+      [erc20BetToken.address, calc.address],
+      {initializer: "initialize"}
+    );
     gameContract = await Game.deploy(
       await owner.getAddress(),
       "SÃO PAULO",

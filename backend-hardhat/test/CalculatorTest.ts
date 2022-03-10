@@ -5,7 +5,7 @@ import {Contract} from "ethers";
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
-import {ethers} from "hardhat";
+import {ethers, upgrades} from "hardhat";
 
 let Calculator;
 let calc: Contract;
@@ -13,8 +13,8 @@ let calc: Contract;
 describe("Calculator", function () {
   before(async () => {
     //Contract
-    Calculator = await ethers.getContractFactory("Calculator");
-    calc = await Calculator.deploy();
+    Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
+    calc = await upgrades.deployProxy(Calculator);
     await calc.deployed();
   });
 

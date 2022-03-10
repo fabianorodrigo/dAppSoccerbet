@@ -20,10 +20,15 @@ Events
 Functions
 */
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract BetToken is ERC20, Ownable {
+contract BetTokenUpgradeable is
+    Initializable,
+    ERC20Upgradeable,
+    OwnableUpgradeable
+{
     event TokenMinted(
         address indexed tokenBuyer,
         uint256 quantity,
@@ -43,7 +48,10 @@ contract BetToken is ERC20, Ownable {
         private
     **/
 
-    constructor() ERC20("Soccer Bet Token", "SBT") {}
+    function initialize() external initializer {
+        __ERC20_init("Soccer Bet Token", "SBT");
+        __Ownable_init();
+    }
 
     // sending Ether to the contract, the sender is buying tokens for betting
     receive() external payable {
@@ -64,6 +72,16 @@ contract BetToken is ERC20, Ownable {
     }*/
 
     function destroyContract() external onlyOwner {
-        selfdestruct(payable(this.owner()));
+        // If gas costs are subject to change, then smart contracts can’t
+        // depend on any particular gas costs. Any smart contract that uses
+        // transfer() or send() is taking a hard dependency on gas costs by
+        // forwarding a fixed amount of gas: 2300.
+        //
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use
+        (bool sent, bytes memory data) = owner().call{
+            value: address(this).balance
+        }("");
+        require(sent, "Fail to empty the contract");
     }
 }
