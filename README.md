@@ -12,18 +12,19 @@ The BETTOR buy tokens using Ether and uses these tokens to make guess about scor
 - Solidity 0.8.11
 - Angular 13
 - Angular Material
-- Truffle 5.4
+- Truffle 5.5
 - Hardhat 2.8
 - Javascript
 - Typescript 
-- Mocha
 - eth-gas-reporter
-- Chai
 - Web3.js
 - Ethers.js
 - Waffle
+- Mocha
+- Chai
 - Openzeppelin
 - Openzeppelin/test_helpers
+- Openzeppelin Upgrade Plugin Hardhat
 - CircleCI
 - Solidity Coverage
 <!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
