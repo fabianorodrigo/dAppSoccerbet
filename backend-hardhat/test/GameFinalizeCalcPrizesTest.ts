@@ -23,7 +23,7 @@ let erc20BetToken: Contract,
   gameContract: Contract;
 const utils = new TestUtils();
 
-describe("Game", function () {
+describe("Game Finalize", function () {
   let accounts: Signer[];
   let owner: Signer;
   let bettorA: Signer;
@@ -31,6 +31,11 @@ describe("Game", function () {
   let bettorC: Signer;
   let bettorD: Signer;
   let bettorE: Signer;
+  let bettorAAddress: string;
+  let bettorBAddress: string;
+  let bettorCAddress: string;
+  let bettorDAddress: string;
+  let bettorEAddress: string;
 
   let BETS: BetDTO[];
 
@@ -44,6 +49,11 @@ describe("Game", function () {
     bettorC = accounts[3];
     bettorD = accounts[4];
     bettorE = accounts[5];
+    bettorAAddress = await bettorA.getAddress();
+    bettorBAddress = await bettorB.getAddress();
+    bettorCAddress = await bettorC.getAddress();
+    bettorDAddress = await bettorD.getAddress();
+    bettorEAddress = await bettorE.getAddress();
 
     BETS = [
       {
@@ -114,38 +124,41 @@ describe("Game", function () {
   });
 
   /**
-   * PAYPRIZES
+   * CALC PRIZES
    */
   it(`Should pay 90% of stake to the winner bet`, async () => {
     //make bets
-    await makeBets(gameContract, owner, BETS);
+    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
     //Closed for betting
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
-    await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+    const finalizeTransction = await gameContract
+      .connect(owner)
+      .finalizeGame({home: 0, visitor: 3});
+    //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
+    await finalizeTransction.wait();
+
     //Pay prizes
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
-    for (let bet of BETS) {
-      //the bettorE balance of bettokens should be equal 90% of all stake
-      if (bet.bettor == bettorE) {
-        expect(
-          await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-        ).to.be.equal(prize);
+    const bets = await gameContract.listBets();
+
+    for (let bet of bets) {
+      //the prize of bettorE should be equal 90% of all stake
+      if (bet.bettor == bettorEAddress) {
+        expect(bet.prize).to.be.equal(prize);
       } else {
-        expect(
-          await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-        ).to.be.equal(ethers.constants.Zero);
+        expect(bet.prize).to.be.equal(ethers.constants.Zero);
       }
     }
   });
 
   it(`Should split proportionally 90% of stake to the winners bets`, async () => {
     //make bets
-    await makeBets(gameContract, owner, BETS);
+    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
     //Closed for betting
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
@@ -156,28 +169,23 @@ describe("Game", function () {
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
+    const bets = await gameContract.listBets();
 
-    for (let bet of BETS) {
+    for (let bet of bets) {
       //90% of all stake should be proportionally splited between bettor and bettorB
-      if (bet.bettor == bettorA || bet.bettor == bettorB) {
-        expect(
-          await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-        ).to.be.equal(
-          prize
-            .mul(bet.tokenAmount)
-            .div(BETS[0].tokenAmount.add(BETS[1].tokenAmount))
+      if (bet.bettor == bettorAAddress || bet.bettor == bettorBAddress) {
+        expect(bet.prize).to.be.equal(
+          prize.mul(bet.value).div(BETS[0].tokenAmount.add(BETS[1].tokenAmount))
         );
       } else {
-        expect(
-          await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-        ).to.be.equal(ethers.constants.Zero);
+        expect(bet.prize).to.be.equal(ethers.constants.Zero);
       }
     }
   });
 
   it(`Should refund 90% of stake to all bets if nobody matches the final score`, async () => {
     //make bets
-    await makeBets(gameContract, owner, BETS);
+    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
     //Closed for betting
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
@@ -188,61 +196,11 @@ describe("Game", function () {
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
-    //Verify payed prizes
-    for (let bet of BETS) {
+    //Verify calculated prizes
+    const bets = await gameContract.listBets();
+    for (let bet of bets) {
       //the balance of bettokens should be equal to amount proportional to the prize (90% of stake)
-      expect(
-        await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-      ).to.be.equal(prize.mul(bet.tokenAmount).div(sumStake));
+      expect(bet.prize).to.be.equal(prize.mul(bet.value).div(sumStake));
     }
   });
-
-  /**
-   * Follow the process of buying Bettokens, aprove for GameContract and bet using the parameters informed
-   *
-   * @param {Game} gameContract Game contract where the bets will happen
-   * @param {address} owner Owner of Game contract
-   * @param {Array} bets Array of objects with 'bettorAddress', 'score' and 'tokenAmount' properties
-   */
-  async function makeBets(
-    gameContract: Contract,
-    owner: Signer,
-    bets: BetDTO[]
-  ) {
-    let totalStake = ethers.constants.Zero;
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-
-    for (let bet of bets) {
-      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
-      await bet.bettor.sendTransaction({
-        to: erc20BetToken.address,
-        value: bet.tokenAmount,
-      });
-      // The BetToken balances of the Game contract is the tokenAmount value of BetTokens
-      expect(
-        await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-      ).to.be.equal(bet.tokenAmount);
-
-      //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-      await erc20BetToken
-        .connect(bet.bettor)
-        .approve(gameContract.address, bet.tokenAmount);
-      //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-      await gameContract.connect(bet.bettor).bet(bet.score, bet.tokenAmount);
-      //https://github.com/indutny/bn.js/
-      //Prefix "i":  perform operation in-place, storing the result in the host
-      //object (on which the method was invoked). Might be used to avoid number allocation costs
-      totalStake = totalStake.add(bet.tokenAmount);
-      // The BetToken balances of the Game contract is 0 BetTokens
-      expect(
-        await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-      ).to.be.equal(ethers.constants.Zero);
-    }
-
-    // The BETTOKEN balances of the Game contract is the sum of all bets
-    expect(await erc20BetToken.balanceOf(gameContract.address)).to.be.equal(
-      totalStake
-    );
-  }
 });

@@ -118,7 +118,7 @@ describe("GameFactory", function () {
   });
 
   it(`Should revert if someone different from owner try set commission`, async () => {
-    expect(gameFactory.connect(bettor).setCommission(16)).to.revertedWith(
+    await expect(gameFactory.connect(bettor).setCommission(16)).to.revertedWith(
       "Ownable: caller is not the owner"
     );
   });
@@ -163,7 +163,7 @@ describe("GameFactory", function () {
   });
 
   it(`Should revert if someone different from owner try destroy contract`, async () => {
-    expect(gameFactory.connect(bettor).destroyContract()).to.revertedWith(
+    await expect(gameFactory.connect(bettor).destroyContract()).to.revertedWith(
       "Ownable: caller is not the owner"
     );
   });

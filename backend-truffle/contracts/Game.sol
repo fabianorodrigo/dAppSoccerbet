@@ -229,7 +229,7 @@ contract Game is Ownable {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
-        uint256 totalWinners = payPrizes();
+        uint256 totalWinners = calcPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
@@ -238,6 +238,40 @@ contract Game is Ownable {
             totalWinners,
             finalScore
         );
+    }
+
+    /**
+     * @notice Function called by the bettor in order to withdrawal it's prize
+     *
+     * @param _betIndex the index of Bet being withdrawn
+     */
+    function withdrawPrize(uint256 _betIndex) {
+        require(_bets[_betIndex].bettor == msg.sender);
+        require(_bets[_betIndex].result == WINNING);
+        require(false, "Implementation missed");
+        // If gas costs are subject to change, then smart contracts can’t
+        // depend on any particular gas costs. Any smart contract that uses
+        // transfer() or send() is taking a hard dependency on gas costs by
+        // forwarding a fixed amount of gas: 2300.
+        //
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use
+        (bool sent, bytes memory data) = msg.sender.call{
+            value: _bets[_betIndex].prize
+        }("");
+        require(sent, "Fail to pay the prize");
+    }
+
+    /**
+     * @notice If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
+     */
+    function destroyContract() external onlyOwner {
+        selfdestruct(payable(this.owner()));
     }
 
     /**
@@ -277,24 +311,12 @@ contract Game is Ownable {
     }
 
     /**
-     * @notice If neither a receive Ether nor a payable fallback function is present,
-     * the contract cannot receive Ether through regular transactions and throws an exception.
-     * A contract without a receive Ether function can receive Ether as a recipient of a
-     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
-     * A contract cannot react to such Ether transfers and thus also cannot reject them.
-     * This is a design choice of the EVM and Solidity cannot work around it.
-     */
-    function destroyContract() public onlyOwner {
-        selfdestruct(payable(this.owner()));
-    }
-
-    /**
      * @notice Identify which bets matched the finalScore and split the prize (stake less comission fee)
      * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
      * for all
      * @return The number of bets winners
      */
-    function payPrizes() internal onlyOwner returns (uint256) {
+    function calcPrizes() internal onlyOwner returns (uint256) {
         require(finalized, "Game not finalized yet");
         uint256 _totalTokensBetWinners = 0;
         uint256 _totalWinners = 0;
@@ -331,9 +353,6 @@ contract Game is Ownable {
                 // the total of tokens of the winning bets (if nobody wins, the total stake)
                 uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
                 _bets[i].prize = _prizeValue;
-                require(
-                    _betTokenContract.transfer(_bets[i].bettor, _prizeValue)
-                );
             }
         }
         return _totalWinners;

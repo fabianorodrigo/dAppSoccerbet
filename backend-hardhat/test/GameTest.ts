@@ -119,15 +119,15 @@ describe("Game", function () {
   it(`Should revert if try open for betting an already open game`, async () => {
     //Game is initially closed for betting
     await gameContract.connect(owner).openForBetting();
-    expect(gameContract.connect(owner).openForBetting()).to.revertedWith(
+    await expect(gameContract.connect(owner).openForBetting()).to.revertedWith(
       "The game is not closed"
     );
   });
 
   it(`Should revert if someone different from owner try open a game for betting`, async () => {
-    expect(gameContract.connect(bettorA).openForBetting()).to.revertedWith(
-      "Ownable: caller is not the owner"
-    );
+    await expect(
+      gameContract.connect(bettorA).openForBetting()
+    ).to.revertedWith("Ownable: caller is not the owner");
   });
 
   /**
@@ -156,9 +156,9 @@ describe("Game", function () {
   });
 
   it(`Should revert if someone different from owner try close a game for betting`, async () => {
-    expect(gameContract.connect(bettorA).closeForBetting()).to.revertedWith(
-      "Ownable: caller is not the owner"
-    );
+    await expect(
+      gameContract.connect(bettorA).closeForBetting()
+    ).to.revertedWith("Ownable: caller is not the owner");
   });
 
   /**
@@ -190,9 +190,9 @@ describe("Game", function () {
     const score = {home: "3", visitor: "1"};
     //Game is initially closed for betting
     await gameContract.connect(owner).openForBetting();
-    expect(gameContract.connect(owner).finalizeGame(score)).to.revertedWith(
-      "The game is still open for bettings, close it first"
-    );
+    await expect(
+      gameContract.connect(owner).finalizeGame(score)
+    ).to.revertedWith("The game is still open for bettings, close it first");
     expect(await gameContract.finalized()).to.be.false;
     const finalScore = await gameContract.finalScore();
     expect(finalScore.home).to.be.equal(ethers.constants.Zero);
@@ -202,16 +202,16 @@ describe("Game", function () {
   it(`Should revert if try to finalize an already finalized game`, async () => {
     const score = {home: "3", visitor: "1"};
     await gameContract.connect(owner).finalizeGame(score);
-    expect(gameContract.connect(owner).finalizeGame(score)).to.revertedWith(
-      "The game has been already finalized"
-    );
+    await expect(
+      gameContract.connect(owner).finalizeGame(score)
+    ).to.revertedWith("The game has been already finalized");
   });
 
   it(`Should revert if someone different from owner try finalize a game`, async () => {
     const score = {home: "3", visitor: "1"};
-    expect(gameContract.connect(bettorA).finalizeGame(score)).to.revertedWith(
-      "Ownable: caller is not the owner"
-    );
+    await expect(
+      gameContract.connect(bettorA).finalizeGame(score)
+    ).to.revertedWith("Ownable: caller is not the owner");
   });
 
   /**
@@ -282,7 +282,7 @@ describe("Game", function () {
       .connect(bettorA)
       .approve(gameContract.address, betTokenAmount);
     //Game is initially closed for betting. Since the game was not opened, it has to revert
-    expect(
+    await expect(
       gameContract.connect(bettorA).bet(score, betTokenAmount)
     ).to.be.revertedWith("The game is not open");
   });
@@ -293,7 +293,7 @@ describe("Game", function () {
     //Game is initially closed for betting
     await gameContract.connect(owner).openForBetting();
     //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
-    expect(
+    await expect(
       gameContract.connect(bettorA).bet(score, ethers.constants.Zero)
     ).to.be.revertedWith("The betting value has to be greater than zero");
   });
@@ -319,7 +319,7 @@ describe("Game", function () {
     //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE MINUS 1 OF THE BET IN HIS NAME
     await erc20BetToken.connect(bettorA).approve(gameContract.address, 1000);
     //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    expect(
+    await expect(
       gameContract.connect(bettorA).bet(score, betTokenAmount)
     ).to.revertedWith("ERC20: insufficient allowance");
   });
@@ -497,9 +497,9 @@ describe("Game", function () {
   });
 
   it(`Should revert if someone different from owner try destroy contract`, async () => {
-    expect(gameContract.connect(bettorA).destroyContract()).to.revertedWith(
-      "Ownable: caller is not the owner"
-    );
+    await expect(
+      gameContract.connect(bettorA).destroyContract()
+    ).to.revertedWith("Ownable: caller is not the owner");
   });
   it(`Should revert if sending Ether to the contract`, async () => {
     const weiAmount = ethers.utils.parseEther("1.0");

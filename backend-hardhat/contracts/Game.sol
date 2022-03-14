@@ -24,6 +24,9 @@ import "./structs/Bet.sol";
 import "./BetToken.sol";
 import "./Calculator.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+//import "hardhat/console.sol";
 
 /**
  * @title Contract that represents a single game and e responsible for managing all bets
@@ -31,9 +34,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *
  * @author Fabiano Nascimento
  */
-contract Game is Ownable {
-    uint8 public immutable WINNING = 2;
-    uint8 public immutable LOSS = 1;
+contract Game is Ownable, ReentrancyGuard {
+    uint8 public immutable PAID = 4;
+    uint8 public immutable TIED = 3;
+    uint8 public immutable WINNER = 2;
+    uint8 public immutable LOSER = 1;
     uint8 public immutable NO_RESULT = 0;
 
     //BetToken contract
@@ -231,7 +236,7 @@ contract Game is Ownable {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
-        uint256 totalWinners = payPrizes();
+        uint256 totalWinners = calcPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
@@ -240,6 +245,44 @@ contract Game is Ownable {
             totalWinners,
             finalScore
         );
+    }
+
+    /**
+     * @notice Function called by the bettor in order to withdrawal it's prize
+     *
+     * @param _betIndex the index of Bet being withdrawn
+     */
+    function withdrawPrize(uint256 _betIndex) external nonReentrant {
+        require(_betIndex < _bets.length, "_betIndex invalid");
+        require(
+            _bets[_betIndex].result == WINNER ||
+                _bets[_betIndex].result == TIED,
+            "Without result, loser or already paid bets have no prize to be withdrawn"
+        );
+        require(
+            _bets[_betIndex].bettor == msg.sender,
+            "The prize can be withdrawn just by the bet's bettor"
+        );
+        _bets[_betIndex].result = PAID;
+        bool tokensSent = _betTokenContract.transfer(
+            _bets[_betIndex].bettor,
+            _bets[_betIndex].prize
+        );
+        //console.log("sender", msg.sender);
+        //console.log("balance", address(this).balance);
+        require(tokensSent, "Fail to pay the prize");
+    }
+
+    /**
+     * @notice If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
+     */
+    function destroyContract() external onlyOwner {
+        selfdestruct(payable(this.owner()));
     }
 
     /**
@@ -279,24 +322,12 @@ contract Game is Ownable {
     }
 
     /**
-     * @notice If neither a receive Ether nor a payable fallback function is present,
-     * the contract cannot receive Ether through regular transactions and throws an exception.
-     * A contract without a receive Ether function can receive Ether as a recipient of a
-     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
-     * A contract cannot react to such Ether transfers and thus also cannot reject them.
-     * This is a design choice of the EVM and Solidity cannot work around it.
-     */
-    function destroyContract() public onlyOwner {
-        selfdestruct(payable(this.owner()));
-    }
-
-    /**
-     * @notice Identify which bets matched the finalScore and split the prize (stake less comission fee)
+     * @notice Identify which bets matched the finalScore and calculate the prize (stake less comission fee)
      * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
      * for all
      * @return The number of bets winners
      */
-    function payPrizes() internal onlyOwner returns (uint256) {
+    function calcPrizes() internal onlyOwner returns (uint256) {
         require(finalized, "Game not finalized yet");
         uint256 _totalTokensBetWinners = 0;
         uint256 _totalWinners = 0;
@@ -305,11 +336,11 @@ contract Game is Ownable {
                 _bets[i].score.home == finalScore.home &&
                 _bets[i].score.visitor == finalScore.visitor
             ) {
-                _bets[i].result = WINNING;
+                _bets[i].result = WINNER;
                 _totalTokensBetWinners += _bets[i].value;
                 _totalWinners++;
             } else {
-                _bets[i].result = LOSS;
+                _bets[i].result = LOSER;
             }
         }
         uint256 _totalPrize = this.getPrize();
@@ -328,14 +359,15 @@ contract Game is Ownable {
             //If nobody matches the final score, _totalTokensBetWinners will be zero
             //and it will always return TRUE. Otherwise, only when for bets that matched
             //the final score the IF will be TRUE
-            if (_bets[i].result == WINNING || _totalTokensBetWinners == 0) {
+            if (_bets[i].result == WINNER || _totalTokensBetWinners == 0) {
                 // The value transfered will be proportional: prize * the value of bet divided by
                 // the total of tokens of the winning bets (if nobody wins, the total stake)
                 uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
                 _bets[i].prize = _prizeValue;
-                require(
-                    _betTokenContract.transfer(_bets[i].bettor, _prizeValue)
-                );
+                //if totalTokensBetWinners equals zero, nobody won and the result is TIED
+                if (_totalTokensBetWinners == 0) {
+                    _bets[i].result = TIED;
+                }
             }
         }
         return _totalWinners;
