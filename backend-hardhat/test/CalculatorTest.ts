@@ -14,28 +14,8 @@ describe("Calculator", function () {
   before(async () => {
     //Contract
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
-    calc = await upgrades.deployProxy(Calculator);
+    calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
-  });
-
-  describe("fullMul", () => {
-    it(`Should return a 'l' equal MAX_UINT256 and 'h' equal zero when the product is MAX_UINT256`, async () => {
-      const y = 1;
-      //multiply
-      const result = await calc.fullMul(ethers.constants.MaxUint256, y);
-      expect(result.l).to.be.equal(ethers.constants.MaxUint256);
-      expect(result.h).to.be.equal(ethers.constants.Zero);
-    });
-  });
-
-  describe("mulDiv", () => {
-    it(`Should return x * y when z equals 1`, async () => {
-      const x = 1200;
-      const y = 1000;
-      //multiply
-      const result = await calc.mulDiv(x, y, 1);
-      expect(result).to.be.equal(1200000);
-    });
   });
 
   describe("calcPercentage", () => {

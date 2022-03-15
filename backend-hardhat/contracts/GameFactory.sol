@@ -189,9 +189,7 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         //
         // Call returns a boolean value indicating success or failure.
         // This is the current recommended method to use
-        (bool sent, bytes memory data) = owner().call{
-            value: address(this).balance
-        }("");
+        (bool sent, ) = owner().call{value: address(this).balance}("");
         require(sent, "Fail to empty the contract");
     }
 }

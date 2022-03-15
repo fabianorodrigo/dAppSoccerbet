@@ -23,11 +23,13 @@ Functions
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract BetTokenUpgradeable is
     Initializable,
     ERC20Upgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    UUPSUpgradeable
 {
     event TokenMinted(
         address indexed tokenBuyer,
@@ -79,9 +81,13 @@ contract BetTokenUpgradeable is
         //
         // Call returns a boolean value indicating success or failure.
         // This is the current recommended method to use
-        (bool sent, bytes memory data) = owner().call{
-            value: address(this).balance
-        }("");
-        require(sent, "Fail to empty the contract");
+        (bool sent, ) = owner().call{value: address(this).balance}("");
+        require(sent, "Fail");
     }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 }

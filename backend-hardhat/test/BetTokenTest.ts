@@ -21,6 +21,11 @@ describe("Token", function () {
   let owner: Signer;
   let bettor: Signer;
 
+  // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
+  // Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
+  // This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
+  upgrades.silenceWarnings();
+
   before(async () => {
     accounts = await ethers.getSigners();
     // The owner is gonna be sent by 1º account
@@ -33,7 +38,7 @@ describe("Token", function () {
 
   beforeEach(async () => {
     //Contract
-    erc20BetToken = await upgrades.deployProxy(ERC20BetToken);
+    erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
   });
 

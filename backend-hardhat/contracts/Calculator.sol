@@ -1,13 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 /**
  * @title Contract that provides Math functions
  *
  * @author Fabiano Nascimento
  */
-contract CalculatorUpgradeable {
-    event Debug(string msg, uint256 value);
+contract CalculatorUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
+    /** SOLIDITY STYLE GUIDE **
+
+        Order of Functions
+
+        constructor
+        receive function (if exists)
+        fallback function (if exists)
+        external
+        public
+        internal
+        private
+    **/
+
+    function initialize() public initializer {
+        __Ownable_init();
+    }
 
     /**
      * @notice calculates a percentage of a amount multiplying amount * percentage * 100
@@ -22,65 +45,35 @@ contract CalculatorUpgradeable {
         pure
         returns (uint256)
     {
-        //return mulDiv(amount, percentage * 100, 10000);
         return (amount * percentage * 100) / 10000;
     }
 
     /**
-     * @notice Calculates x*y/z prevent overflow. TODO: not working on Solidity 0.8.x. Review
-     * @dev https://medium.com/coinmonks/math-in-solidity-part-3-percents-and-proportions-4db014e080b1 (adapted to Solidity 0.8.x)
-     *
+     * @notice If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 z
-    ) public pure returns (uint256) {
-        (uint256 l, uint256 h) = fullMul(x, y);
-        require(h < z);
-        unchecked {
-            uint256 mm = mulmod(x, y, z);
-            if (mm > l) h -= 1;
-            l -= mm;
-            uint256 pow2 = z & (type(uint256).max - z + 1);
-            z /= pow2;
-            l /= pow2;
-            l += h * ((type(uint256).max - pow2 + 1) / pow2 + 1);
-            uint256 r = 1;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            r *= 2 - z * r;
-            return l * r;
-        }
+    function destroyContract() external onlyOwner {
+        // If gas costs are subject to change, then smart contracts can’t
+        // depend on any particular gas costs. Any smart contract that uses
+        // transfer() or send() is taking a hard dependency on gas costs by
+        // forwarding a fixed amount of gas: 2300.
+        //
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use
+        (bool sent, ) = owner().call{value: address(this).balance}("");
+        require(sent, "Fail");
     }
 
     /**
-     * @notice Multiplies two 256-bit unsigned integers and returns the result as 512-bit
-     * @dev https://medium.com/coinmonks/math-in-solidity-part-3-percents-and-proportions-4db014e080b1 (adapted to Solidty 0.8.x)
+     * Function required by UUPS proxy pattern
      */
-    function fullMul(uint256 x, uint256 y)
-        public
-        pure
-        returns (uint256 l, uint256 h)
-    {
-        // emit Debug("x", x);
-        // emit Debug("y", y);
-        // emit Debug("type(uint256).max", type(uint256).max);
-        uint256 mm = mulmod(x, y, type(uint256).max);
-        // emit Debug("mm", mm);
-        unchecked {
-            l = x * y;
-            h = mm - l;
-
-            // emit Debug("l", l);
-            // emit Debug("h", h);
-            if (mm < l) h -= 1;
-            // emit Debug("final h", h);
-        }
-    }
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 }

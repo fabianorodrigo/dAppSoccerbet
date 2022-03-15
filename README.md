@@ -9,7 +9,7 @@ The BETTOR buy tokens using Ether and uses these tokens to make guess about scor
 
 ### Technology Stack
 
-- Solidity 0.8.11
+- Solidity 0.8
 - Angular 13
 - Angular Material
 - Truffle 5.5
@@ -71,10 +71,13 @@ User interface built in Angular where bettors buy tokens, make their toss and wi
 
 ### Contracts
 
-BetToken: It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken.
-GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN.
+BetToken: It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken. It's upgradeable by use of OpenZeppelin Upgrades following the UUPS pattern. 
+
+GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
+
 Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
-Calculator: Contract that provides Math functions
+
+Calculator: Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 
 ### Structs
 

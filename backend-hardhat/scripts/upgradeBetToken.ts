@@ -1,6 +1,6 @@
 import {ethers, upgrades} from "hardhat";
 
-function getContractddress(): string {
+function getProxyContractAddress(): string {
   throw new Error("BetToken address not defined");
 }
 
@@ -22,10 +22,10 @@ async function main() {
   // ensure they are compatible for the upgrade, deploy the new version implementation contract
   // (unless there is one already from a previous deployment), and upgrade the existing proxy to the new implementation.
 
-  const CONTRACT_ADDRESS = getContractddress();
+  const PROXY_CONTRACT_ADDRESS = getProxyContractAddress();
   const ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
-  await upgrades.upgradeProxy(CONTRACT_ADDRESS, ERC20BetToken);
-  console.log("BetToken upgraded at: ", CONTRACT_ADDRESS);
+  await upgrades.upgradeProxy(PROXY_CONTRACT_ADDRESS, ERC20BetToken);
+  console.log("BetToken upgraded at: ", PROXY_CONTRACT_ADDRESS);
 }
 
 main()

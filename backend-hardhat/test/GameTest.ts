@@ -41,7 +41,7 @@ describe("Game", function () {
     bettorBAddress = await bettorB.getAddress();
     //Calculator contract
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
-    calc = await upgrades.deployProxy(Calculator);
+    calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
@@ -52,7 +52,7 @@ describe("Game", function () {
 
   beforeEach(async () => {
     //Contracts
-    erc20BetToken = await upgrades.deployProxy(ERC20BetToken);
+    erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
     gameFactory = await upgrades.deployProxy(
       GameFactory,
