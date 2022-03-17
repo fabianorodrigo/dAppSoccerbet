@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
-import contractABI from '../../../../backend-truffle/build/contracts/Game.json';
+import contractABI from '../../../../backend-hardhat/artifacts/contracts/Game.sol/Game.json';
 import { Bet, ProviderErrors, Score } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
@@ -15,11 +15,7 @@ export class GameService extends BaseContract {
     BET_ON_GAME: 'BetOnGame',
   };
 
-  constructor(
-    _messageService: MessageService,
-    _web3Service: Web3Service,
-    _address: string
-  ) {
+  constructor(_messageService: MessageService, _web3Service: Web3Service, _address: string) {
     super(_messageService, _web3Service, _address);
   }
 
@@ -63,28 +59,25 @@ export class GameService extends BaseContract {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
           let result;
-          this._web3Service
-            .getUserAccountAddress()
-            .subscribe(async (fromAccount) => {
-              try {
-                result = await _contract.methods.bet(_score, _value).send({
-                  from: fromAccount,
-                });
-                subscriber.next({
-                  success: true,
-                  result:
-                    'Transaction to place the bet on the game was sent successfully',
-                });
-              } catch (e: any) {
-                const providerError = ProviderErrors[e.code];
-                let message = `We had some problem. The transaction wasn't sent.`;
-                if (providerError) {
-                  message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-                }
-                console.warn(e);
-                subscriber.next({ success: false, result: message });
+          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.bet(_score, _value).send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                result: 'Transaction to place the bet on the game was sent successfully',
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
               }
-            });
+              console.warn(e);
+              subscriber.next({ success: false, result: message });
+            }
+          });
         })
         .catch((e) => {
           console.warn(`gameservice`, e);
@@ -102,28 +95,25 @@ export class GameService extends BaseContract {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
           let result;
-          this._web3Service
-            .getUserAccountAddress()
-            .subscribe(async (fromAccount) => {
-              try {
-                result = await _contract.methods.finalizeGame(_score).send({
-                  from: fromAccount,
-                });
-                subscriber.next({
-                  success: true,
-                  result:
-                    'Transaction to finalize the game for betting was sent successfully',
-                });
-              } catch (e: any) {
-                const providerError = ProviderErrors[e.code];
-                let message = `We had some problem. The transaction wasn't sent.`;
-                if (providerError) {
-                  message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-                }
-                console.warn(e);
-                subscriber.next({ success: false, result: message });
+          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.finalizeGame(_score).send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                result: 'Transaction to finalize the game for betting was sent successfully',
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
               }
-            });
+              console.warn(e);
+              subscriber.next({ success: false, result: message });
+            }
+          });
         })
         .catch((e) => {
           console.warn(`bettoken`, e);
