@@ -2,6 +2,7 @@ import {task} from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-gas-reporter";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -32,5 +33,11 @@ export default {
     reporterOptions: {
       configFile: "./mocha-reporter-config.json",
     },
+  },
+  gasReporter: {
+    currency: "BRL",
+    coinmarketcap: process.env.COINMARKETCAP_API_TOKEN,
+    showTimeSpent: true,
+    outputFile: "eth-gas-reporter.txt",
   },
 };
