@@ -47,7 +47,10 @@ export class TestUtils {
     //Game is initially closed for betting
     await gameContract.connect(owner).openForBetting();
 
+    let conta = 1;
     for (let bet of bets) {
+      console.log("Bet", conta);
+      conta++;
       ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
       await bet.bettor.sendTransaction({
         to: erc20BetToken.address,
@@ -78,5 +81,9 @@ export class TestUtils {
     expect(await erc20BetToken.balanceOf(gameContract.address)).to.be.equal(
       totalStake
     );
+  }
+
+  getRandomBetween(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
   }
 }

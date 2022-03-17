@@ -75,7 +75,7 @@ BetToken: It's a ERC20 token implementation. A token or fraction is minted when 
 
 GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 
-Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
+Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize. [IMPLEMENTAR CLONE???]
 
 Calculator: Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 

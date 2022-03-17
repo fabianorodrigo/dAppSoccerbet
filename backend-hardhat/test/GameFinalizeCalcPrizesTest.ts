@@ -9,6 +9,11 @@ import {ethers, upgrades} from "hardhat";
 import {BetDTO} from "./model";
 import {TestUtils} from "./TestUtils";
 
+// As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
+// Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
+// This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
+upgrades.silenceWarnings();
+
 const DATETIME_20220716_170000_IN_MINUTES =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 

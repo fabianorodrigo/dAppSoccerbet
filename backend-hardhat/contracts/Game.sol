@@ -25,8 +25,9 @@ import "./BetToken.sol";
 import "./Calculator.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./libs/GameUtils.sol";
 
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Contract that represents a single game and e responsible for managing all bets
@@ -58,10 +59,21 @@ contract Game is Ownable, ReentrancyGuard {
     Bet[] private _bets;
     //total stake
     uint256 private _totalStake = 0;
+    //sum of tokens among winning bets
+    uint256 private _totalTokensBetWinners = 0;
     //real final score
     Score public finalScore;
     //When TRUE, the game is already finalized
     bool public finalized;
+    // When TRUE, the process of identifying winners is completed
+    bool public winnersIdentified;
+    // When TRUE, the process of calc prizes is completed
+    bool public prizesCalculated;
+
+    // iteraction variables in order to avoid DoS Costly loops
+    // in case the number of bets is too high
+    uint256 private _idWinners_i = 0;
+    uint256 private _calcPrize_i = 0;
 
     /**
      * @notice Event triggered when a game is opened for betting
@@ -89,7 +101,6 @@ contract Game is Ownable, ReentrancyGuard {
         string homeTeam,
         string visitorTeam,
         uint256 datetimeGame,
-        uint256 totalWinners,
         Score score
     );
 
@@ -236,15 +247,109 @@ contract Game is Ownable, ReentrancyGuard {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
-        uint256 totalWinners = calcPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
             visitorTeam,
             datetimeGame,
-            totalWinners,
             finalScore
         );
+    }
+
+    /**
+     * @notice Identify which bets matched the finalScore and updates: _bets[i].result,
+     * _totalTokensBetWinners,
+     *
+     * @return TRUE if the process of identifying winners is completed (loop for all _bets)
+     */
+    function identifyWinners() external onlyOwner returns (bool) {
+        require(finalized, "Game not finalized");
+        require(winnersIdentified == false, "Winners identified");
+
+        // Each interaction of this loops is spending around 30K gas
+        // The loop continues until the end or the gasleft() > 30K
+        for (
+            ;
+            _idWinners_i <
+            GameUtils.identifyWinners(_bets, finalScore).length &&
+                gasleft() > 30000;
+            _idWinners_i++
+        ) {
+            _bets[_idWinners_i].result = WINNER;
+            _totalTokensBetWinners += _bets[_idWinners_i].value;
+            console.log(
+                "first loop: gasleft after",
+                _idWinners_i,
+                ": ",
+                gasleft()
+            );
+        }
+        //If iterator >= number of bets, all the elements were visited
+        if (_idWinners_i >= _bets.length) {
+            winnersIdentified = true;
+        }
+        return winnersIdentified;
+    }
+
+    /**
+     * @notice Calculate the prize (stake less comission fee) between the bets proportionally to the bet value.
+     * If none bet matches, the prize is split proportionally for all
+     *
+     * @return TRUE if the process of calc prizes is completed (loop for all _bets)
+     */
+    function calcPrizes() external onlyOwner returns (bool) {
+        require(winnersIdentified, "Winners not identified");
+        require(prizesCalculated == false, "Prizes calculated");
+
+        uint256 _totalPrize = this.getPrize();
+        uint256 _divider;
+        // if nobody matches the final score, every bettor is refunded with
+        // the value of he's bet less the commission fee
+        // In this case, the divider applyed to the formula will be the total stake
+        if (_totalTokensBetWinners == 0) {
+            _divider = _totalStake;
+        }
+        //Otherwise, the divider will be the _totalTokensBetWinners
+        else {
+            _divider = _totalTokensBetWinners;
+        }
+
+        // Each interaction of this loops is spending around 30K gas
+        // The loop continues until the end or the gasleft() > 30K
+        for (
+            ;
+            _calcPrize_i < _bets.length && gasleft() > 30000;
+            _calcPrize_i++
+        ) {
+            //If nobody matches the final score, _totalTokensBetWinners will be zero
+            //and it will always return TRUE. Otherwise, only when for bets that matched
+            //the final score the IF will be TRUE
+            if (
+                _bets[_calcPrize_i].result == WINNER ||
+                _totalTokensBetWinners == 0
+            ) {
+                // The value transfered will be proportional: prize * the value of bet divided by
+                // the total of tokens of the winning bets (if nobody wins, the total stake)
+                uint256 _prizeValue = (_totalPrize *
+                    _bets[_calcPrize_i].value) / _divider;
+                _bets[_calcPrize_i].prize = _prizeValue;
+                //if totalTokensBetWinners equals zero, nobody won and the result is TIED
+                if (_totalTokensBetWinners == 0) {
+                    _bets[_calcPrize_i].result = TIED;
+                }
+            }
+            console.log(
+                "second loop: gasleft after",
+                _calcPrize_i,
+                ": ",
+                gasleft()
+            );
+        }
+        //If iterator >= number of bets, all the elements were visited
+        if (_calcPrize_i >= _bets.length) {
+            prizesCalculated = true;
+        }
+        return prizesCalculated;
     }
 
     /**
@@ -319,57 +424,5 @@ contract Game is Ownable, ReentrancyGuard {
      */
     function getPrize() public view returns (uint256) {
         return _totalStake - this.getCommissionValue();
-    }
-
-    /**
-     * @notice Identify which bets matched the finalScore and calculate the prize (stake less comission fee)
-     * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
-     * for all
-     * @return The number of bets winners
-     */
-    function calcPrizes() internal onlyOwner returns (uint256) {
-        require(finalized, "Game not finalized yet");
-        uint256 _totalTokensBetWinners = 0;
-        uint256 _totalWinners = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            if (
-                _bets[i].score.home == finalScore.home &&
-                _bets[i].score.visitor == finalScore.visitor
-            ) {
-                _bets[i].result = WINNER;
-                _totalTokensBetWinners += _bets[i].value;
-                _totalWinners++;
-            } else {
-                _bets[i].result = LOSER;
-            }
-        }
-        uint256 _totalPrize = this.getPrize();
-        uint256 _divider;
-        // if nobody matches the final score, every bettor is refunded with
-        // the value of he's bet less the commission fee
-        // In this case, the divider applyed to the formula will be the total stake
-        if (_totalWinners == 0) {
-            _divider = _totalStake;
-        }
-        //Otherwise, the divider will be the _totalTokensBetWinners
-        else {
-            _divider = _totalTokensBetWinners;
-        }
-        for (uint256 i = 0; i < _bets.length; i++) {
-            //If nobody matches the final score, _totalTokensBetWinners will be zero
-            //and it will always return TRUE. Otherwise, only when for bets that matched
-            //the final score the IF will be TRUE
-            if (_bets[i].result == WINNER || _totalTokensBetWinners == 0) {
-                // The value transfered will be proportional: prize * the value of bet divided by
-                // the total of tokens of the winning bets (if nobody wins, the total stake)
-                uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
-                _bets[i].prize = _prizeValue;
-                //if totalTokensBetWinners equals zero, nobody won and the result is TIED
-                if (_totalTokensBetWinners == 0) {
-                    _bets[i].result = TIED;
-                }
-            }
-        }
-        return _totalWinners;
     }
 }
