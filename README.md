@@ -37,27 +37,28 @@ In this version the bettors buy tokens ERC20 so as they can bet some scores. The
 ### Local installation for development purpose
 
 ```
-npm install
-
-# eth-gas-reporter only worked when deployed globally
-npm install --save-dev eth-gas-reporter -g
-
 # if you haven't installed Ganache yet
 npm install ganache --global
 
-# if you haven't installed Truffle yet
-npm install truffle --global
+# if you haven't installed Angular CLI yet
+npm install @angular/cli --global
+
+cd backend-hardhat
+npm install
+
+cd frontendAngular
+npm install
 ```
 
 ### Local execution for development purpose
 
 ```
 # Running Ganache on port 7545 with pre-defined deterministic seed and saving the chain database at ~/sgbds/ganache
-cd backendOnChain
+cd backend-hardhat
 npm run ganache
 
-# Migrating the contracts to the Ganache network
-npm run migrate --network ganache
+# Deploy the contracts to the Ganache network
+npm run deployLocal
 
 # Running the frontend
 cd frontendAngular
