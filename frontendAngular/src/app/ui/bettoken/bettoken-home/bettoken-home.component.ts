@@ -57,7 +57,7 @@ export class BettokenHomeComponent implements OnInit {
       console.log('olha o balance', _balance);
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
-          title: `Buy BetTokens`,
+          title: `Buy Soccer Bet Tokens`,
           maxAmmount: new BN(_balance),
         },
       });

@@ -48,8 +48,8 @@ export class GameComponent implements OnInit {
     this.datetimeGame = new Date(this.gameCompound.game.datetimeGame * 1000);
     this.open = this.gameCompound.game.open;
     this.finalized = this.gameCompound.game.finalized;
-
-    this.finalScore = this.gameCompound.game.finalScore;
+    //TODO: change event attribute name do finalScore
+    this.finalScore = this.gameCompound.game.score;
 
     // Subscribing for account address changes in the provider
     this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
