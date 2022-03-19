@@ -1,7 +1,11 @@
+import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
+import {PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
 
 function getProxyContractAddress(): string {
-  throw new Error("Calculator address not defined");
+  return JSON.parse(
+    fs.readFileSync(`./${PROXIES_ADDRESSES_FILENAME}`).toString()
+  ).GAMEFACTORY_PROXY_ADDRESS;
 }
 
 async function main() {

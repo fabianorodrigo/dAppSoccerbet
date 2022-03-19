@@ -1,7 +1,15 @@
+import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
+import {ProxiesAddresses, PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
 
 async function main() {
   const [deployer, addr1, addr2] = await ethers.getSigners();
+  //object that will contain the addresses of proxies deployed
+  const proxyAddresses: ProxiesAddresses = {
+    BETTOKEN_PROXY_ADDRESS: "",
+    CALCULATOR_PROXY_ADDRESS: "",
+    GAMEFACTORY_PROXY_ADDRESS: "",
+  };
 
   console.log("Deploying contracts with the account:", deployer.address);
 
@@ -15,11 +23,13 @@ async function main() {
   });
   await erc20BetToken.deployed();
   console.log("BetToken deployed to:", erc20BetToken.address);
+  proxyAddresses.BETTOKEN_PROXY_ADDRESS = erc20BetToken.address;
 
   const Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
   const calculator = await upgrades.deployProxy(Calculator, [], {kind: "uups"});
   await calculator.deployed();
   console.log("Calculator deployed to:", calculator.address);
+  proxyAddresses.CALCULATOR_PROXY_ADDRESS = calculator.address;
 
   const GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
 
@@ -32,6 +42,14 @@ async function main() {
   );
   await gameFactory.deployed();
   console.log("GameFactory deployed to:", gameFactory.address);
+  proxyAddresses.GAMEFACTORY_PROXY_ADDRESS = gameFactory.address;
+  fs.writeFileSync(
+    `./${PROXIES_ADDRESSES_FILENAME}`,
+    JSON.stringify(proxyAddresses)
+  );
+  console.log(
+    `*************** CONFIRA O ARQUIVO '${PROXIES_ADDRESSES_FILENAME}' ***********`
+  );
 }
 
 main()
