@@ -8,6 +8,13 @@
 Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
 The BETTOR buy tokens using Ether and uses these tokens to make guess about score of one or more games registered by the ADMIN. After a game is finalized, the ADMIN register the final score and the prize is splitted among those BETTORS whose bets matched the final score.
 
+<!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
+
+The branch 'main' will always keep the latest stable version that is the greater version/tag. 
+
+## v1.0.0-->
+In version v1.0.0, the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
+
 Visit the [worflow documentation](./docs/workflow/) for a more detailed description of Ðapp usage.
 # Technology Stack
 
@@ -37,13 +44,6 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
 - Web3.js
 ## CI/CD
 - CircleCI
-
-<!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
-
-The branch 'main' will always keep the latest stable version that is the greater version/tag. 
-
-## v1.0.0-->
-In this version the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
 
 # Running Local
 
