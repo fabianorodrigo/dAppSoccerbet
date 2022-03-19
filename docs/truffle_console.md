@@ -1,4 +1,5 @@
-# Truffle Console Snippets
+Truffle Console Snippets
+===
 
 ## Create a game
 
