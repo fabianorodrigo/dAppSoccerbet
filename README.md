@@ -1,4 +1,5 @@
-# Ðapp Soccer Bet ⚽💰
+Ðapp Soccer Bet ⚽💰
+===
 
 [![licence GPL-3.0](https://img.shields.io/github/license/fabianorodrigo/dappsoccerbet?style=flat-square&logo=creativecommons)](https://github.com/fabianorodrigo/dappsoccerbet/blob/master/LICENSE.md)
 ![Web3](https://img.shields.io/badge/web3-Decentralized%20Web-brightgreen?style=flat-square&logo=ethereum)
@@ -7,26 +8,35 @@
 Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
 The BETTOR buy tokens using Ether and uses these tokens to make guess about score of one or more games registered by the ADMIN. After a game is finalized, the ADMIN register the final score and the prize is splitted among those BETTORS whose bets matched the final score.
 
-### Technology Stack
+# Technology Stack
 
-- Solidity 0.8
-- Angular 13
-- Angular Material
-- Truffle 5.5
+## Backend
+
 - Hardhat 2.8
-- Javascript
-- Typescript 
-- eth-gas-reporter
-- Web3.js
+- Truffle 5.5
+  
+### On-chain
+- Solidity 0.8
+- Openzeppelin Contracts
+- Openzeppelin Upgrade Plugin Hardhat
+
+### Tests
+- Openzeppelin/test_helpers
+- Waffle 
 - Ethers.js
-- Waffle
 - Mocha
 - Chai
-- Openzeppelin
-- Openzeppelin/test_helpers
-- Openzeppelin Upgrade Plugin Hardhat
+- eth-gas-reporter
+- Solidity Coverage 
+- Slither
+## Frontend
+- Angular 13
+- Angular Material
+- Typescript 
+- Web3.js
+## CI/CD
 - CircleCI
-- Solidity Coverage
+
 <!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
 
 The branch 'main' will always keep the latest stable version that is the greater version/tag. 
@@ -34,7 +44,9 @@ The branch 'main' will always keep the latest stable version that is the greater
 ## v1.0.0-->
 In this version the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
 
-### Local installation for development purpose
+# Running Local
+
+## Local installation for development purpose
 
 ```
 # if you haven't installed Ganache yet
@@ -50,7 +62,7 @@ cd frontendAngular
 npm install
 ```
 
-### Local execution for development purpose
+## Local execution for development purpose
 
 ```
 # Running Ganache on port 7545 with pre-defined deterministic seed and saving the chain database at ~/sgbds/ganache
@@ -65,25 +77,25 @@ cd frontendAngular
 ng serve --open
 ```
 
-
-### UI Angular
+# Modules
+## UI Angular
 
 User interface built in Angular where bettors buy tokens, make their toss and withdraw their prize in Ether.
 
-### Contracts
+## Smart Contracts
 
-BetToken: It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken. It's upgradeable by use of OpenZeppelin Upgrades following the UUPS pattern. 
+### BetToken: 
+It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken. It's upgradeable by use of OpenZeppelin Upgrades following the UUPS pattern. 
 
-GameFactory: It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
+### GameFactory: 
+It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 
-Game: Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
+### Game: 
+Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
 
-Calculator: Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
+### Calculator:
+Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 
-### Structs
-
-Bet: One score tossed by a bettor and the amount of tokens he is putting in the game
-Score: A score composed by number of goals scored by home team and number of goals scored by visitor team
 
 # TODO
 
