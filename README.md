@@ -20,7 +20,7 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
 
 ## Backend
 
-- Hardhat 2.8
+- Hardhat 2.9
 - Truffle 5.5
   
 ### On-chain
