@@ -48,7 +48,7 @@ async function main() {
     JSON.stringify(proxyAddresses)
   );
   console.log(
-    `*************** CONFIRA O ARQUIVO '${PROXIES_ADDRESSES_FILENAME}' ***********`
+    `*************** Endereços persistidos em: '${PROXIES_ADDRESSES_FILENAME}' ***********`
   );
 }
 
