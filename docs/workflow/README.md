@@ -93,8 +93,18 @@ When you already have some Soccer Bet Token, you can go directly to this point.
 
 ![Winners popup](./imgs/16.WinnersPopup.png "Winners popup")
 
-3. Click on *Withdraw* to transfer the prize from the Game contract to your account and Metamask will ask for confirmation.
+3. Click on *Withdraw* to transfer the prize from the Game contract to your account and Metamask will ask for confirmation. To confirm, click on blue button *Confirm* at the bottom right.
 
 ![Withdraw Metamask confirmation](./imgs/17.WithdrawMetamask.png "Withdraw Metamask confirmation")
    
-4. After the transaction confirmation, you Soccer Bet Tokens balance will contain the value of your prize.
+4. After the transaction confirmation, your Soccer Bet Tokens balance will contain the value of your prize. You can see it returning to the Bet Token screen. You're able to use this balance for betting on other games or exchange part or all of it for the correspondent value in Ether. 
+
+![Exchange Soccer Bet Tokens](./imgs/18.ExchangeSBT.png "Exchange Soccer Bet Tokens")
+
+5. To exchange your Soccer Bet Tokens for Ether, click on *Exchange Soccer Bet Tokens* button and a popup asking the amount of Soccer Bet Tokens that you want to exchange will be shown. Inform the value and click on *Confirm*.
+
+![Exchange Soccer Bet Tokens popup](./imgs/19.ExchangeSBTpopup.png "Exchange Soccer Bet Tokens popup")
+
+6. Finally, Metamask will show the transaction costs and ask for confirmation. To confirm, click on blue button *Confirm* at the bottom right.
+
+![Exchange Soccer Bet Tokens Metamask confirmation](./imgs/20.ExchangeSBTMetamask.png "Exchange Soccer Bet Tokens Metamask confirmation")
