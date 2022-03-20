@@ -98,6 +98,11 @@ Represents a soccer game and manages the bets related to this specific game, reg
 ### Calculator:
 Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
 
+# Cost track
+
+In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [eth-gas-reporter.txt](./eth-gas-reporter.txt)*
+
+*Better view using `cat eth-gas-reporter.txt` on shell.
 
 # TODO
 
