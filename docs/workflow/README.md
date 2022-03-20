@@ -89,10 +89,12 @@ When you already have some Soccer Bet Token, you can go directly to this point.
 
 ![Finalized Game](./imgs/15.FinalizedGame.png "Finalized Game")
    
-2. Clicking on *Info* button and *Show winners...*, you can see which bettings matched the game's final score and the prize. If your bet's score was reached, you're gonna see it listed on the popup.
+2. Clicking on *Info* button and *Show winners...*, you can see which bettings matched the game's final score and the prize. If your bet's score was reached, you're gonna see it listed on the popup with a *Withdraw* button.
 
 ![Winners popup](./imgs/16.WinnersPopup.png "Winners popup")
 
-3. The amount is not 
+3. Click on *Withdraw* to transfer the prize from the Game contract to your account and Metamask will ask for confirmation.
+
+![Withdraw Metamask confirmation](./imgs/17.WithdrawMetamask.png "Withdraw Metamask confirmation")
    
-4. <button withdraw BetTokens>
+4. After the transaction confirmation, you Soccer Bet Tokens balance will contain the value of your prize.
