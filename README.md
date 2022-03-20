@@ -45,7 +45,7 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
 ## CI/CD
 - CircleCI
 
-# Running Local
+# Running Locally
 
 ## Local installation for development purpose
 
@@ -58,6 +58,10 @@ npm install @angular/cli --global
 
 cd backend-hardhat
 npm install
+# First deploy the contracts to the Ganache network
+npm run deployLocal
+# Upgrade BetToken
+npm run upgradeBetTokenLocal
 
 cd frontendAngular
 npm install
@@ -69,9 +73,6 @@ npm install
 # Running Ganache on port 7545 with pre-defined deterministic seed and saving the chain database at ~/sgbds/ganache
 cd backend-hardhat
 npm run ganache
-
-# Deploy the contracts to the Ganache network
-npm run deployLocal
 
 # Running the frontend
 cd frontendAngular

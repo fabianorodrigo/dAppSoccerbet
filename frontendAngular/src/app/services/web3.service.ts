@@ -76,6 +76,7 @@ export class Web3Service {
 
   /**
    * Gets the balance of the {_accountAddress} in the official currency of chain in use (ex. Ether in case of Ethereum)
+   *
    * @param _accountAddress The account address which balance is wanted
    * @returns The string value in Wei
    */

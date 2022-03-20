@@ -15,6 +15,7 @@ export class BetTokenService extends BaseContract {
   static EVENTS = {
     MINTED: 'TokenMinted',
     APPROVAL: 'Approval',
+    TRANSFER: 'Transfer',
   };
 
   constructor(_messageService: MessageService, _web3Service: Web3Service) {
@@ -58,7 +59,7 @@ export class BetTokenService extends BaseContract {
             });
             subscriber.next({
               success: true,
-              result: 'Transaction to approve allowance of BetTokens was sent successfully',
+              result: 'Transaction to approve allowance of Bet Tokens was sent successfully',
             });
           } catch (e: any) {
             const providerError = ProviderErrors[e.code];
@@ -98,6 +99,43 @@ export class BetTokenService extends BaseContract {
         })
         .catch((e) => {
           console.warn(`bettoken.allowance`, e);
+        });
+    });
+  }
+
+  /**
+   * Send an transaction with {_toAccountAddress} account to exchange the quantity {_value} of Soccer Bet Tokens por the equivalent in Ether
+   * The amount of Bet tokens will be burned after all
+   *
+   * @param _toAccountAddress Sender of transaction (recipient of Ethers when the transaction is confirmed)
+   * @param _value Amount of Soccer Bet Tokens to be exchange
+   * @returns The details of sending transaction
+   */
+  exchange4Ether(_toAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (contract) => {
+          let result;
+          try {
+            result = await contract.methods.exchange4Ether(_value).send({
+              from: _toAccountAddress, //TODO: fazer um teste fixando um outro endereço aqui
+            });
+            subscriber.next({
+              success: true,
+              result: 'Transaction to exchange your Bet Tokens for Ether was sent successfully',
+            });
+          } catch (e: any) {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            subscriber.next({ success: false, result: message });
+          }
+        })
+        .catch((e) => {
+          console.warn(`bettoken`, e);
         });
     });
   }

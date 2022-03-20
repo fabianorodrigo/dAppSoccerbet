@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 
 export interface BetTokenMintedEvent {
-  bettor: string;
+  tokenBuyer: string;
   quantity: BN;
-  betTokenBalance: BN;
+  contractBalance: BN;
 }
