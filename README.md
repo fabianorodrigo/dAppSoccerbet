@@ -106,8 +106,6 @@ In order to compare the evolution of costs, the hardhat gas reporter is configur
 
 # TODO
 
-- Utilizar o mecanismo do OpenZeppeling de upgrade contratos (proxy) (npm install --save-dev @openzeppelin/truffle-upgrades
-  ???) https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable
 - Utilizar o Openzeppelin Defender
 - Em alguma versão futura, criar uma votação (ou outro mecanismo) para o BetToken perder paridade com o Ether (See: https://101blockchains.com/tokenomics/)
 - Na mesma linha do tópico acima: Prover um ICO para os interessados ganharem participação nos lucros da casa/banca?
