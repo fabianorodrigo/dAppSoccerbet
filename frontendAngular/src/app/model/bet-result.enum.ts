@@ -1,5 +1,7 @@
 export enum BetResult {
-  UNDEFINED = '0',
-  LOSS = '1',
-  WINNING = '2',
+  NO_RESULT = '0',
+  LOSER = '1',
+  WINNER = '2',
+  TIED = '3',
+  PAID = '4',
 }

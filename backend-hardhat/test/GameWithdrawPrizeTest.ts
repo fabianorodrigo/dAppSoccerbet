@@ -250,7 +250,6 @@ describe("Game Prize Withdraw", function () {
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
-    //TODO: ENTÃO ... NESSE CENÁRIO SEM VENCEDORES, SACA-SE 90%
     //bettors withdraws
     await gameContract.connect(bettorA).withdrawPrize(0);
     await gameContract.connect(bettorB).withdrawPrize(1);
