@@ -5,7 +5,7 @@
 ![Web3](https://img.shields.io/badge/web3-Decentralized%20Web-brightgreen?style=flat-square&logo=ethereum)
 [![CircleCI](https://circleci.com/gh/fabianorodrigo/dAppSoccerbet/tree/main.svg?style=svg)](https://circleci.com/gh/fabianorodrigo/dAppSoccerbet/tree/main)
 
-Soccer scores bets decentralized Application. The objective of this dApp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
+Soccer scores bets decentralized Application. The objective of this Ðapp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
 The BETTOR buy tokens using Ether and uses these tokens to make guess about score of one or more games registered by the ADMIN. After a game is finalized, the ADMIN register the final score and the prize is splitted among those BETTORS whose bets matched the final score.
 
 <!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
