@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Bet, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
+import { Bet, BetResult, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -48,8 +48,7 @@ export class GameComponent implements OnInit {
     this.datetimeGame = new Date(this.gameCompound.game.datetimeGame * 1000);
     this.open = this.gameCompound.game.open;
     this.finalized = this.gameCompound.game.finalized;
-    //TODO: change event attribute name do finalScore
-    this.finalScore = this.gameCompound.game.score;
+    this.finalScore = this.gameCompound.game.finalScore;
 
     // Subscribing for account address changes in the provider
     this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
@@ -226,7 +225,8 @@ export class GameComponent implements OnInit {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
       } else {
-        const _winners = (_result.result as Bet[]).filter((b) => b.result == '2');
+        const _winnerResuts = [BetResult.WINNER, BetResult.TIED, BetResult.PAID];
+        const _winners = (_result.result as Bet[]).filter((b) => _winnerResuts.includes(b.result as BetResult));
         if (_winners.length > 0) {
           this._dialog.open(GameWinnersDialogComponent, {
             data: {

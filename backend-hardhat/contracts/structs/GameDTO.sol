@@ -11,5 +11,5 @@ struct GameDTO {
     uint256 datetimeGame;
     bool open;
     bool finalized;
-    Score score;
+    Score finalScore;
 }

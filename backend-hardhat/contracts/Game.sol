@@ -90,7 +90,7 @@ contract Game is Ownable, ReentrancyGuard {
         string visitorTeam,
         uint256 datetimeGame,
         uint256 totalWinners,
-        Score score
+        Score finalScore
     );
 
     /**
