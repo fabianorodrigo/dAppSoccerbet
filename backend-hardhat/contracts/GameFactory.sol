@@ -21,7 +21,6 @@ Functions
 
 import "./BetToken.sol";
 import "./Game.sol";
-import "./libs/StringUtils.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./structs/GameDTO.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
