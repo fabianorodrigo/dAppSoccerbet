@@ -9,7 +9,8 @@ module.exports = async function (deployer, network, accounts) {
     network === "ganacheRemoto" ||
     network === "development" ||
     network === "test" ||
-    network === "docker"
+    network === "docker" ||
+    network === "soliditycoverage"
   ) {
     // Creation contract transaction is gonna be sent by 7º Ganache account
     const owner = accounts[6];

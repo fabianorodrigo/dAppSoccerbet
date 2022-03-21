@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>{{ data.homeTeam }} X {{ data.visitorTeam }}</h2>
+<mat-dialog-content class="mat-typography">
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      <ng-container matColumnDef="homeScore">
+        <th mat-header-cell class="td-right" *matHeaderCellDef sticky>
+          {{ data.homeTeam }}
+        </th>
+        <td mat-cell class="td-right" *matCellDef="let bet">
+          {{ bet.homeScore }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="visitorScore">
+        <th mat-header-cell class="td-left" *matHeaderCellDef>
+          {{ data.visitorTeam }}
+        </th>
+        <td mat-cell class="td-left" *matCellDef="let bet">
+          {{ bet.visitorScore }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="X">
+        <th mat-header-cell class="td-center" *matHeaderCellDef>X</th>
+        <td mat-cell class="td-center" *matCellDef="let bet">x</td>
+      </ng-container>
+
+      <ng-container matColumnDef="value">
+        <th mat-header-cell class="td-right" *matHeaderCellDef>BetTokens</th>
+        <td mat-cell class="td-right" *matCellDef="let bet">
+          {{ format(bet.value) }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="bettor">
+        <th mat-header-cell *matHeaderCellDef>Bettor address</th>
+        <td mat-cell *matCellDef="let bet">{{ bet.bettor }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+  <div class="bottom-info" *ngIf="prize">
+    <span>Total bets:</span>
+    <span class="total-bets-value">{{ data.bets.length }} </span>
+    <span
+      >{{ data.gameCompound.game.finalized ? "Final" : "Current" }} prize:</span
+    >
+    <span class="prize-symbol">SBT</span>
+    <span class="prize-value" [matTooltip]="format(prize)"
+      >{{ formatShortScale(prize) }}
+    </span>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Close</button>
+</mat-dialog-actions>

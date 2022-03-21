@@ -12,6 +12,8 @@ import { MenuComponent } from './menu/menu.component';
 import { WalletComponent } from './wallet/wallet.component';
 import { ScoreDialogComponent } from '../games/score-dialog/score-dialog.component';
 import { BetDialogComponent } from '../games/bet-dialog/bet-dialog.component';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
+import { ShortScaleNumberComponent } from './short-scale-number/short-scale-number.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +24,8 @@ import { BetDialogComponent } from '../games/bet-dialog/bet-dialog.component';
     LayoutComponent,
     ScoreDialogComponent,
     BetDialogComponent,
+    ConfirmDialogComponent,
+    ShortScaleNumberComponent,
   ],
   imports: [
     CommonModule,
@@ -37,6 +41,8 @@ import { BetDialogComponent } from '../games/bet-dialog/bet-dialog.component';
     MenuComponent,
     LayoutComponent,
     BetDialogComponent,
+    ConfirmDialogComponent,
+    ShortScaleNumberComponent,
   ],
 })
 export class ComponentsModule {}

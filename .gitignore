@@ -2,3 +2,5 @@ node_modules/
 .secret
 build
 test-results/
+artifacts/
+mcore_*

@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@angular/core';
+import detectEthereumProvider from '@metamask/detect-provider';
+import * as BN from 'bn.js';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { WEB3 } from '../core/web3';
-import { ProviderMessage, ProviderRpcError, TransactionResult } from '../model';
-import * as BN from 'bn.js';
-import detectEthereumProvider from '@metamask/detect-provider';
+import { ProviderMessage, TransactionResult } from '../model';
 
 declare let window: any;
 
@@ -75,6 +75,25 @@ export class Web3Service {
   }
 
   /**
+   * Gets the balance of the {_accountAddress} in the official currency of chain in use (ex. Ether in case of Ethereum)
+   *
+   * @param _accountAddress The account address which balance is wanted
+   * @returns The string value in Wei
+   */
+  chainCurrencyBalanceOf(_accountAddress: string): Observable<string> {
+    return new Observable<string>((_subscriber) => {
+      this._web3.eth
+        .getBalance(_accountAddress)
+        .then((_balance) => {
+          _subscriber.next(_balance);
+        })
+        .catch((e) => {
+          console.warn(`web3Service`, e);
+        });
+    });
+  }
+
+  /**
    * Send Ether a {_value} from account {_addressFrom} to account {_addressTo}
    *
    * @param _addressFrom origin of funds
@@ -83,12 +102,8 @@ export class Web3Service {
    *
    * @returns a TransactionResult that indicates if successful or not and message
    */
-  sendWei(
-    _addressFrom: string,
-    _addressTo: string,
-    _valueInWei: BN
-  ): Observable<TransactionResult> {
-    return new Observable<TransactionResult>((_subscriber) => {
+  sendWei(_addressFrom: string, _addressTo: string, _valueInWei: BN): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((_subscriber) => {
       if (window.ethereum) {
         const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
         window.ethereum
@@ -105,15 +120,15 @@ export class Web3Service {
             ],
           })
           .then((_transaction: any) => {
-            _subscriber.next({ success: true, message: _transaction });
+            _subscriber.next({ success: true, result: _transaction });
           })
           .catch((e: { message: any }) => {
-            _subscriber.next({ success: false, message: e.message });
+            _subscriber.next({ success: false, result: e.message });
           });
       } else {
         _subscriber.next({
           success: false,
-          message: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
+          result: `You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet`,
         });
       }
     });
@@ -123,8 +138,7 @@ export class Web3Service {
     const tokenAddress = environment.betTokenAddress;
     const tokenSymbol = 'BET';
     const tokenDecimals = 18;
-    const tokenImage =
-      'https://cdn.iconscout.com/icon/premium/png-256-thumb/football-betting-2018363-1716872.png';
+    const tokenImage = 'https://cdn.iconscout.com/icon/premium/png-256-thumb/football-betting-2018363-1716872.png';
 
     try {
       // wasAdded is a boolean. Like any RPC method, an error may be thrown.
@@ -153,14 +167,9 @@ export class Web3Service {
    * @param _abis Abis of contract
    * @param _address Address of contract
    */
-  async getContract(
-    _abis: AbiItem[],
-    _address: string
-  ): Promise<Contract | null> {
+  async getContract(_abis: AbiItem[], _address: string): Promise<Contract | null> {
     if ((await this._web3.eth.getCode(_address)) === '0x') {
-      console.error(
-        `Address ${_address} is not a contract at the connected chain`
-      );
+      console.error(`Address ${_address} is not a contract at the connected chain`);
       return null;
     }
     return new this._web3.eth.Contract(_abis, _address);
@@ -190,15 +199,10 @@ export class Web3Service {
         });
         window.ethereum.on('connect', this.handleOnConnect.bind(this));
         window.ethereum.on('disconnect', this.handleOnDisconnect.bind(this));
-        window.ethereum.on(
-          'accountsChanged',
-          this.handleOnAccountsChanged.bind(this)
-        );
+        window.ethereum.on('accountsChanged', this.handleOnAccountsChanged.bind(this));
         window.ethereum.on('message', this.handleOnMessage);
         //Metamask Docs strongly recommend reloading the page on chain changes, unless you have good reason not to.
-        window.ethereum.on('chainChanged', (_chainId: string) =>
-          window.location.reload()
-        );
+        window.ethereum.on('chainChanged', (_chainId: string) => window.location.reload());
         return true;
       }
     }
@@ -234,8 +238,7 @@ export class Web3Service {
    * @param connectInfo ProviderRpcError
    */
   private handleOnAccountsChanged(_accounts: string[]) {
-    this._userAccountAddress =
-      _accounts.length > 0 ? this.toCheckSumAddress(_accounts[0]) : null;
+    this._userAccountAddress = _accounts.length > 0 ? this.toCheckSumAddress(_accounts[0]) : null;
     this._userAccountAddressSubject.next(this._userAccountAddress);
   }
 

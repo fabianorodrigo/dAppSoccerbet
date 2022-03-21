@@ -9,14 +9,14 @@ jobs:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker: 
-      - image: fabianorodrigo/contratosintel_truffle:1.1.0
-    working_directory: ~/repos/handson_solidity/backend-truffle
+      - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.3
+    working_directory: ~/repo/backend-hardhat
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout:
-          path: ~/repos/handson_solidity/
-      - run: npm install && truffle compile
+          path: ~/repo
+      - run: npm install && npm run build
 
       - save_cache:
           paths:
@@ -31,42 +31,36 @@ jobs:
             - build
   test:
       docker: 
-        - image: fabianorodrigo/contratosintel_truffle:1.1.0
-      working_directory: ~/repos/handson_solidity/backend-truffle
+        - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.3
+      working_directory: ~/repo/backend-hardhat
       steps:
         - checkout:
-            path: ~/repos/handson_solidity/
+            path: ~/repo/
         - attach_workspace:
-            at: ~/repos/handson_solidity/backend-truffle
+            at: ~/repo/backend-hardhat
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
-        - run: 
-            name: Ganache
-            command: npm run ganache-ci
-            background: true
-        - run: truffle test --network ganache
+        - run: npm run coverage
         - store_test_results:
-            path: ./test-results
+            path: ./reports/test-contract-results.xml
         - store_artifacts:
-            path: ./test-results
+            path: ./reports/
   slither:
       docker: 
-        - image: fabianorodrigo/contratosintel_truffle:1.1.0
-      working_directory: ~/repos/handson_solidity/backend-truffle
+        - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.3
+      working_directory: ~/repo/backend-hardhat
       steps:
         - checkout:
-            path: ~/repos/handson_solidity/
+            path: ~/repo/
         - attach_workspace:
-            at: ~/repos/handson_solidity/backend-truffle
+            at: ~/repo/backend-hardhat
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
         - run: slither . --json slither_result.json
-        - store_test_results:
-            path: ./test-results
         - store_artifacts:
-            path: ./test-results            
+            path: ./slither_result.json           
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -77,6 +71,6 @@ workflows:
       - test:
           requires:
             - build
-      - slither:
-          requires:
-            - build            
+      # - slither:
+      #     requires:
+      #       - build            

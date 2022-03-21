@@ -12,3 +12,8 @@
 .button {
   margin-top: 50px;
 }
+
+.actions {
+  display: flex;
+  gap: 5px;
+}

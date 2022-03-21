@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="18.7600" tests="46" failures="0">
+  <testsuite name="Root Suite" timestamp="2022-03-21T21:03:12" tests="0" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="Token" timestamp="2022-03-21T21:03:12" tests="0" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/BetTokenTest.ts" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="Transactions" timestamp="2022-03-21T21:03:12" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/BetTokenTest.ts" time="0.9850" failures="0">
+    <testcase name="Token Transactions Should buy some tokens with Ether" time="0.1680" classname="Should buy some tokens with Ether">
+    </testcase>
+    <testcase name="Token Transactions Should revert if someone without Bet Tokens try to exchange for Ether" time="0.0220" classname="Should revert if someone without Bet Tokens try to exchange for Ether">
+    </testcase>
+    <testcase name="Token Transactions Should exchange Bet Tokens for Ether" time="0.1400" classname="Should exchange Bet Tokens for Ether">
+    </testcase>
+  </testsuite>
+  <testsuite name="Destroy" timestamp="2022-03-21T21:03:13" tests="2" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/BetTokenTest.ts" time="0.3170" failures="0">
+    <testcase name="Token Destroy Should revert if someone different from owner try destroy contract" time="0.0130" classname="Should revert if someone different from owner try destroy contract">
+    </testcase>
+    <testcase name="Token Destroy Should Ether goes to ERC20 owner after destroy contract" time="0.1250" classname="Should Ether goes to ERC20 owner after destroy contract">
+    </testcase>
+  </testsuite>
+  <testsuite name="Calculator" timestamp="2022-03-21T21:03:14" tests="0" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/CalculatorTest.ts" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="calcPercentage" timestamp="2022-03-21T21:03:14" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/CalculatorTest.ts" time="0.0660" failures="0">
+    <testcase name="Calculator calcPercentage Should return 0 as 1% of numbers up to 99" time="0.0210" classname="Should return 0 as 1% of numbers up to 99">
+    </testcase>
+    <testcase name="Calculator calcPercentage Should return 1 as 1% of numbers between 100 and 199" time="0.0260" classname="Should return 1 as 1% of numbers between 100 and 199">
+    </testcase>
+    <testcase name="Calculator calcPercentage Should return 100% of numbers" time="0.0190" classname="Should return 100% of numbers">
+    </testcase>
+  </testsuite>
+  <testsuite name="GameFactory" timestamp="2022-03-21T21:03:14" tests="4" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameFactoryTest.ts" time="1.1590" failures="0">
+    <testcase name="GameFactory Should create a new game" time="0.0430" classname="Should create a new game">
+    </testcase>
+    <testcase name="GameFactory Should list games" time="0.0810" classname="Should list games">
+    </testcase>
+    <testcase name="GameFactory Should set commision fee for future created Games" time="0.0580" classname="Should set commision fee for future created Games">
+    </testcase>
+    <testcase name="GameFactory Should revert if someone different from owner try set commission" time="0.0150" classname="Should revert if someone different from owner try set commission">
+    </testcase>
+  </testsuite>
+  <testsuite name="Game Finalize" timestamp="2022-03-21T21:03:15" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameFinalizeCalcPrizesTest.ts" time="2.6500" failures="0">
+    <testcase name="Game Finalize Should pay 90% of stake to the winner bet" time="0.6820" classname="Should pay 90% of stake to the winner bet">
+    </testcase>
+    <testcase name="Game Finalize Should split proportionally 90% of stake to the winners bets" time="0.6360" classname="Should split proportionally 90% of stake to the winners bets">
+    </testcase>
+    <testcase name="Game Finalize Should refund 90% of stake to all bets if nobody matches the final score" time="0.6130" classname="Should refund 90% of stake to all bets if nobody matches the final score">
+    </testcase>
+  </testsuite>
+  <testsuite name="Game" timestamp="2022-03-21T21:03:18" tests="1" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="0.0000" failures="0">
+    <testcase name="Game Should have the initial state accordingly" time="0.0200" classname="Should have the initial state accordingly">
+    </testcase>
+  </testsuite>
+  <testsuite name="Open" timestamp="2022-03-21T21:03:18" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="0.6590" failures="0">
+    <testcase name="Game Open Should open closed game for betting" time="0.0180" classname="Should open closed game for betting">
+    </testcase>
+    <testcase name="Game Open Should revert if try open for betting an already open game" time="0.0230" classname="Should revert if try open for betting an already open game">
+    </testcase>
+    <testcase name="Game Open Should revert if someone different from owner try open a game for betting" time="0.0060" classname="Should revert if someone different from owner try open a game for betting">
+    </testcase>
+  </testsuite>
+  <testsuite name="Close" timestamp="2022-03-21T21:03:19" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="0.6250" failures="0">
+    <testcase name="Game Close Should close open game for betting" time="0.0260" classname="Should close open game for betting">
+    </testcase>
+    <testcase name="Game Close Should revert if try close for betting an closed game" time="0.0010" classname="Should revert if try close for betting an closed game">
+    </testcase>
+    <testcase name="Game Close Should revert if someone different from owner try close a game for betting" time="0.0080" classname="Should revert if someone different from owner try close a game for betting">
+    </testcase>
+  </testsuite>
+  <testsuite name="Finalize" timestamp="2022-03-21T21:03:19" tests="4" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="0.8760" failures="0">
+    <testcase name="Game Finalize Should finalize a closed game" time="0.0330" classname="Should finalize a closed game">
+    </testcase>
+    <testcase name="Game Finalize Should revert if try to finalize an open game" time="0.0300" classname="Should revert if try to finalize an open game">
+    </testcase>
+    <testcase name="Game Finalize Should revert if try to finalize an already finalized game" time="0.0350" classname="Should revert if try to finalize an already finalized game">
+    </testcase>
+    <testcase name="Game Finalize Should revert if someone different from owner try finalize a game" time="0.0080" classname="Should revert if someone different from owner try finalize a game">
+    </testcase>
+  </testsuite>
+  <testsuite name="Bet" timestamp="2022-03-21T21:03:20" tests="5" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="1.3300" failures="0">
+    <testcase name="Game Bet Should make a bet on an open game" time="0.1410" classname="Should make a bet on an open game">
+    </testcase>
+    <testcase name="Game Bet Should revert if try to bet on a closed game" time="0.0820" classname="Should revert if try to bet on a closed game">
+    </testcase>
+    <testcase name="Game Bet Should revert if try to bet zero BetTokens on a game" time="0.0220" classname="Should revert if try to bet zero BetTokens on a game">
+    </testcase>
+    <testcase name="Game Bet Should revert if try to bet on a game without Bet Tokens" time="0.0130" classname="Should revert if try to bet on a game without Bet Tokens">
+    </testcase>
+    <testcase name="Game Bet Should revert if try to bet on a game without approve enough Bet Tokens for Game contract" time="0.0980" classname="Should revert if try to bet on a game without approve enough Bet Tokens for Game contract">
+    </testcase>
+  </testsuite>
+  <testsuite name="Getters" timestamp="2022-03-21T21:03:22" tests="4" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="2.0020" failures="0">
+    <testcase name="Game Getters Should list all bets on an game" time="0.2280" classname="Should list all bets on an game">
+    </testcase>
+    <testcase name="Game Getters Should get the sum of BetTokens bet on an game" time="0.2370" classname="Should get the sum of BetTokens bet on an game">
+    </testcase>
+    <testcase name="Game Getters Should get the percentage of administration commission applyed over the stake of a game" time="0.3470" classname="Should get the percentage of administration commission applyed over the stake of a game">
+    </testcase>
+    <testcase name="Game Getters Should get the total stake of a game less the administration commission" time="0.2840" classname="Should get the total stake of a game less the administration commission">
+    </testcase>
+  </testsuite>
+  <testsuite name="Destroy" timestamp="2022-03-21T21:03:24" tests="3" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameTest.ts" time="0.6380" failures="0">
+    <testcase name="Game Destroy Should eventual Ether balance of Game contract be sent to the owner" time="0.0420" classname="Should eventual Ether balance of Game contract be sent to the owner">
+    </testcase>
+    <testcase name="Game Destroy Should revert if someone different from owner try destroy contract" time="0.0120" classname="Should revert if someone different from owner try destroy contract">
+    </testcase>
+    <testcase name="Game Destroy Should revert if sending Ether to the contract" time="0.0000" classname="Should revert if sending Ether to the contract">
+    </testcase>
+  </testsuite>
+  <testsuite name="Game Prize Withdraw" timestamp="2022-03-21T21:03:24" tests="8" file="/home/fabianorodrigo/Projetos/solidity/dAppSoccerBet/backend-hardhat/test/GameWithdrawPrizeTest.ts" time="6.9510" failures="0">
+    <testcase name="Game Prize Withdraw Should revert if an inexistent bet index is informed" time="0.0110" classname="Should revert if an inexistent bet index is informed">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should revert if try to withdraw the prize of a bet with unknown result" time="0.0120" classname="Should revert if try to withdraw the prize of a bet with unknown result">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should revert if try to withdraw the prize of a loser bet" time="0.0540" classname="Should revert if try to withdraw the prize of a loser bet">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should revert if try to withdraw the prize of already paid bet" time="0.0650" classname="Should revert if try to withdraw the prize of already paid bet">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should revert if an account different from the bet&apos;s bettor is trying to withdraw the prize" time="0.0780" classname="Should revert if an account different from the bet&apos;s bettor is trying to withdraw the prize">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should withdraw 90% of stake to the winner bet" time="0.0780" classname="Should withdraw 90% of stake to the winner bet">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should split proportionally 90% of stake to the winners bets" time="0.0970" classname="Should split proportionally 90% of stake to the winners bets">
+    </testcase>
+    <testcase name="Game Prize Withdraw Should refund 90% of stake to all bets if nobody matches the final score" time="0.1420" classname="Should refund 90% of stake to all bets if nobody matches the final score">
+    </testcase>
+  </testsuite>
+</testsuites>

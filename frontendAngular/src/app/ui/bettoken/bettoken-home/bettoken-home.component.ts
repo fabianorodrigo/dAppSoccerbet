@@ -2,8 +2,9 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
-import { BetTokenMintedEvent as BetTokenReceivedEvent } from 'src/app/model';
-import { MessageService, Web3Service } from 'src/app/services';
+import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer } from 'src/app/model';
+import { MessageService, NumbersService, Web3Service } from 'src/app/services';
+import { environment } from 'src/environments/environment';
 import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 
 @Component({
@@ -13,13 +14,16 @@ import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
 })
 export class BettokenHomeComponent implements OnInit {
   userAccountAddress: string | null = null;
-  balance: BN = new BN(0);
+  formatedBalance: string = '0';
+  formatedBalanceTooltip: string = '0';
+  chainCurrencyName: string = environment.chainCurrencyName;
 
   constructor(
     private _changeDetectorRefs: ChangeDetectorRef,
     private _web3Service: Web3Service,
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
+    private _numberService: NumbersService,
     private _dialog: MatDialog
   ) {}
 
@@ -33,14 +37,26 @@ export class BettokenHomeComponent implements OnInit {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
       // balance of BetTokens changes
       (
-        await this._betTokenService.getEventBehaviorSubject(
-          BetTokenService.EVENTS.MINTED
-        )
+        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED, {
+          tokenBuyer: this.userAccountAddress,
+        })
       )?.subscribe((evt) => {
         if (evt == null) return;
         const eventData: BetTokenReceivedEvent = evt;
         this._messageService.show(
-          `A transaction of ${eventData.quantity} tokens was confirmed`
+          `A transaction of ${this._numberService.formatBNShortScale(eventData.quantity)} tokens was confirmed`
+        );
+        this.getBalance();
+      });
+      (
+        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.TRANSFER, {
+          from: this.userAccountAddress,
+        })
+      )?.subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: ERC20Transfer = evt;
+        this._messageService.show(
+          `A exchange of ${this._numberService.formatBNShortScale(eventData.value)} tokens was confirmed`
         );
         this.getBalance();
       });
@@ -50,45 +66,65 @@ export class BettokenHomeComponent implements OnInit {
   }
 
   buy(event: MouseEvent) {
-    if (!this.userAccountAddress) {
-      this._messageService.show(
-        `You have to connect your wallet in order to buy BetTokens`
-      );
-    } else {
+    if (!this.userAccountAddress) return;
+    this._web3Service.chainCurrencyBalanceOf(this.userAccountAddress).subscribe((_balance) => {
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
-          title: `Buy BetTokens`,
+          title: `Buy Soccer Bet Tokens`,
+          maxAmmount: new BN(_balance),
         },
       });
 
       dialogRef.afterClosed().subscribe((_purchaseData) => {
         if (_purchaseData) {
           if (_purchaseData.value != null && this.userAccountAddress) {
-            this._betTokenService
-              .buy(this.userAccountAddress, new BN(_purchaseData.value))
-              .subscribe((_result) => {
-                console.log(_result);
-                //this._messageService.show(_result.message);
-              });
+            this._betTokenService.buy(this.userAccountAddress, new BN(_purchaseData.value)).subscribe((_result) => {
+              //this._messageService.show(_result.result);
+            });
           } else {
-            this._messageService.show(`Quantity of BetTokens is not valid`);
+            this._messageService.show(`Quantity of Bet Tokens is not valid`);
           }
         }
-        console.log(`Dialog result`, _purchaseData);
       });
-    }
+    });
+  }
+
+  exchange(event: MouseEvent) {
+    if (!this.userAccountAddress) return;
+    this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      const dialogRef = this._dialog.open(BuyDialogComponent, {
+        data: {
+          title: `Exchange Soccer Bet Tokens for Ether`,
+          maxAmmount: new BN(_balanceSBT),
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((_amount) => {
+        if (_amount) {
+          if (_amount.value != null && this.userAccountAddress) {
+            this._betTokenService
+              .exchange4Ether(this.userAccountAddress, new BN(_amount.value))
+              .subscribe((_result) => {
+                console.log(_result);
+                //this._messageService.show(_result.result);
+              });
+          } else {
+            this._messageService.show(`Quantity of Bet Tokens is not valid`);
+          }
+        }
+      });
+    });
   }
 
   addTokenToWallet(event: MouseEvent) {}
 
   private getBalance() {
     if (this.userAccountAddress) {
-      this._betTokenService
-        .balanceOf(this.userAccountAddress)
-        .subscribe((_balance) => {
-          this.balance = _balance;
-          this._changeDetectorRefs.detectChanges();
-        });
+      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
+        this.formatedBalance = this._numberService.formatBNShortScale(_balance);
+        this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
+        this._changeDetectorRefs.detectChanges();
+      });
     }
   }
 }

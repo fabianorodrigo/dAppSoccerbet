@@ -1,0 +1,8 @@
+{
+"files.exclude": {
+    "**/artifacts": true,
+    "**/cache": true,
+    "**/build": true,
+    },
+    
+}

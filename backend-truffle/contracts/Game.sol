@@ -84,18 +84,10 @@ contract Game is Ownable {
         string homeTeam,
         string visitorTeam,
         uint256 datetimeGame,
+        uint256 totalWinners,
         Score score
     );
-    /**
-     * @notice Event triggered when a game has the final score updated
-     */
-    event GameFinalScoreUpdated(
-        address addressGame,
-        string homeTeam,
-        string visitorTeam,
-        uint256 datetimeGame,
-        Score score
-    );
+
     /**
      * @notice Event triggered when someone bet on a game
      */
@@ -198,7 +190,7 @@ contract Game is Ownable {
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
         if (_betTokenContract.transferFrom(msg.sender, address(this), _value)) {
-            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT));
+            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
             _totalStake += _value;
             emit BetOnGame(
                 address(this),
@@ -237,61 +229,49 @@ contract Game is Ownable {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
+        uint256 totalWinners = calcPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
             visitorTeam,
             datetimeGame,
+            totalWinners,
             finalScore
         );
     }
 
     /**
-     * @notice Identify which bets matched the finalScore and split the prize (stake less comission fee)
-     * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
-     * for all
-     * @return The number of bets winners
+     * @notice Function called by the bettor in order to withdrawal it's prize
+     *
+     * @param _betIndex the index of Bet being withdrawn
      */
-    function payPrizes() external onlyOwner returns (uint256) {
-        require(finalized, "Game not finalized yet");
-        uint256 _totalTokensBetWinners = 0;
-        uint256 _totalWinners = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            if (
-                _bets[i].score.home == finalScore.home &&
-                _bets[i].score.visitor == finalScore.visitor
-            ) {
-                _bets[i].result = WINNING;
-                _totalTokensBetWinners += _bets[i].value;
-                _totalWinners++;
-            } else {
-                _bets[i].result = LOSS;
-            }
-        }
-        uint256 _totalPrize = this.getPrize();
-        uint256 _divider;
-        // if nobody matches the final score, every bettor is refunded with
-        // the value of he's bet less the commission fee
-        // In this case, the divider applyed to the formula will be the total stake
-        if (_totalWinners == 0) {
-            _divider = _totalStake;
-        }
-        //Otherwise, the divider will be the _totalTokensBetWinners
-        else {
-            _divider = _totalTokensBetWinners;
-        }
-        for (uint256 i = 0; i < _bets.length; i++) {
-            //If nobody matches the final score, _totalTokensBetWinners will be zero
-            //and if will always return TRUE. Otherwise, only when for bets that matched
-            //the final score the IF will be TRUE
-            if (_bets[i].result == WINNING || _totalTokensBetWinners == 0) {
-                // The value transfered will be proportional: prize * the value of bet divided by
-                // the total of tokens of the winning bets (if nobody wins, the total stake)
-                uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
-                _betTokenContract.transfer(_bets[i].bettor, _prizeValue);
-            }
-        }
-        return _totalWinners;
+    function withdrawPrize(uint256 _betIndex) {
+        require(_bets[_betIndex].bettor == msg.sender);
+        require(_bets[_betIndex].result == WINNING);
+        require(false, "Implementation missed");
+        // If gas costs are subject to change, then smart contracts can’t
+        // depend on any particular gas costs. Any smart contract that uses
+        // transfer() or send() is taking a hard dependency on gas costs by
+        // forwarding a fixed amount of gas: 2300.
+        //
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use
+        (bool sent, bytes memory data) = msg.sender.call{
+            value: _bets[_betIndex].prize
+        }("");
+        require(sent, "Fail to pay the prize");
+    }
+
+    /**
+     * @notice If neither a receive Ether nor a payable fallback function is present,
+     * the contract cannot receive Ether through regular transactions and throws an exception.
+     * A contract without a receive Ether function can receive Ether as a recipient of a
+     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
+     * A contract cannot react to such Ether transfers and thus also cannot reject them.
+     * This is a design choice of the EVM and Solidity cannot work around it.
+     */
+    function destroyContract() external onlyOwner {
+        selfdestruct(payable(this.owner()));
     }
 
     /**
@@ -331,14 +311,50 @@ contract Game is Ownable {
     }
 
     /**
-     * @notice If neither a receive Ether nor a payable fallback function is present,
-     * the contract cannot receive Ether through regular transactions and throws an exception.
-     * A contract without a receive Ether function can receive Ether as a recipient of a
-     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
-     * A contract cannot react to such Ether transfers and thus also cannot reject them.
-     * This is a design choice of the EVM and Solidity cannot work around it.
+     * @notice Identify which bets matched the finalScore and split the prize (stake less comission fee)
+     * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
+     * for all
+     * @return The number of bets winners
      */
-    function destroyContract() public onlyOwner {
-        selfdestruct(payable(this.owner()));
+    function calcPrizes() internal onlyOwner returns (uint256) {
+        require(finalized, "Game not finalized yet");
+        uint256 _totalTokensBetWinners = 0;
+        uint256 _totalWinners = 0;
+        for (uint256 i = 0; i < _bets.length; i++) {
+            if (
+                _bets[i].score.home == finalScore.home &&
+                _bets[i].score.visitor == finalScore.visitor
+            ) {
+                _bets[i].result = WINNING;
+                _totalTokensBetWinners += _bets[i].value;
+                _totalWinners++;
+            } else {
+                _bets[i].result = LOSS;
+            }
+        }
+        uint256 _totalPrize = this.getPrize();
+        uint256 _divider;
+        // if nobody matches the final score, every bettor is refunded with
+        // the value of he's bet less the commission fee
+        // In this case, the divider applyed to the formula will be the total stake
+        if (_totalWinners == 0) {
+            _divider = _totalStake;
+        }
+        //Otherwise, the divider will be the _totalTokensBetWinners
+        else {
+            _divider = _totalTokensBetWinners;
+        }
+        for (uint256 i = 0; i < _bets.length; i++) {
+            //If nobody matches the final score, _totalTokensBetWinners will be zero
+            //and it will always return TRUE. Otherwise, only when for bets that matched
+            //the final score the IF will be TRUE
+            if (_bets[i].result == WINNING || _totalTokensBetWinners == 0) {
+                // The value transfered will be proportional: prize * the value of bet divided by
+                // the total of tokens of the winning bets (if nobody wins, the total stake)
+                uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
+                _bets[i].prize = _prizeValue;
+            }
+        }
+        return _totalWinners;
     }
 }
