@@ -41,11 +41,11 @@ jobs:
         - restore_cache:
             keys:
               - node_modules-{{ checksum "package.json" }}
-        - run: npm run test
+        - run: npm run coverage
         - store_test_results:
-            path: ./test-results/test-contract-results.xml
+            path: ./reports/test-contract-results.xml
         - store_artifacts:
-            path: ./test-results/
+            path: ./reports/
   slither:
       docker: 
         - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.3

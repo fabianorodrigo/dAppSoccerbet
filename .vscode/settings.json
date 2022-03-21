@@ -4,7 +4,6 @@
     "**/cache": true,
     "**/build": true,
     "**/coverage": true,
-    "**/test-results": true
     },
     
 }

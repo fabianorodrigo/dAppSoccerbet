@@ -4,4 +4,4 @@ export interface ProxiesAddresses {
   GAMEFACTORY_PROXY_ADDRESS: string;
 }
 
-export const PROXIES_ADDRESSES_FILENAME = "PROXIES_ADDRESSES.io";
+export const PROXIES_ADDRESSES_FILENAME = "reports/PROXIES_ADDRESSES.io";

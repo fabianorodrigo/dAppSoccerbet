@@ -100,7 +100,7 @@ Contract that provides Math functions. It's upgradeable by use of OpenZeppelin U
 
 # Cost track
 
-In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [backend-hardhat/eth-gas-reporter.txt](https://github.com/fabianorodrigo/dAppSoccerbet/blob/develop/backend-hardhat/eth-gas-reporter.txt)*
+In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [backend-hardhat/reports/eth-gas-reporter.txt](https://github.com/fabianorodrigo/dAppSoccerbet/blob/develop/backend-hardhat/reports/eth-gas-reporter.txt)*
 
 *Better view using `cat eth-gas-reporter.txt` on shell.
 

@@ -38,6 +38,7 @@ export default {
     currency: "BRL",
     coinmarketcap: process.env.COINMARKETCAP_API_TOKEN,
     showTimeSpent: true,
-    outputFile: "eth-gas-reporter.txt",
+    outputFile: "reports/eth-gas-reporter.txt",
+    enabled: true,
   },
 };
