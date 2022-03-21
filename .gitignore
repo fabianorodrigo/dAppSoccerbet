@@ -3,7 +3,4 @@ node_modules/
 build
 test-results/
 artifacts/
-coverage
-.coverage_*
 mcore_*
-*.dot

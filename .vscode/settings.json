@@ -3,7 +3,6 @@
     "**/artifacts": true,
     "**/cache": true,
     "**/build": true,
-    "**/coverage": true,
     },
     
 }
