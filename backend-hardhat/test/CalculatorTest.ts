@@ -1,21 +1,33 @@
 import {expect} from "chai";
-import {Contract} from "ethers";
+import {Contract, ContractFactory, Signer} from "ethers";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
-import {ethers, upgrades} from "hardhat";
+import {ethers, upgrades, waffle} from "hardhat";
 
-let Calculator;
+let Calculator: ContractFactory;
+let TestingAuxiliar: ContractFactory;
 let calc: Contract;
 
 describe("Calculator", function () {
+  let accounts: Signer[];
+  let owner: Signer;
+  let bettor: Signer;
+
   before(async () => {
+    accounts = await ethers.getSigners();
+    // The owner is gonna be sent by 1º account
+    //When using the hardhat-ethers plugin ContractFactory and Contract instances are connected to the FIRST signer by default.
+    owner = accounts[0];
+    bettor = accounts[1];
+
     //Contract
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
     calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
+    TestingAuxiliar = await ethers.getContractFactory("TestingAuxiliar");
   });
 
   describe("calcPercentage", () => {

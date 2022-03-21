@@ -1,6 +1,7 @@
 import {expect} from "chai";
 import {
   BigNumberish,
+  constants,
   Contract,
   ContractFactory,
   Signer,
@@ -20,6 +21,7 @@ describe("Token", function () {
   let accounts: Signer[];
   let owner: Signer;
   let bettor: Signer;
+  let bettorX: Signer;
 
   // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
   // Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
@@ -32,6 +34,7 @@ describe("Token", function () {
     //When using the hardhat-ethers plugin ContractFactory and Contract instances are connected to the FIRST signer by default.
     owner = accounts[0];
     bettor = accounts[1];
+    bettorX = accounts[9];
     //Contract Factory
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
   });
@@ -42,31 +45,67 @@ describe("Token", function () {
     await erc20BetToken.deployed();
   });
 
-  it(`Should buy some tokens with Ether`, async () => {
-    //One wei => 1 Ether = 1 * 10^18 wei
-    const weiAmount = 1; //new BN(1);
-    //contract ERC20 Ether balance
-    const erc20BalanceETH = await waffle.provider.getBalance(
-      erc20BetToken.address
-    );
-    let receipt = await buyOneWeiOfTokens(weiAmount);
-
-    // Test for event
-    await expect(receipt)
-      .to.emit(erc20BetToken, "TokenMinted")
-      .withArgs(
-        await bettor.getAddress(),
-        weiAmount,
-        erc20BalanceETH.add(weiAmount)
+  describe("Transactions", () => {
+    it(`Should buy some tokens with Ether`, async () => {
+      //One wei => 1 Ether = 1 * 10^18 wei
+      const weiAmount = 1; //new BN(1);
+      //contract ERC20 Ether balance
+      const erc20BalanceETH = await waffle.provider.getBalance(
+        erc20BetToken.address
       );
-    // test balance of tokens
-    await expect(
-      await erc20BetToken.balanceOf(await bettor.getAddress())
-    ).to.be.equal(weiAmount);
-    // test balance of Ether of the contract ERC20
-    await expect(
-      await waffle.provider.getBalance(erc20BetToken.address)
-    ).to.be.equal(erc20BalanceETH.add(weiAmount));
+      let receipt = await buyOneWeiOfTokens(weiAmount);
+
+      // Test for event
+      await expect(receipt)
+        .to.emit(erc20BetToken, "TokenMinted")
+        .withArgs(
+          await bettor.getAddress(),
+          weiAmount,
+          erc20BalanceETH.add(weiAmount)
+        );
+      // test balance of tokens
+      await expect(
+        await erc20BetToken.balanceOf(await bettor.getAddress())
+      ).to.be.equal(weiAmount);
+      // test balance of Ether of the contract ERC20
+      await expect(
+        await waffle.provider.getBalance(erc20BetToken.address)
+      ).to.be.equal(erc20BalanceETH.add(weiAmount));
+    });
+
+    it(`Should revert if someone without Bet Tokens try to exchange for Ether`, async () => {
+      await expect(
+        erc20BetToken.connect(bettorX).exchange4Ether(1)
+      ).to.be.revertedWith("ERC20: burn amount exceeds balance");
+    });
+
+    it(`Should exchange Bet Tokens for Ether`, async () => {
+      //One wei => 1 Ether = 1 * 10^18 wei
+      const weiAmount = 1; //new BN(1);
+      //contract ERC20 Ether balance before bettor purchase
+      const erc20BalanceETH = await waffle.provider.getBalance(
+        erc20BetToken.address
+      );
+      await buyOneWeiOfTokens(weiAmount);
+      // exchange bettor's only token
+      let receipt = await erc20BetToken.connect(bettor).exchange4Ether(1);
+      // Test for event
+      await expect(receipt)
+        .to.emit(erc20BetToken, "Transfer")
+        .withArgs(
+          await bettor.getAddress(),
+          "0x0000000000000000000000000000000000000000",
+          weiAmount
+        );
+      // test balance of tokens
+      await expect(
+        await erc20BetToken.balanceOf(await bettor.getAddress())
+      ).to.be.equal(0);
+      // test balance of Ether of the contract ERC20 (should be the original amount)
+      await expect(
+        await waffle.provider.getBalance(erc20BetToken.address)
+      ).to.be.equal(erc20BalanceETH);
+    });
   });
 
   /**
@@ -88,34 +127,36 @@ describe("Token", function () {
     });
   }
 
-  it(`Should revert if someone different from owner try destroy contract`, async () => {
-    //https://ethereum-waffle.readthedocs.io/en/latest/matchers.html#revert-with-message
-    await expect(
-      erc20BetToken.connect(bettor).destroyContract()
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-  });
+  describe("Destroy", () => {
+    it(`Should revert if someone different from owner try destroy contract`, async () => {
+      //https://ethereum-waffle.readthedocs.io/en/latest/matchers.html#revert-with-message
+      await expect(
+        erc20BetToken.connect(bettor).destroyContract()
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
 
-  it(`Should Ether goes to ERC20 owner after destroy contract`, async () => {
-    const weiAmount = ethers.utils.parseEther("1.0");
-    await buyOneWeiOfTokens(weiAmount);
-    //owner Ether balance
-    const posBuyOwnerBalanceETH = await waffle.provider.getBalance(
-      await owner.getAddress()
-    );
-    //contract ERC20 Ether balance
-    const posBuyERC20BalanceETH = await waffle.provider.getBalance(
-      erc20BetToken.address
-    );
-    let receiptDestroy = await erc20BetToken.connect(owner).destroyContract();
-    // test balance of ERC20 token
-    const finalERC20BalanceETH = await waffle.provider.getBalance(
-      erc20BetToken.address
-    );
-    expect(finalERC20BalanceETH).to.be.equal(0);
+    it(`Should Ether goes to ERC20 owner after destroy contract`, async () => {
+      const weiAmount = ethers.utils.parseEther("1.0");
+      await buyOneWeiOfTokens(weiAmount);
+      //owner Ether balance
+      const posBuyOwnerBalanceETH = await waffle.provider.getBalance(
+        await owner.getAddress()
+      );
+      //contract ERC20 Ether balance
+      const posBuyERC20BalanceETH = await waffle.provider.getBalance(
+        erc20BetToken.address
+      );
+      let receiptDestroy = await erc20BetToken.connect(owner).destroyContract();
+      // test balance of ERC20 token
+      const finalERC20BalanceETH = await waffle.provider.getBalance(
+        erc20BetToken.address
+      );
+      expect(finalERC20BalanceETH).to.be.equal(0);
 
-    // test balance of owner of ERC20 token has to be greater than former balance
-    expect(
-      await waffle.provider.getBalance(await owner.getAddress())
-    ).to.be.above(posBuyOwnerBalanceETH);
+      // test balance of owner of ERC20 token has to be greater than former balance
+      expect(
+        await waffle.provider.getBalance(await owner.getAddress())
+      ).to.be.above(posBuyOwnerBalanceETH);
+    });
   });
 });

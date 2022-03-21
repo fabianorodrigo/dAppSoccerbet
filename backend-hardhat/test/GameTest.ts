@@ -98,261 +98,389 @@ describe("Game", function () {
     ).to.be.false;
   });
 
-  /**
-   * OPENFORBETTING
-   */
+  describe("Open", () => {
+    /**
+     * OPENFORBETTING
+     */
 
-  it(`Should open closed game for betting`, async () => {
-    //Game is initially closed for betting
-    const receiptOpen = await gameContract.connect(owner).openForBetting();
-    expect(await gameContract.open()).to.be.true;
-    expect(receiptOpen)
-      .to.emit(gameContract, "GameOpened")
-      .withArgs(
-        gameContract.address,
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      );
-  });
-
-  it(`Should revert if try open for betting an already open game`, async () => {
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    await expect(gameContract.connect(owner).openForBetting()).to.revertedWith(
-      "The game is not closed"
-    );
-  });
-
-  it(`Should revert if someone different from owner try open a game for betting`, async () => {
-    await expect(
-      gameContract.connect(bettorA).openForBetting()
-    ).to.revertedWith("Ownable: caller is not the owner");
-  });
-
-  /**
-   * CLOSEFORBETTING
-   */
-  it(`Should close open game for betting`, async () => {
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    const receiptClose = await gameContract.connect(owner).closeForBetting();
-    expect(await gameContract.open()).to.be.false;
-    expect(receiptClose)
-      .to.emit(gameContract, "GameClosed")
-      .withArgs(
-        gameContract.address,
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      );
-  });
-
-  it(`Should revert if try close for betting an closed game`, async () => {
-    //Game is initially closed for betting
-    expect(gameContract.connect(owner).closeForBetting()).to.revertedWith(
-      "The game is not open"
-    );
-  });
-
-  it(`Should revert if someone different from owner try close a game for betting`, async () => {
-    await expect(
-      gameContract.connect(bettorA).closeForBetting()
-    ).to.revertedWith("Ownable: caller is not the owner");
-  });
-
-  /**
-   * FINALIZEGAME
-   */
-  it(`Should finalize a closed game`, async () => {
-    const score = {home: 3, visitor: 1};
-    const receiptFinalize = await gameContract
-      .connect(owner)
-      .finalizeGame(score);
-    expect(await gameContract.open()).to.be.false;
-    expect(await gameContract.finalized()).to.be.true;
-    const finalScore = await gameContract.finalScore();
-    expect(finalScore.home).to.be.equal(score.home);
-    expect(finalScore.visitor).to.be.equal(score.visitor);
-    expect(receiptFinalize)
-      .to.emit(gameContract, "GameFinalized")
-      .withArgs(
-        gameContract.address,
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES,
-        ethers.constants.Zero,
-        [score.home, score.visitor]
-      );
-  });
-
-  it(`Should revert if try to finalize an open game`, async () => {
-    const score = {home: "3", visitor: "1"};
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    await expect(
-      gameContract.connect(owner).finalizeGame(score)
-    ).to.revertedWith("The game is still open for bettings, close it first");
-    expect(await gameContract.finalized()).to.be.false;
-    const finalScore = await gameContract.finalScore();
-    expect(finalScore.home).to.be.equal(ethers.constants.Zero);
-    expect(finalScore.visitor).to.be.equal(ethers.constants.Zero);
-  });
-
-  it(`Should revert if try to finalize an already finalized game`, async () => {
-    const score = {home: "3", visitor: "1"};
-    await gameContract.connect(owner).finalizeGame(score);
-    await expect(
-      gameContract.connect(owner).finalizeGame(score)
-    ).to.revertedWith("The game has been already finalized");
-  });
-
-  it(`Should revert if someone different from owner try finalize a game`, async () => {
-    const score = {home: "3", visitor: "1"};
-    await expect(
-      gameContract.connect(bettorA).finalizeGame(score)
-    ).to.revertedWith("Ownable: caller is not the owner");
-  });
-
-  /**
-   * BET
-   */
-  it(`Should make a bet on an open game`, async () => {
-    const score = {home: 3, visitor: 1};
-    const betTokenAmount = 1001;
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
-    await bettorA.sendTransaction({
-      to: erc20BetToken.address,
-      value: betTokenAmount,
+    it(`Should open closed game for betting`, async () => {
+      //Game is initially closed for betting
+      const receiptOpen = await gameContract.connect(owner).openForBetting();
+      expect(await gameContract.open()).to.be.true;
+      expect(receiptOpen)
+        .to.emit(gameContract, "GameOpened")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES
+        );
     });
-    // The ETHER balance of BetToken contract is now 1001 WEI
-    expect(await ethers.provider.getBalance(erc20BetToken.address)).to.be.equal(
-      1001
-    );
-    // The BETTOKEN balance of the bettor is now 1001 BETTOKENs
-    expect(await erc20BetToken.balanceOf(bettorAAddress)).to.be.equal(1001);
-    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-    const receiptApprove = await erc20BetToken
-      .connect(bettorA)
-      .approve(gameContract.address, betTokenAmount);
-    expect(receiptApprove)
-      .to.emit(erc20BetToken, "Approval")
-      .withArgs(bettorAAddress, gameContract.address, betTokenAmount);
-    const allowanceValue = await erc20BetToken.allowance(
-      bettorAAddress,
-      gameContract.address
-    );
-    expect(allowanceValue).to.be.equal(betTokenAmount);
-    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    const receiptBet = await gameContract
-      .connect(bettorA)
-      .bet(score, betTokenAmount);
-    // The BETTOKEN balances of the Game contract and the bettor are, respectively, 1001 and 0 BETTOKENs
-    expect(await erc20BetToken.balanceOf(gameContract.address)).to.be.equal(
-      1001
-    );
-    expect(await erc20BetToken.balanceOf(bettorAAddress)).to.be.equal(
-      ethers.constants.Zero
-    );
 
-    expect(receiptBet)
-      .to.emit(gameContract, "BetOnGame")
-      .withArgs(
-        gameContract.address,
+    it(`Should revert if try open for betting an already open game`, async () => {
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      await expect(
+        gameContract.connect(owner).openForBetting()
+      ).to.revertedWith("The game is not closed");
+    });
+
+    it(`Should revert if someone different from owner try open a game for betting`, async () => {
+      await expect(
+        gameContract.connect(bettorA).openForBetting()
+      ).to.revertedWith("Ownable: caller is not the owner");
+    });
+  });
+
+  describe("Close", () => {
+    /**
+     * CLOSEFORBETTING
+     */
+    it(`Should close open game for betting`, async () => {
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      const receiptClose = await gameContract.connect(owner).closeForBetting();
+      expect(await gameContract.open()).to.be.false;
+      expect(receiptClose)
+        .to.emit(gameContract, "GameClosed")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES
+        );
+    });
+
+    it(`Should revert if try close for betting an closed game`, async () => {
+      //Game is initially closed for betting
+      expect(gameContract.connect(owner).closeForBetting()).to.revertedWith(
+        "The game is not open"
+      );
+    });
+
+    it(`Should revert if someone different from owner try close a game for betting`, async () => {
+      await expect(
+        gameContract.connect(bettorA).closeForBetting()
+      ).to.revertedWith("Ownable: caller is not the owner");
+    });
+  });
+
+  describe("Finalize", () => {
+    /**
+     * FINALIZEGAME
+     */
+    it(`Should finalize a closed game`, async () => {
+      const score = {home: 3, visitor: 1};
+      const receiptFinalize = await gameContract
+        .connect(owner)
+        .finalizeGame(score);
+      expect(await gameContract.open()).to.be.false;
+      expect(await gameContract.finalized()).to.be.true;
+      const finalScore = await gameContract.finalScore();
+      expect(finalScore.home).to.be.equal(score.home);
+      expect(finalScore.visitor).to.be.equal(score.visitor);
+      expect(receiptFinalize)
+        .to.emit(gameContract, "GameFinalized")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES,
+          ethers.constants.Zero,
+          [score.home, score.visitor]
+        );
+    });
+
+    it(`Should revert if try to finalize an open game`, async () => {
+      const score = {home: "3", visitor: "1"};
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      await expect(
+        gameContract.connect(owner).finalizeGame(score)
+      ).to.revertedWith("The game is still open for bettings, close it first");
+      expect(await gameContract.finalized()).to.be.false;
+      const finalScore = await gameContract.finalScore();
+      expect(finalScore.home).to.be.equal(ethers.constants.Zero);
+      expect(finalScore.visitor).to.be.equal(ethers.constants.Zero);
+    });
+
+    it(`Should revert if try to finalize an already finalized game`, async () => {
+      const score = {home: "3", visitor: "1"};
+      await gameContract.connect(owner).finalizeGame(score);
+      await expect(
+        gameContract.connect(owner).finalizeGame(score)
+      ).to.revertedWith("The game has been already finalized");
+    });
+
+    it(`Should revert if someone different from owner try finalize a game`, async () => {
+      const score = {home: "3", visitor: "1"};
+      await expect(
+        gameContract.connect(bettorA).finalizeGame(score)
+      ).to.revertedWith("Ownable: caller is not the owner");
+    });
+  });
+
+  describe("Bet", () => {
+    /**
+     * BET
+     */
+    it(`Should make a bet on an open game`, async () => {
+      const score = {home: 3, visitor: 1};
+      const betTokenAmount = 1001;
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+      await bettorA.sendTransaction({
+        to: erc20BetToken.address,
+        value: betTokenAmount,
+      });
+      // The ETHER balance of BetToken contract is now 1001 WEI
+      expect(
+        await ethers.provider.getBalance(erc20BetToken.address)
+      ).to.be.equal(1001);
+      // The BETTOKEN balance of the bettor is now 1001 BETTOKENs
+      expect(await erc20BetToken.balanceOf(bettorAAddress)).to.be.equal(1001);
+      //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+      const receiptApprove = await erc20BetToken
+        .connect(bettorA)
+        .approve(gameContract.address, betTokenAmount);
+      expect(receiptApprove)
+        .to.emit(erc20BetToken, "Approval")
+        .withArgs(bettorAAddress, gameContract.address, betTokenAmount);
+      const allowanceValue = await erc20BetToken.allowance(
         bettorAAddress,
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES,
-        [score.home, score.visitor]
+        gameContract.address
       );
-  });
+      expect(allowanceValue).to.be.equal(betTokenAmount);
+      //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+      const receiptBet = await gameContract
+        .connect(bettorA)
+        .bet(score, betTokenAmount);
+      // The BETTOKEN balances of the Game contract and the bettor are, respectively, 1001 and 0 BETTOKENs
+      expect(await erc20BetToken.balanceOf(gameContract.address)).to.be.equal(
+        1001
+      );
+      expect(await erc20BetToken.balanceOf(bettorAAddress)).to.be.equal(
+        ethers.constants.Zero
+      );
 
-  it(`Should revert if try to bet on a closed game`, async () => {
-    const score = {home: 3, visitor: 1};
-    const betTokenAmount = 1001;
-    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
-    await bettorA.sendTransaction({
-      to: erc20BetToken.address,
-      value: betTokenAmount,
+      expect(receiptBet)
+        .to.emit(gameContract, "BetOnGame")
+        .withArgs(
+          gameContract.address,
+          bettorAAddress,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES,
+          [score.home, score.visitor]
+        );
     });
-    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-    const receiptApprove = await erc20BetToken
-      .connect(bettorA)
-      .approve(gameContract.address, betTokenAmount);
-    //Game is initially closed for betting. Since the game was not opened, it has to revert
-    await expect(
-      gameContract.connect(bettorA).bet(score, betTokenAmount)
-    ).to.be.revertedWith("The game is not open");
+
+    it(`Should revert if try to bet on a closed game`, async () => {
+      const score = {home: 3, visitor: 1};
+      const betTokenAmount = 1001;
+      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+      await bettorA.sendTransaction({
+        to: erc20BetToken.address,
+        value: betTokenAmount,
+      });
+      //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
+      const receiptApprove = await erc20BetToken
+        .connect(bettorA)
+        .approve(gameContract.address, betTokenAmount);
+      //Game is initially closed for betting. Since the game was not opened, it has to revert
+      await expect(
+        gameContract.connect(bettorA).bet(score, betTokenAmount)
+      ).to.be.revertedWith("The game is not open");
+    });
+
+    it(`Should revert if try to bet zero BetTokens on a game`, async () => {
+      const score = {home: 3, visitor: 1};
+      const betTokenAmount = 1001;
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
+      await expect(
+        gameContract.connect(bettorA).bet(score, ethers.constants.Zero)
+      ).to.be.revertedWith("The betting value has to be greater than zero");
+    });
+
+    it(`Should revert if try to bet on a game without Bet Tokens`, async () => {
+      const score = {home: 3, visitor: 1};
+      const betTokenAmount = 1001;
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+      expect(
+        gameContract.connect(bettorA).bet(score, betTokenAmount)
+      ).to.revertedWith("BetToken balance insufficient");
+    });
+
+    it(`Should revert if try to bet on a game without approve enough Bet Tokens for Game contract`, async () => {
+      const score = {home: 3, visitor: 1};
+      const betTokenAmount = 1001;
+      //Game is initially closed for betting
+      await gameContract.connect(owner).openForBetting();
+      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+      bettorA.sendTransaction({
+        to: erc20BetToken.address,
+        value: betTokenAmount,
+      });
+      //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE MINUS 1 OF THE BET IN HIS NAME
+      await erc20BetToken.connect(bettorA).approve(gameContract.address, 1000);
+      //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
+      await expect(
+        gameContract.connect(bettorA).bet(score, betTokenAmount)
+      ).to.revertedWith("ERC20: insufficient allowance");
+    });
   });
 
-  it(`Should revert if try to bet zero BetTokens on a game`, async () => {
-    const score = {home: 3, visitor: 1};
-    const betTokenAmount = 1001;
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
-    await expect(
-      gameContract.connect(bettorA).bet(score, ethers.constants.Zero)
-    ).to.be.revertedWith("The betting value has to be greater than zero");
-  });
+  describe("Getters", () => {
+    /**
+     * LISTBETS
+     */
+    it(`Should list all bets on an game`, async () => {
+      const betTokenAmountA = 1001;
+      const betTokenAmountB = 1979;
+      //make bets
+      await makeBetA_BetB(
+        gameContract,
+        owner,
+        bettorA,
+        betTokenAmountA,
+        bettorB,
+        betTokenAmountB
+      );
+      // listGames should have 2 bets
+      const betsArray = await gameContract.listBets();
+      expect(betsArray).to.be.an("array");
+      expect(betsArray).to.have.lengthOf(2);
+      //bet one
+      expect(betsArray[0].bettor).to.be.equal(bettorAAddress);
+      expect(betsArray[0].score.home).to.be.equal(3);
+      expect(betsArray[0].score.visitor).to.be.equal(1);
+      expect(betsArray[0].value).to.be.equal(1001);
+      //bet two
+      expect(betsArray[1].bettor).to.be.equal(bettorBAddress);
+      expect(betsArray[1].score.home).to.be.equal(2);
+      expect(betsArray[1].score.visitor).to.be.equal(2);
+      expect(betsArray[1].value).to.be.equal(1979);
+    });
 
-  it(`Should revert if try to bet on a game without BetTokens`, async () => {
-    const score = {home: 3, visitor: 1};
-    const betTokenAmount = 1001;
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    expect(
-      gameContract.connect(bettorA).bet(score, betTokenAmount)
-    ).to.revertedWith("BetToken balance insufficient");
-  });
+    /**
+     * GETTOTALSTAKE
+     */
+    it(`Should get the sum of BetTokens bet on an game`, async () => {
+      const betTokenAmountA = 16;
+      const betTokenAmountB = 7;
+      //make bets
+      await makeBetA_BetB(
+        gameContract,
+        owner,
+        bettorA,
+        betTokenAmountA,
+        bettorB,
+        betTokenAmountB
+      );
+      // listGames should have 2 bets
+      const stake = await gameContract.getTotalStake();
+      expect(stake).to.be.equal(23);
+    });
 
-  it(`Should revert if try to bet on a game without approve enough BetTokens for Game contract`, async () => {
-    const score = {home: 3, visitor: 1};
-    const betTokenAmount = 1001;
-    //Game is initially closed for betting
-    await gameContract.connect(owner).openForBetting();
-    ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
-    bettorA.sendTransaction({to: erc20BetToken.address, value: betTokenAmount});
-    //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE MINUS 1 OF THE BET IN HIS NAME
-    await erc20BetToken.connect(bettorA).approve(gameContract.address, 1000);
-    //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-    await expect(
-      gameContract.connect(bettorA).bet(score, betTokenAmount)
-    ).to.revertedWith("ERC20: insufficient allowance");
-  });
+    /**
+     * GETCOMMISSIONVALUE
+     */
+    it(`Should get the percentage of administration commission applyed over the stake of a game`, async () => {
+      const betTokenAmountA = 16;
+      const betTokenAmountB = 7;
+      //make bets
+      await makeBetA_BetB(
+        gameContract,
+        owner,
+        bettorA,
+        betTokenAmountA,
+        bettorB,
+        betTokenAmountB
+      );
+      // listGames should have 2 bets
+      const commission = await gameContract.getCommissionValue();
+      expect(commission).to.be.equal(2); //seria 2,3 ...
+    });
 
+    /**
+     * GETPRIZE
+     */
+    it(`Should get the total stake of a game less the administration commission`, async () => {
+      const betTokenAmountA = 16;
+      const betTokenAmountB = 7;
+      //make bets
+      await makeBetA_BetB(
+        gameContract,
+        owner,
+        bettorA,
+        betTokenAmountA,
+        bettorB,
+        betTokenAmountB
+      );
+      const prize = await gameContract.getPrize();
+      expect(prize).to.be.equal(21); //seria 20,7 ...
+    });
+  });
   /**
-   * LISTBETS
+   * DESTROYCONTRACT
    */
-  it(`Should list all bets on an game`, async () => {
-    const betTokenAmountA = 1001;
-    const betTokenAmountB = 1979;
-    //make bets
-    await makeBetA_BetB(
-      gameContract,
-      owner,
-      bettorA,
-      betTokenAmountA,
-      bettorB,
-      betTokenAmountB
-    );
-    // listGames should have 2 bets
-    const betsArray = await gameContract.listBets();
-    expect(betsArray).to.be.an("array");
-    expect(betsArray).to.have.lengthOf(2);
-    //bet one
-    expect(betsArray[0].bettor).to.be.equal(bettorAAddress);
-    expect(betsArray[0].score.home).to.be.equal(3);
-    expect(betsArray[0].score.visitor).to.be.equal(1);
-    expect(betsArray[0].value).to.be.equal(1001);
-    //bet two
-    expect(betsArray[1].bettor).to.be.equal(bettorBAddress);
-    expect(betsArray[1].score.home).to.be.equal(2);
-    expect(betsArray[1].score.visitor).to.be.equal(2);
-    expect(betsArray[1].value).to.be.equal(1979);
+  describe("Destroy", () => {
+    it(`Should eventual Ether balance of Game contract be sent to the owner`, async () => {
+      const weiAmount = ethers.utils.parseEther("1.0");
+      //Create a instance of TestingAuxiliar with some Ether and setting the Game contract as
+      //the destination of it's remaining Ether after selfDestruct
+      const testingAuxiliar = await TestingAuxiliar.deploy(
+        gameContract.address,
+        {
+          value: weiAmount,
+        }
+      );
+      expect(await testingAuxiliar.selfDestructRecipient()).to.be.equal(
+        gameContract.address
+      );
+      //game contract balance should be ZERO
+      expect(
+        await ethers.provider.getBalance(gameContract.address)
+      ).to.be.equal(ethers.constants.Zero);
+      // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
+      expect(
+        await ethers.provider.getBalance(testingAuxiliar.address)
+      ).to.be.equal(weiAmount);
+      // Destructing the testingAuxiliar should send it's Ethers to Game contract
+      await testingAuxiliar.destroyContract();
+      expect(
+        await ethers.provider.getBalance(gameContract.address)
+      ).to.be.equal(weiAmount);
+      // Destructing the Game contract should send it's Ethers to owner
+      const ownerBalance = await ethers.provider.getBalance(
+        await owner.getAddress()
+      );
+      await gameContract.connect(owner).destroyContract();
+      const ownerBalancePostDestruction = await ethers.provider.getBalance(
+        await owner.getAddress()
+      );
+      expect(ownerBalancePostDestruction.gt(ownerBalance)).to.be.true;
+    });
+
+    it(`Should revert if someone different from owner try destroy contract`, async () => {
+      await expect(
+        gameContract.connect(bettorA).destroyContract()
+      ).to.revertedWith("Ownable: caller is not the owner");
+    });
+    it(`Should revert if sending Ether to the contract`, async () => {
+      const weiAmount = ethers.utils.parseEther("1.0");
+      expect(
+        bettorA.sendTransaction({
+          to: gameContract.address,
+          value: weiAmount,
+        })
+      ).to.be.reverted;
+    });
   });
 
   /**
@@ -399,115 +527,4 @@ describe("Game", function () {
     //////////////// BETTOR B MAKES A BET IN THE VALUE OF {betTokenAmount}
     await gameContract.connect(bettorB).bet(scoreB, betTokenAmountB);
   }
-
-  /**
-   * GETTOTALSTAKE
-   */
-  it(`Should get the sum of BetTokens bet on an game`, async () => {
-    const betTokenAmountA = 16;
-    const betTokenAmountB = 7;
-    //make bets
-    await makeBetA_BetB(
-      gameContract,
-      owner,
-      bettorA,
-      betTokenAmountA,
-      bettorB,
-      betTokenAmountB
-    );
-    // listGames should have 2 bets
-    const stake = await gameContract.getTotalStake();
-    expect(stake).to.be.equal(23);
-  });
-
-  /**
-   * GETCOMMISSIONVALUE
-   */
-  it(`Should get the percentage of administration commission applyed over the stake of a game`, async () => {
-    const betTokenAmountA = 16;
-    const betTokenAmountB = 7;
-    //make bets
-    await makeBetA_BetB(
-      gameContract,
-      owner,
-      bettorA,
-      betTokenAmountA,
-      bettorB,
-      betTokenAmountB
-    );
-    // listGames should have 2 bets
-    const commission = await gameContract.getCommissionValue();
-    expect(commission).to.be.equal(2); //seria 2,3 ...
-  });
-
-  /**
-   * GETPRIZE
-   */
-  it(`Should get the total stake of a game less the administration commission`, async () => {
-    const betTokenAmountA = 16;
-    const betTokenAmountB = 7;
-    //make bets
-    await makeBetA_BetB(
-      gameContract,
-      owner,
-      bettorA,
-      betTokenAmountA,
-      bettorB,
-      betTokenAmountB
-    );
-    const prize = await gameContract.getPrize();
-    expect(prize).to.be.equal(21); //seria 20,7 ...
-  });
-
-  /**
-   * DESTROYCONTRACT
-   */
-  it(`Should eventual Ether balance of Game contract be sent to the owner`, async () => {
-    const weiAmount = ethers.utils.parseEther("1.0");
-    //Create a instance of TestingAuxiliar with some Ether and setting the Game contract as
-    //the destination of it's remaining Ether after selfDestruct
-    const testingAuxiliar = await TestingAuxiliar.deploy(gameContract.address, {
-      value: weiAmount,
-    });
-    expect(await testingAuxiliar.selfDestructRecipient()).to.be.equal(
-      gameContract.address
-    );
-    //game contract balance should be ZERO
-    expect(await ethers.provider.getBalance(gameContract.address)).to.be.equal(
-      ethers.constants.Zero
-    );
-    // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
-    expect(
-      await ethers.provider.getBalance(testingAuxiliar.address)
-    ).to.be.equal(weiAmount);
-    // Destructing the testingAuxiliar should send it's Ethers to Game contract
-    await testingAuxiliar.destroyContract();
-    expect(await ethers.provider.getBalance(gameContract.address)).to.be.equal(
-      weiAmount
-    );
-    // Destructing the Game contract should send it's Ethers to owner
-    const ownerBalance = await ethers.provider.getBalance(
-      await owner.getAddress()
-    );
-    await gameContract.connect(owner).destroyContract();
-    const ownerBalancePostDestruction = await ethers.provider.getBalance(
-      await owner.getAddress()
-    );
-    expect(ownerBalancePostDestruction.gt(ownerBalance)).to.be.true;
-  });
-
-  it(`Should revert if someone different from owner try destroy contract`, async () => {
-    await expect(
-      gameContract.connect(bettorA).destroyContract()
-    ).to.revertedWith("Ownable: caller is not the owner");
-  });
-  it(`Should revert if sending Ether to the contract`, async () => {
-    const weiAmount = ethers.utils.parseEther("1.0");
-    expect(
-      bettorA.sendTransaction({
-        to: gameContract.address,
-        value: weiAmount,
-      })
-    ).to.be.reverted;
-  });
 });
