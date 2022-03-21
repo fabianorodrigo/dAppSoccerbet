@@ -25,10 +25,17 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
   
 ### On-chain
 - Solidity 0.8
-- Openzeppelin Contracts
 - Openzeppelin Upgrade Plugin Hardhat
-
-### Tests
+- Openzeppelin Contracts
+  - Ownable
+  - OwnableUpgradeable
+  - ReentrancyGuard
+  - ReentrancyGuardUpgradeable
+  - Initializable
+  - ERC20Upgradeable
+  - UUPSUpgradeable
+  
+### Quality Assurance
 - Openzeppelin/test_helpers
 - Waffle 
 - Ethers.js
@@ -43,7 +50,7 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
 - Typescript 
 - Web3.js
 ## CI/CD
-- CircleCI
+- [CircleCI](https://app.circleci.com/pipelines/github/fabianorodrigo/dAppSoccerbet)
 
 # Running Locally
 
@@ -102,7 +109,7 @@ Contract that provides Math functions. It's upgradeable by use of OpenZeppelin U
 
 In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [backend-hardhat/reports/eth-gas-reporter.txt](https://github.com/fabianorodrigo/dAppSoccerbet/blob/develop/backend-hardhat/reports/eth-gas-reporter.txt)*
 
-*Better view using `cat eth-gas-reporter.txt` on shell.
+*Better view using `cat reports/eth-gas-reporter.txt` on shell.
 
 # TODO
 
