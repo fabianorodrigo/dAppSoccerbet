@@ -12,15 +12,15 @@ The BETTOR buy tokens using Ether and uses these tokens to make guess about scor
 
 The branch 'main' will always keep the latest stable version that is the greater version/tag. 
 
-## v1.0.0-->
-In version v1.0.0, the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
+## v0.1.0-->
+In version v0.1.0, the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
 
 Visit the [worflow documentation](./docs/workflow/) for a more detailed description of Ðapp usage.
 # Technology Stack
 
 ## Backend
 
-- Hardhat 2.9
+- Hardhat 2.8
 - Truffle 5.5
   
 ### On-chain
