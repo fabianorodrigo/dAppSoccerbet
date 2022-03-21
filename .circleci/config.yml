@@ -71,6 +71,6 @@ workflows:
       - test:
           requires:
             - build
-      - slither:
-          requires:
-            - build            
+      # - slither:
+      #     requires:
+      #       - build            
