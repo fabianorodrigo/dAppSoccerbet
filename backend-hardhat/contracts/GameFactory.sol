@@ -137,7 +137,6 @@ contract GameFactoryUpgradeable is
         // console.log("GameFactory address", address(this));
         // console.log("Template address", gameImplementation);
         // console.log("CLone address", clone);
-        //FIXME: o owner de 'g' está como 0x0
         g.initialize(
             payable(this.owner()),
             _home,

@@ -30,6 +30,7 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
   - Initializable
   - ERC20Upgradeable
   - UUPSUpgradeable
+  - Clones
   
 ### Quality Assurance
 - Openzeppelin/test_helpers
