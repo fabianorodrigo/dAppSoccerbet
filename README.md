@@ -6,22 +6,18 @@
 [![CircleCI](https://circleci.com/gh/fabianorodrigo/dAppSoccerbet/tree/develop.svg?style=svg)](https://circleci.com/gh/fabianorodrigo/dAppSoccerbet/tree/develop)
 
 Soccer scores bets decentralized Application. The objective of this Ðapp is provided a decentralized environment where anyone can bet about soccer games scores. The owner of an Ethereum account is denominated BETTOR. The ADMIN is the responsible for manage the system, register the games able to betting, open and close the game for betting, input the scores after end of these games etc.
-The BETTOR buy tokens using Ether and uses these tokens to make guess about score of one or more games registered by the ADMIN. After a game is finalized, the ADMIN register the final score and the prize is splitted among those BETTORS whose bets matched the final score.
 
-<!--This dApp has X different versions/tags evolving from the simpler version with less features to an more elaborated and more complex one. Thus is a good example to learn about Decentralized Application Development incrementally.
+The BETTOR buy Soccer Bet Tokens, a ERC20 token provided by this Ðapp, using Ether and uses these tokens to make guess about score of one or more games. After a game is finalized and the final score is known, the prize is splitted among those BETTORS whose bets matched the final score, and the winner BETTORS are able to withdraw the prize in Soccer Bet Token and, if wanted, exchange for Ether.
 
-The branch 'main' will always keep the latest stable version that is the greater version/tag. 
-
-## v0.1.0-->
-In version v0.1.0, the bettors buy tokens ERC20 so as they can bet some scores. The only role in the contracts is the OWNER. The owner account is responsabile for execute the administrative operations such as open and close games for betting, input the game scores on chain etc.
+The OWNER account is responsabile for execute the administrative operations such as register games for betting, open and close games for betting, input the game's final score on chain etc.
 
 Visit the [worflow documentation](./docs/workflow/) for a more detailed description of Ðapp usage.
 # Technology Stack
 
 ## Backend
 
-- Hardhat 2.8
-- Truffle 5.5
+- Hardhat 2.9
+- Truffle 5.6
   
 ### On-chain
 - Solidity 0.8
