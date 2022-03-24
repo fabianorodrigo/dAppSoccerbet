@@ -35,10 +35,18 @@ async function main() {
 
   // For now, GameFactory is not going to use UUPS proxy. When we try to convert it to this model
   // we start to receive errors about "contract code is too large". It demands a deeper analysis
+
+  // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+  // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+  // be called only throgh proxy
   const gameFactory = await upgrades.deployProxy(
     GameFactory,
     [erc20BetToken.address, calculator.address],
-    {initializer: "initialize", unsafeAllowLinkedLibraries: true}
+    {
+      initializer: "initialize",
+      unsafeAllowLinkedLibraries: true,
+      unsafeAllow: ["delegatecall"],
+    }
   );
   await gameFactory.deployed();
   console.log("GameFactory deployed to:", gameFactory.address);

@@ -19,18 +19,28 @@ Events
 Functions
 */
 
-import "./BetToken.sol";
-import "./Game.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./structs/GameDTO.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
+import "hardhat/console.sol";
+
+import "./BetToken.sol";
+import "./Game.sol";
+import "./OnlyDelegateCall.sol";
+import "./structs/GameDTO.sol";
 
 /**
  * @title Contract responsible for generate Game contracts and maintain a list of them
  * @author Fabiano Nascimento
  */
-contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
+contract GameFactoryUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    OnlyDelegateCall
+{
     // BetToken proxy contract address
     address private betTokenContractAddress;
     // Calculator proxy contract address
@@ -41,6 +51,8 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
     // It can be changed along the time by ADMINISTRATOR for new games.
     // However, after a Game is created, it can't be changed for that Game
     uint256 private commission;
+    // The address of Game contract implementation (ERC-1167)
+    address gameImplementation;
 
     /**
      * Event triggered when a new game is created
@@ -78,6 +90,21 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
         commission = 10;
+        // create the implementation instance of Game contract
+        gameImplementation = address(new Game());
+    }
+
+    /**
+     * @notice Allows the owner update the Game contract implementation for future games created
+     */
+    function setGameImplementation(address _gameImplementationAddress)
+        public
+        onlyOwner
+        onlyDelegateCall
+    {
+        /// @custom:oz-upgrades-unsafe-allow delegatecall
+        require(Address.isContract(_gameImplementationAddress));
+        gameImplementation = _gameImplementationAddress;
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -103,9 +130,16 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         string memory _visitor,
         uint256 _datetimeGame
     ) external onlyOwner {
-        // a game starts closed for betting
-        Game g = new Game(
-            payable(this.owner()), //The owner of the game is the same owner of the GameFactory
+        //Clones the Game contract implementation
+        address clone = Clones.clone(gameImplementation);
+        //calls Game.initialize
+        Game g = Game(clone);
+        // console.log("GameFactory address", address(this));
+        // console.log("Template address", gameImplementation);
+        // console.log("CLone address", clone);
+        //FIXME: o owner de 'g' está como 0x0
+        g.initialize(
+            payable(this.owner()),
             _home,
             _visitor,
             _datetimeGame,
@@ -113,9 +147,10 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
             calculatorContractAddress,
             commission
         );
+        //TODO: what about not store the Game (or even address) and the frontend base just on events to recover the list?
         _games.push(g);
         emit GameCreated(
-            address(_games[_games.length - 1]),
+            clone,
             g.homeTeam(),
             g.visitorTeam(),
             g.datetimeGame()

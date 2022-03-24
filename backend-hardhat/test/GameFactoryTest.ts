@@ -45,10 +45,13 @@ describe("GameFactory", function () {
     //Contracts
     erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
+    // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+    // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+    // be called only throgh proxy
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize"}
+      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
     await gameFactory.deployed();
   });
@@ -73,7 +76,7 @@ describe("GameFactory", function () {
   it(`Should create a new game`, async () => {
     const receipt = await createGame();
     expect(receipt).to.emit(gameFactory, "GameCreated").withArgs(
-      "0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08", //constant address created by Waffle or Hardhat node
+      "0x4ABEaCA4b05d8fA4CED09D26aD28Ea298E8afaC8", //"0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08", //constant address created by Waffle or Hardhat node
       "SÃO PAULO",
       "ATLÉTICO-MG",
       DATETIME_20220716_163000_IN_MINUTES

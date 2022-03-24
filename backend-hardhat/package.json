@@ -19,7 +19,8 @@
     "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore .",
     "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache",
     "deployLocal": "npx hardhat run --network localhost scripts/deployProxies.ts",
-    "upgradeBetTokenLocal": "npx hardhat run --network localhost scripts/upgradeBetToken.ts"
+    "upgradeBetTokenLocal": "npx hardhat run --network localhost scripts/upgradeBetToken.ts",
+    "upgradeGameFactoryLocal": "npx hardhat run --network localhost scripts/upgradeGameFactory.ts"
   },
   "author": "",
   "license": "ISC",

@@ -23,10 +23,11 @@ import "./structs/Score.sol";
 import "./structs/Bet.sol";
 import "./BetToken.sol";
 import "./Calculator.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Contract that represents a single game and e responsible for managing all bets
@@ -34,7 +35,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  *
  * @author Fabiano Nascimento
  */
-contract Game is Ownable, ReentrancyGuard {
+contract Game is Initializable, Ownable, ReentrancyGuard {
     uint8 public immutable PAID = 4;
     uint8 public immutable TIED = 3;
     uint8 public immutable WINNER = 2;
@@ -118,8 +119,11 @@ contract Game is Ownable, ReentrancyGuard {
         private
         **/
 
+    constructor() Ownable() {}
+
     /**
-     * @notice Instance a new Game
+     * @notice Initialize the contract's state variables
+     *
      * @param _owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
      * @param _home The name of the team playing at home
      * @param _visitor The name of the team playing out of home
@@ -128,7 +132,7 @@ contract Game is Ownable, ReentrancyGuard {
      * @param _calculatorContractAddress The address of the Calculator Contract used for the Game
      * @param _commission The percentage of stake that will be reverted to administrative costs
      */
-    constructor(
+    function initialize(
         address payable _owner,
         string memory _home,
         string memory _visitor,
@@ -136,7 +140,7 @@ contract Game is Ownable, ReentrancyGuard {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) Ownable() {
+    ) public initializer {
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
@@ -147,7 +151,7 @@ contract Game is Ownable, ReentrancyGuard {
         );
         _calculator = CalculatorUpgradeable(_calculatorContractAddress);
         commission = _commission;
-        transferOwnership(_owner);
+        _transferOwnership(_owner);
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -190,24 +194,27 @@ contract Game is Ownable, ReentrancyGuard {
         require(finalized == false, "Game has been already finalized");
         require(
             _betTokenContract.balanceOf(msg.sender) >= _value,
-            "BetToken balance insufficient"
+            "Bet Token balance insufficient"
         );
-        //In the BetToken, the sender is gonna be Game Contract.
+        //In the Bet Token, the sender is gonna be Game Contract.
         //In this case, before calling 'bet' function, the bettor has
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
-        if (_betTokenContract.transferFrom(msg.sender, address(this), _value)) {
-            _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
-            _totalStake += _value;
-            emit BetOnGame(
-                address(this),
-                msg.sender,
-                homeTeam,
-                visitorTeam,
-                datetimeGame,
-                _score
-            );
-        }
+        require(
+            _betTokenContract.transferFrom(msg.sender, address(this), _value),
+            "Transfer of Bet Tokens to Game contract failed"
+        );
+
+        _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
+        _totalStake += _value;
+        emit BetOnGame(
+            address(this),
+            msg.sender,
+            homeTeam,
+            visitorTeam,
+            datetimeGame,
+            _score
+        );
     }
 
     /**

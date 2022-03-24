@@ -1,3 +1,4 @@
+import {Contract} from "ethers";
 import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
 import {PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
@@ -28,8 +29,17 @@ async function main() {
   // the new implementation.
   const PROXY_CONTRACT_ADDRESS = getProxyContractAddress();
   const GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
-  await upgrades.upgradeProxy(PROXY_CONTRACT_ADDRESS, GameFactory);
+  // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+  // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+  // be called only throgh proxy
+  const gameFactory: Contract = await upgrades.upgradeProxy(
+    PROXY_CONTRACT_ADDRESS,
+    GameFactory,
+    {unsafeAllow: ["delegatecall"]}
+  );
   console.log("GameFactory upgraded at: ", PROXY_CONTRACT_ADDRESS);
+  const gameImplementation = await gameFactory.tempSetNewGameImplementation();
+  console.log("Game Implementation setado:", gameImplementation);
 }
 
 main()

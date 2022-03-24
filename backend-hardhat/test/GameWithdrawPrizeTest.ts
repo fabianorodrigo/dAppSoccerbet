@@ -98,12 +98,21 @@ describe("Game Prize Withdraw", function () {
     //Contracts
     erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
+    // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+    // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+    // be called only throgh proxy
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize"}
+      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
-    gameContract = await Game.deploy(
+    gameContract = await gameFactory
+      .connect(owner)
+      .newGame(
+        "SÃO PAULO",
+        "ATLÉTICO-MG",
+        DATETIME_20220716_170000_IN_MINUTES
+      ); /*await Game.deploy(
       await owner.getAddress(),
       "SÃO PAULO",
       "ATLÉTICO-MG",
@@ -111,8 +120,10 @@ describe("Game Prize Withdraw", function () {
       erc20BetToken.address,
       calc.address,
       10
-    );
+    );*/
     //make bets
+    const games = await gameFactory.listGames();
+    gameContract = Game.attach(games[0].addressGame);
     await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
   });
 
