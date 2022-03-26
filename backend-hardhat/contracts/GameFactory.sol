@@ -85,7 +85,7 @@ contract GameFactoryUpgradeable is
     function initialize(
         address _betTokenContractAddress,
         address _calculatorContractAddress
-    ) external initializer onlyOwner {
+    ) external initializer {
         __Ownable_init();
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;

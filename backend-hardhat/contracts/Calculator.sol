@@ -28,7 +28,7 @@ contract CalculatorUpgradeable is
         private
     **/
 
-    function initialize() external initializer onlyOwner {
+    function initialize() external initializer {
         __Ownable_init();
     }
 

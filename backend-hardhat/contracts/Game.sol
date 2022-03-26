@@ -140,7 +140,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) external initializer onlyOwner {
+    ) external initializer {
         require(msg.sender == owner());
         homeTeam = _home;
         visitorTeam = _visitor;

@@ -55,7 +55,7 @@ contract BetTokenUpgradeable is
         private
     **/
 
-    function initialize() external initializer onlyOwner {
+    function initialize() external initializer {
         __ERC20_init("Soccer Bet Token", "SBT");
         __Ownable_init();
         __ReentrancyGuard_init();
