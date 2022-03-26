@@ -140,7 +140,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) public initializer {
+    ) external initializer onlyOwner {
+        require(msg.sender == owner());
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
@@ -300,7 +301,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * This mechanism exists to avoid high gas costs when returning an entire array.
      * If you want to return an entire array in one call, then you need to write a function
      */
-    function listBets() public view returns (Bet[] memory bets) {
+    function listBets() external view returns (Bet[] memory bets) {
         return _bets;
     }
 
@@ -308,24 +309,24 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @notice Return the sum of value in BetTokens of all bets
      * @return the stake of all bets, the amount of BetToken
      */
-    function getTotalStake() public view returns (uint256) {
+    function getTotalStake() external view returns (uint256) {
         return _totalStake;
-    }
-
-    /**
-     * @notice Return percentage of {commission} applyed on the sum of value in BetTokens of all bets
-     * @return administration commission
-     */
-    function getCommissionValue() public view returns (uint256) {
-        return _calculator.calcPercentage(_totalStake, commission);
     }
 
     /**
      * @notice Return the sum of value in BetTokens of all bets discounted the commission for administration
      * @return stake value less commissions
      */
-    function getPrize() public view returns (uint256) {
+    function getPrize() external view returns (uint256) {
         return _totalStake - this.getCommissionValue();
+    }
+
+    /**
+     * @notice Return percentage of {commission} applyed on the sum of value in BetTokens of all bets
+     * @return administration commission
+     */
+    function getCommissionValue() external view returns (uint256) {
+        return _calculator.calcPercentage(_totalStake, commission);
     }
 
     /**

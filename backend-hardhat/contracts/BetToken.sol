@@ -26,12 +26,15 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "./OnlyDelegateCall.sol";
+
 contract BetTokenUpgradeable is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    OnlyDelegateCall
 {
     event TokenMinted(
         address indexed tokenBuyer,
@@ -52,7 +55,7 @@ contract BetTokenUpgradeable is
         private
     **/
 
-    function initialize() external initializer {
+    function initialize() external initializer onlyOwner {
         __ERC20_init("Soccer Bet Token", "SBT");
         __Ownable_init();
         __ReentrancyGuard_init();

@@ -85,7 +85,7 @@ contract GameFactoryUpgradeable is
     function initialize(
         address _betTokenContractAddress,
         address _calculatorContractAddress
-    ) external initializer {
+    ) external initializer onlyOwner {
         __Ownable_init();
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
@@ -98,7 +98,7 @@ contract GameFactoryUpgradeable is
      * @notice Allows the owner update the Game contract implementation for future games created
      */
     function setGameImplementation(address _gameImplementationAddress)
-        public
+        external
         onlyOwner
         onlyDelegateCall
     {
@@ -188,7 +188,7 @@ contract GameFactoryUpgradeable is
      * make requests to provider. Otherwise, the frontend receives just the contract address:
      * https://docs.soliditylang.org/en/v0.7.5/abi-spec.html#contract-abi-specification
      */
-    function listGames() public view returns (GameDTO[] memory games) {
+    function listGames() external view returns (GameDTO[] memory games) {
         GameDTO[] memory result = new GameDTO[](_games.length);
         for (uint256 i = 0; i < _games.length; i++) {
             Game g = _games[i];
