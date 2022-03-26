@@ -1,8 +1,9 @@
 <section fxLayout="column" fxFlexAlign="stretch">
+  <h1>Welcome</h1>
   <p>
-    Soccer Bet Ðapp provides a decentralized environment where anyone can bet
-    about soccer games scores. The owner of an Ethereum account that makes bets
-    about games score is denominated BETTOR.
+    <b>Soccer Bet Ðapp</b> provides a decentralized environment where anyone can
+    bet about soccer games scores. The owner of an Ethereum account that makes
+    bets about games score is denominated BETTOR.
   </p>
   <p>
     The ADMIN is the responsible for manage the system, register the games able
@@ -23,4 +24,22 @@
       >documentation in our Github</a
     >.
   </p>
+  <h2>Main contracts</h2>
+  <table>
+    <tr>
+      <th>Contract</th>
+      <th>Address</th>
+      <th>Owner</th>
+    </tr>
+    <tr>
+      <td>Bet Token</td>
+      <td>{{ betTokenAddress }}</td>
+      <td>{{ betTokenOwner }}</td>
+    </tr>
+    <tr>
+      <td>Game Factory</td>
+      <td>{{ gameFactoryAddress }}</td>
+      <td>{{ gameFactoryOwner }}</td>
+    </tr>
+  </table>
 </section>
