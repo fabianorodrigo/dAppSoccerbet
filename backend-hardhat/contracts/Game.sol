@@ -141,7 +141,6 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         address _calculatorContractAddress,
         uint256 _commission
     ) external initializer {
-        require(msg.sender == owner());
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
