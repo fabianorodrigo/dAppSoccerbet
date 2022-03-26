@@ -32,6 +32,7 @@
       <mat-icon>info</mat-icon> Info
     </button>
     <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="showInfo()">Contract Info ...</button>
       <button
         mat-menu-item
         (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"

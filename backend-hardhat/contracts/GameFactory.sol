@@ -61,7 +61,9 @@ contract GameFactoryUpgradeable is
         address addressGame,
         string homeTeam,
         string visitorTeam,
-        uint256 datetimeGame
+        uint256 datetimeGame,
+        uint256 commission,
+        address owner
     );
 
     /**
@@ -152,7 +154,9 @@ contract GameFactoryUpgradeable is
             clone,
             g.homeTeam(),
             g.visitorTeam(),
-            g.datetimeGame()
+            g.datetimeGame(),
+            g.commission(),
+            g.owner()
         );
     }
 
@@ -200,7 +204,8 @@ contract GameFactoryUpgradeable is
                 g.datetimeGame(),
                 g.open(),
                 g.finalized(),
-                Score(home, visitor)
+                Score(home, visitor),
+                g.commission()
             );
         }
         return result;

@@ -12,4 +12,6 @@ export interface Game {
   //TODO: change event attribute name do finalScore
   score?: Score;
   bets?: Bet[];
+  commission?: number;
+  owner?: string;
 }

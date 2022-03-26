@@ -48,7 +48,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     CalculatorUpgradeable private _calculator;
     // Percentage of all bets reverted for administration costs
     // After a Game is created, it can't be changed
-    uint256 commission = 10;
+    uint256 public commission = 10;
     //When open, bettors can bet
     bool public open;
     string public homeTeam;

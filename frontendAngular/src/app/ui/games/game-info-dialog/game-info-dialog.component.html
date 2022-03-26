@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>
+  {{ data.gameCompound?.game?.homeTeam }} X
+  {{ data.gameCompound?.game?.visitorTeam }}
+</h2>
+<div class="row">
+  <mat-icon>today</mat-icon>
+  <span>{{ datetimeGame?.toLocaleDateString() }}</span>
+  <mat-icon>schedule</mat-icon>
+  <span>{{ datetimeGame?.toLocaleTimeString() }}</span>
+  <span class="spanSpace"></span>
+</div>
+<mat-dialog-content class="mat-typography">
+  <b>Contract Address: </b>
+  <span>{{ data.gameCompound.game.addressGame }}</span
+  ><br />
+  <b>Owner Address: </b>
+  <span>{{ data.gameCompound.game.owner }}</span
+  ><br />
+  <b>Administration Comission: </b>
+  <span>{{ data.gameCompound.game.commission }}%</span>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Close</button>
+</mat-dialog-actions>
