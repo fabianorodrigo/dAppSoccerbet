@@ -116,7 +116,44 @@ export class GameService extends BaseContract {
           });
         })
         .catch((e) => {
-          console.warn(`bettoken`, e);
+          console.warn(`gameservice`, e);
+        });
+    });
+  }
+
+  /**
+   * Withdraw the prize from the game to the winner bettor account
+   *
+   * @param _betIndex the index of Bet being withdrawn
+   * @returns result of transaction submission
+   */
+  withdrawPrize(_betIndex: number): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (_contract) => {
+          let result;
+          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.withdrawPrize(_betIndex).send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                result: 'Transaction for withdraw the prize was sent successfully',
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+              }
+              console.warn(e);
+              subscriber.next({ success: false, result: message });
+            }
+          });
+        })
+        .catch((e) => {
+          console.warn(`gameservice`, e);
         });
     });
   }

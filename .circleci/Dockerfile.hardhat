@@ -3,6 +3,7 @@ FROM node:16-bullseye-slim
 LABEL src="https://github.com/fabianorodrigo/dappsoccerbet"
 LABEL creator=fabianorodrigo
 LABEL desc="Smart contracts Harhat build tools"
+LABEL version="1.1.0"
 
 RUN adduser --disabled-password --shell /bin/bash --home /home/dappsoccerbet dappsoccerbet
 # instalaçãoes SO

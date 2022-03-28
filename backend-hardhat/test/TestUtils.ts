@@ -3,6 +3,8 @@ import {BigNumber, Contract, Signer} from "ethers";
 import {ethers} from "hardhat";
 import {BetDTO} from "./model";
 
+const DATETIME_20220716_170000_IN_MINUTES =
+  new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 export class TestUtils {
   calcPercentageBN(amount: BigNumber, percentage: BigNumber): BigNumber {
     //https://github.com/indutny/bn.js/
@@ -31,7 +33,7 @@ export class TestUtils {
   }
 
   /**
-   * Follow the process of buying Bettokens, aprove for GameContract and bet using the parameters informed
+   * Follow the process of buying Bet Tokens, aprove for GameContract and bet using the parameters informed
    *
    * @param {Game} gameContract Game contract where the bets will happen
    * @param {address} owner Owner of Game contract
@@ -49,32 +51,43 @@ export class TestUtils {
 
     let conta = 1;
     for (let bet of bets) {
-      console.log("Bet", conta);
-      conta++;
-      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+      ////////////////// BETTOR HAS TO BUY SOME BET TOKENS
       await bet.bettor.sendTransaction({
         to: erc20BetToken.address,
         value: bet.tokenAmount,
       });
-      // The BetToken balances of the Game contract is the tokenAmount value of BetTokens
-      expect(
+      // The bettor's balance of Bet tokens the tokenAmount value of BetTokens
+      expect(bet.tokenAmount).to.be.equal(
         await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-      ).to.be.equal(bet.tokenAmount);
+      );
 
       //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
       await erc20BetToken
         .connect(bet.bettor)
         .approve(gameContract.address, bet.tokenAmount);
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-      await gameContract.connect(bet.bettor).bet(bet.score, bet.tokenAmount);
+      const receiptBet = await gameContract
+        .connect(bet.bettor)
+        .bet(bet.score, bet.tokenAmount);
+
+      expect(receiptBet)
+        .to.emit(gameContract, "BetOnGame")
+        .withArgs(
+          gameContract.address,
+          await bet.bettor.getAddress(),
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES,
+          [bet.score.home, bet.score.visitor]
+        );
       //https://github.com/indutny/bn.js/
       //Prefix "i":  perform operation in-place, storing the result in the host
       //object (on which the method was invoked). Might be used to avoid number allocation costs
       totalStake = totalStake.add(bet.tokenAmount);
-      // The BetToken balances of the Game contract is 0 BetTokens
-      expect(
+      // The bettor's balance of Bet Tokens is 0 BetTokens
+      expect(ethers.constants.Zero).to.be.equal(
         await erc20BetToken.balanceOf(await bet.bettor.getAddress())
-      ).to.be.equal(ethers.constants.Zero);
+      );
     }
 
     // The BETTOKEN balances of the Game contract is the sum of all bets

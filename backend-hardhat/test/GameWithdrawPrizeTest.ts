@@ -103,12 +103,21 @@ describe("Game Prize Withdraw", function () {
     //Contracts
     erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
+    // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+    // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+    // be called only throgh proxy
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize"}
+      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
-    gameContract = await Game.deploy(
+    gameContract = await gameFactory
+      .connect(owner)
+      .newGame(
+        "SÃO PAULO",
+        "ATLÉTICO-MG",
+        DATETIME_20220716_170000_IN_MINUTES
+      ); /*await Game.deploy(
       await owner.getAddress(),
       "SÃO PAULO",
       "ATLÉTICO-MG",
@@ -116,8 +125,10 @@ describe("Game Prize Withdraw", function () {
       erc20BetToken.address,
       calc.address,
       10
-    );
+    );*/
     //make bets
+    const games = await gameFactory.listGames();
+    gameContract = Game.attach(games[0].addressGame);
     await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
   });
 
@@ -136,15 +147,13 @@ describe("Game Prize Withdraw", function () {
   it(`Should revert if an inexistent bet index is informed`, async () => {
     await expect(
       gameContract.connect(bettorA).withdrawPrize(5)
-    ).to.revertedWith("_betIndex invalid");
+    ).to.revertedWith("InvalidBetIndex()");
   });
 
   it(`Should revert if try to withdraw the prize of a bet with unknown result`, async () => {
     await expect(
       gameContract.connect(bettorA).withdrawPrize(0)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(0)");
   });
 
   it(`Should revert if try to withdraw the prize of a loser bet`, async () => {
@@ -154,9 +163,7 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 1});
     await expect(
       gameContract.connect(bettorE).withdrawPrize(4)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(1)");
   });
 
   it(`Should revert if try to withdraw the prize of already paid bet`, async () => {
@@ -169,9 +176,7 @@ describe("Game Prize Withdraw", function () {
     // pay twice
     await expect(
       gameContract.connect(bettorE).withdrawPrize(4)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(4)");
   });
 
   it(`Should revert if an account different from the bet's bettor is trying to withdraw the prize`, async () => {
@@ -181,7 +186,9 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
     await expect(
       gameContract.connect(bettorA).withdrawPrize(4)
-    ).to.revertedWith("The prize can be withdrawn just by the bet's bettor");
+    ).to.revertedWith(
+      `InvalidPrizeWithdrawer("${await bettorE.getAddress()}")`
+    );
   });
 
   it(`Should withdraw 90% of stake to the winner bet`, async () => {
@@ -255,7 +262,6 @@ describe("Game Prize Withdraw", function () {
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
-    //TODO: ENTÃO ... NESSE CENÁRIO SEM VENCEDORES, SACA-SE 90%
     //bettors withdraws
     await gameContract.connect(bettorA).withdrawPrize(0);
     await gameContract.connect(bettorB).withdrawPrize(1);

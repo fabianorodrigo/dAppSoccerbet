@@ -1,5 +1,5 @@
 <div class="label-balance" *ngIf="userAccountAddress">
-  <mat-label>BetToken Balance:</mat-label>
+  <mat-label>Soccer Bet Token Balance:</mat-label>
   <div class="balance" [matTooltip]="formatedBalanceTooltip">
     {{ formatedBalance }}
   </div>
@@ -13,18 +13,20 @@
     mat-raised-button
     [disabled]="!this.userAccountAddress"
     color="primary"
-    [matTooltip]="'Buy an ammount of BetTokens using ' + chainCurrencyName"
+    [matTooltip]="
+      'Buy an ammount of Soccer Bet Tokens using ' + chainCurrencyName
+    "
     (click)="buy($event)"
   >
-    Buy BetTokens...
+    Buy Soccer Bet Tokens...
   </button>
   <button
     class="button"
     mat-raised-button
     [disabled]="!this.userAccountAddress"
-    matTooltip="Withdraw an ammount of BetTokens"
-    (click)="buy($event)"
+    matTooltip="Exchange an ammount of Soccer Bet Tokens for Ether"
+    (click)="exchange($event)"
   >
-    Withdraw BetTokens...
+    Exchange Soccer Bet Tokens...
   </button>
 </div>

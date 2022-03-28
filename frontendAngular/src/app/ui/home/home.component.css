@@ -11,3 +11,13 @@ mat-tab-group {
 mat-tab-group p {
   padding-top: 20px;
 }
+
+table {
+  border-collapse: collapse;
+  border: 1px solid gray;
+}
+th,
+td {
+  padding: 2px;
+  border: 1px solid gray;
+}

@@ -1,7 +1,18 @@
+import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
+import {ProxiesAddresses, PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
+
+let proxyAddresses: ProxiesAddresses = {
+  BETTOKEN_PROXY_ADDRESS: "",
+  CALCULATOR_PROXY_ADDRESS: "",
+  GAMEFACTORY_PROXY_ADDRESS: "",
+};
 
 function getProxyContractAddress(): string {
-  throw new Error("BetToken address not defined");
+  proxyAddresses = JSON.parse(
+    fs.readFileSync(`./${PROXIES_ADDRESSES_FILENAME}`).toString()
+  );
+  return proxyAddresses.BETTOKEN_PROXY_ADDRESS;
 }
 
 async function main() {
@@ -24,7 +35,9 @@ async function main() {
 
   const PROXY_CONTRACT_ADDRESS = getProxyContractAddress();
   const ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
-  await upgrades.upgradeProxy(PROXY_CONTRACT_ADDRESS, ERC20BetToken);
+  await upgrades.upgradeProxy(PROXY_CONTRACT_ADDRESS, ERC20BetToken, {
+    kind: "uups",
+  });
   console.log("BetToken upgraded at: ", PROXY_CONTRACT_ADDRESS);
 }
 

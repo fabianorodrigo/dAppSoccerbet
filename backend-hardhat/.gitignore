@@ -1,6 +1,5 @@
 node_modules
 .env
-coverage
 coverage.json
 typechain
 
@@ -9,7 +8,7 @@ cache
 artifacts
 
 # slither
-*.dot
+#*.dot
 
 #manticore
 mcore_*

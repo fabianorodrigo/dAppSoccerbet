@@ -45,10 +45,13 @@ describe("GameFactory", function () {
     //Contracts
     erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
+    // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+    // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+    // be called only throgh proxy
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize"}
+      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
     await gameFactory.deployed();
   });
@@ -63,7 +66,6 @@ describe("GameFactory", function () {
         const game = await Game.attach(gameDTO.addressGame);
         await game.destroyContract();
       }
-      await gameFactory.destroyContract(); //, gasLimit: 500000});
     }
     await erc20BetToken.destroyContract();
   });
@@ -74,7 +76,7 @@ describe("GameFactory", function () {
   it(`Should create a new game`, async () => {
     const receipt = await createGame();
     expect(receipt).to.emit(gameFactory, "GameCreated").withArgs(
-      "0x8dAF17A20c9DBA35f005b6324F493785D239719d", //constant address created by Waffle or Hardhat node
+      "0x4ABEaCA4b05d8fA4CED09D26aD28Ea298E8afaC8", //"0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08", //constant address created by Waffle or Hardhat node
       "SÃO PAULO",
       "ATLÉTICO-MG",
       DATETIME_20220716_163000_IN_MINUTES
@@ -121,55 +123,5 @@ describe("GameFactory", function () {
     await expect(gameFactory.connect(bettor).setCommission(16)).to.revertedWith(
       "Ownable: caller is not the owner"
     );
-  });
-
-  /**
-   * DESTROYCONTRACT
-   */
-  it(`Should eventual Ether balance of GameFactory contract be sent to the owner`, async () => {
-    const weiAmount = ethers.utils.parseEther("1.0");
-    //Create a instance of TestingAuxiliar with some Ether and setting the Game contract as
-    //the destination of it's remaining Ether after selfDestruct
-    const testingAuxiliar = await TestingAuxiliar.deploy(gameFactory.address, {
-      value: weiAmount,
-    });
-    expect(await testingAuxiliar.selfDestructRecipient()).to.be.equal(
-      gameFactory.address
-    );
-    //game contract balance should be ZERO
-    expect(await ethers.provider.getBalance(gameFactory.address)).to.be.equal(
-      ethers.constants.Zero
-    );
-
-    // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
-    expect(
-      await ethers.provider.getBalance(testingAuxiliar.address)
-    ).to.be.equal(weiAmount);
-    // Destructing the testingAuxiliar should send it's Ethers to Game contract
-    await testingAuxiliar.destroyContract();
-    expect(await ethers.provider.getBalance(gameFactory.address)).to.be.equal(
-      weiAmount
-    );
-    // Destructing the Game contract should send it's Ethers to owner
-    const ownerBalance = await ethers.provider.getBalance(
-      await owner.getAddress()
-    );
-    await gameFactory.connect(owner).destroyContract();
-    const ownerBalancePostDestruct = await ethers.provider.getBalance(
-      await owner.getAddress()
-    );
-    //Owner's balance post Game destruction is greater because of the transfer of funds
-    expect(ownerBalancePostDestruct.gt(ownerBalance)).to.be.true;
-  });
-
-  it(`Should revert if someone different from owner try destroy contract`, async () => {
-    await expect(gameFactory.connect(bettor).destroyContract()).to.revertedWith(
-      "Ownable: caller is not the owner"
-    );
-  });
-  it(`Should revert if sending Ether to the contract`, async () => {
-    const weiAmount = ethers.utils.parseEther("1.0");
-    expect(bettor.sendTransaction({to: gameFactory.address, value: weiAmount}))
-      .to.reverted;
   });
 });

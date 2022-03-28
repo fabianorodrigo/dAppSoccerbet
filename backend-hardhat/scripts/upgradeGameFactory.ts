@@ -1,13 +1,23 @@
+import {Contract} from "ethers";
+import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
+import {ProxiesAddresses, PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
+
+let proxyAddresses: ProxiesAddresses = {
+  BETTOKEN_PROXY_ADDRESS: "",
+  CALCULATOR_PROXY_ADDRESS: "",
+  GAMEFACTORY_PROXY_ADDRESS: "",
+};
 
 function getProxyContractAddress(): string {
-  throw new Error("Calculator address not defined");
+  proxyAddresses = JSON.parse(
+    fs.readFileSync(`./${PROXIES_ADDRESSES_FILENAME}`).toString()
+  );
+  return proxyAddresses.GAMEFACTORY_PROXY_ADDRESS;
 }
 
 async function main() {
   const [deployer, addr1, addr2] = await ethers.getSigners();
-
-  console.log("Upgrading GameFactory with the account:", deployer.address);
 
   //upgrade the deployed instance to a new version. The new version can be a different
   // contract (such as BetTokenV2), or you can just modify the existing BetToken contract
@@ -24,7 +34,24 @@ async function main() {
   // the new implementation.
   const PROXY_CONTRACT_ADDRESS = getProxyContractAddress();
   const GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
-  await upgrades.upgradeProxy(PROXY_CONTRACT_ADDRESS, GameFactory);
+
+  console.log(
+    `Upgrading GameFactory with the account ${deployer.address} at: ${PROXY_CONTRACT_ADDRESS}`
+  );
+
+  // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+  // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+  // be called only throgh proxy
+  const gameFactory: Contract = await upgrades.upgradeProxy(
+    PROXY_CONTRACT_ADDRESS,
+    GameFactory,
+    {unsafeAllow: ["delegatecall"]}
+  );
+  // const gameFactory: Contract = await upgrades.forceImport(
+  //   PROXY_CONTRACT_ADDRESS,
+  //   GameFactory,
+  //   {unsafeAllow: ["delegatecall"]}
+  // );
   console.log("GameFactory upgraded at: ", PROXY_CONTRACT_ADDRESS);
 }
 

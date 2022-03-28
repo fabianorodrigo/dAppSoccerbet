@@ -29,6 +29,11 @@ let erc20BetToken: Contract,
 const utils = new TestUtils();
 
 describe("Game Finalize", function () {
+  // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
+  // Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
+  // This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
+  upgrades.silenceWarnings();
+
   let accounts: Signer[];
   let owner: Signer;
   let bettorA: Signer;
@@ -103,12 +108,21 @@ describe("Game Finalize", function () {
     //Contracts
     erc20BetToken = await upgrades.deployProxy(ERC20BetToken, {kind: "uups"});
     await erc20BetToken.deployed();
+    // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
+    // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
+    // be called only throgh proxy
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize"}
+      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
-    gameContract = await Game.deploy(
+    const receiptNewGame = await gameFactory
+      .connect(owner)
+      .newGame(
+        "SÃO PAULO",
+        "ATLÉTICO-MG",
+        DATETIME_20220716_170000_IN_MINUTES
+      ); /*await Game.deploy(
       await owner.getAddress(),
       "SÃO PAULO",
       "ATLÉTICO-MG",
@@ -116,7 +130,9 @@ describe("Game Finalize", function () {
       erc20BetToken.address,
       calc.address,
       10
-    );
+    );*/
+    const games = await gameFactory.listGames();
+    gameContract = Game.attach(games[0].addressGame);
   });
 
   afterEach(async () => {

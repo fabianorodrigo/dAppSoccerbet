@@ -41,3 +41,8 @@ table {
   text-align: right;
   padding-right: 25px;
 }
+
+.paid {
+  font-weight: bold;
+  color: #673ab7;
+}

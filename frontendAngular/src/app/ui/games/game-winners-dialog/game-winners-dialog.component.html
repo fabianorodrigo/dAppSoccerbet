@@ -13,7 +13,7 @@
       </ng-container>
       <ng-container matColumnDef="value">
         <th mat-header-cell class="td-right" *matHeaderCellDef>
-          BetTokens Stake
+          Bet Tokens Stake
         </th>
         <td mat-cell class="td-right" *matCellDef="let bet">
           {{ format(bet.value) }}
@@ -21,10 +21,29 @@
       </ng-container>
       <ng-container matColumnDef="prize">
         <th mat-header-cell class="td-right" *matHeaderCellDef>
-          BetTokens Prize
+          Bet Tokens Prize
         </th>
         <td mat-cell class="td-right" *matCellDef="let bet">
           {{ format(bet.prize) }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="action">
+        <th mat-header-cell class="td-right" *matHeaderCellDef>Action</th>
+        <td mat-cell class="td-right" *matCellDef="let bet; let i = index">
+          <button
+            *ngIf="
+              (bet.result == TIED || bet.result == WINNER) &&
+              bet.bettor == userAccountAddress
+            "
+            class="button"
+            color="primary"
+            mat-raised-button
+            matTooltip="Withdraw an ammount of Soccer Bet Tokens"
+            (click)="withdraw(i)"
+          >
+            Withdraw
+          </button>
+          <span *ngIf="bet.result == PAID" class="paid">PAID</span>
         </td>
       </ng-container>
 

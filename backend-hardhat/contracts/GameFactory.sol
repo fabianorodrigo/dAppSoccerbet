@@ -19,19 +19,28 @@ Events
 Functions
 */
 
-import "./BetToken.sol";
-import "./Game.sol";
-import "./libs/StringUtils.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./structs/GameDTO.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
+import "hardhat/console.sol";
+
+import "./BetToken.sol";
+import "./Game.sol";
+import "./OnlyDelegateCall.sol";
+import "./structs/GameDTO.sol";
 
 /**
  * @title Contract responsible for generate Game contracts and maintain a list of them
  * @author Fabiano Nascimento
  */
-contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
+contract GameFactoryUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    OnlyDelegateCall
+{
     // BetToken proxy contract address
     address private betTokenContractAddress;
     // Calculator proxy contract address
@@ -42,6 +51,8 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
     // It can be changed along the time by ADMINISTRATOR for new games.
     // However, after a Game is created, it can't be changed for that Game
     uint256 private commission;
+    // The address of Game contract implementation (ERC-1167)
+    address gameImplementation;
 
     /**
      * Event triggered when a new game is created
@@ -50,7 +61,9 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         address addressGame,
         string homeTeam,
         string visitorTeam,
-        uint256 datetimeGame
+        uint256 datetimeGame,
+        uint256 commission,
+        address owner
     );
 
     /**
@@ -79,6 +92,21 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
         commission = 10;
+        // create the implementation instance of Game contract
+        gameImplementation = address(new Game());
+    }
+
+    /**
+     * @notice Allows the owner update the Game contract implementation for future games created
+     */
+    function setGameImplementation(address _gameImplementationAddress)
+        external
+        onlyOwner
+        onlyDelegateCall
+    {
+        /// @custom:oz-upgrades-unsafe-allow delegatecall
+        require(Address.isContract(_gameImplementationAddress));
+        gameImplementation = _gameImplementationAddress;
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -104,9 +132,15 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
         string memory _visitor,
         uint256 _datetimeGame
     ) external onlyOwner {
-        // a game starts closed for betting
-        Game g = new Game(
-            payable(this.owner()), //The owner of the game is the same owner of the GameFactory
+        //Clones the Game contract implementation
+        address clone = Clones.clone(gameImplementation);
+        //calls Game.initialize
+        Game g = Game(clone);
+        // console.log("GameFactory address", address(this));
+        // console.log("Template address", gameImplementation);
+        // console.log("CLone address", clone);
+        g.initialize(
+            payable(this.owner()),
             _home,
             _visitor,
             _datetimeGame,
@@ -114,12 +148,15 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
             calculatorContractAddress,
             commission
         );
+        //TODO: what about not store the Game (or even address) and the frontend base just on events to recover the list?
         _games.push(g);
         emit GameCreated(
-            address(_games[_games.length - 1]),
+            clone,
             g.homeTeam(),
             g.visitorTeam(),
-            g.datetimeGame()
+            g.datetimeGame(),
+            g.commission(),
+            g.owner()
         );
     }
 
@@ -155,7 +192,7 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
      * make requests to provider. Otherwise, the frontend receives just the contract address:
      * https://docs.soliditylang.org/en/v0.7.5/abi-spec.html#contract-abi-specification
      */
-    function listGames() public view returns (GameDTO[] memory games) {
+    function listGames() external view returns (GameDTO[] memory games) {
         GameDTO[] memory result = new GameDTO[](_games.length);
         for (uint256 i = 0; i < _games.length; i++) {
             Game g = _games[i];
@@ -167,29 +204,10 @@ contract GameFactoryUpgradeable is Initializable, OwnableUpgradeable {
                 g.datetimeGame(),
                 g.open(),
                 g.finalized(),
-                Score(home, visitor)
+                Score(home, visitor),
+                g.commission()
             );
         }
         return result;
-    }
-
-    /**
-     * @notice If neither a receive Ether nor a payable fallback function is present,
-     * the contract cannot receive Ether through regular transactions and throws an exception.
-     * A contract without a receive Ether function can receive Ether as a recipient of a
-     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
-     * A contract cannot react to such Ether transfers and thus also cannot reject them.
-     * This is a design choice of the EVM and Solidity cannot work around it.
-     */
-    function destroyContract() external onlyOwner {
-        // If gas costs are subject to change, then smart contracts can’t
-        // depend on any particular gas costs. Any smart contract that uses
-        // transfer() or send() is taking a hard dependency on gas costs by
-        // forwarding a fixed amount of gas: 2300.
-        //
-        // Call returns a boolean value indicating success or failure.
-        // This is the current recommended method to use
-        (bool sent, ) = owner().call{value: address(this).balance}("");
-        require(sent, "Fail to empty the contract");
     }
 }

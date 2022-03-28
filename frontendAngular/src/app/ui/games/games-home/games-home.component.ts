@@ -47,6 +47,8 @@ export class GamesHomeComponent implements OnInit {
               //when created, the game is not open and is not finalized
               open: false,
               finalized: false,
+              commission: eventData.commission,
+              owner: eventData.owner,
             },
             new GameService(this._messageService, this._webService, eventData.addressGame)
           )

@@ -1,12 +1,16 @@
-# Hardhat Console Snippets
-
+Hardhat Console Snippets
+===
 ## Create a game
+const owner = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1";
+let accounts = await ethers.getSigners();
+let _gameFactory = await ethers.getContractAt("GameFactoryUpgradeable","0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7",accounts[0])
+await _gameFactory.connect(owner).newGame("A","B",0);
 
 
 
 ## List games
 
-
+await _gameFactory.listGames();
 
 ## Open a created game for betting
 
@@ -15,6 +19,9 @@
 
 
 
+
+
+ 
 
 Available Accounts
 ==================

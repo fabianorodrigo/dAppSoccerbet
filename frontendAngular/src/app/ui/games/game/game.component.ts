@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Bet, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
+import { Bet, BetResult, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -10,6 +10,7 @@ import { BetTokenService, GameService } from 'src/app/contracts';
 import BN from 'bn.js';
 import { GameBetsDialogComponent } from '../game-bets-dialog/game-bets-dialog.component';
 import { GameWinnersDialogComponent } from '../game-winners-dialog/game-winners-dialog.component';
+import { GameInfoDialogComponent } from '../game-info-dialog/game-info-dialog.component';
 
 @Component({
   selector: 'dapp-games-game',
@@ -45,10 +46,9 @@ export class GameComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.homeTeam = this.gameCompound.game.homeTeam;
     this.visitorTeam = this.gameCompound.game.visitorTeam;
-    this.datetimeGame = new Date(this.gameCompound.game.datetimeGame * 1000);
+    this.datetimeGame = new Date(this._numberService.convertTimeChainToJS(this.gameCompound.game.datetimeGame));
     this.open = this.gameCompound.game.open;
     this.finalized = this.gameCompound.game.finalized;
-
     this.finalScore = this.gameCompound.game.finalScore;
 
     // Subscribing for account address changes in the provider
@@ -226,7 +226,8 @@ export class GameComponent implements OnInit {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
       } else {
-        const _winners = (_result.result as Bet[]).filter((b) => b.result == '2');
+        const _winnerResuts = [BetResult.WINNER, BetResult.TIED, BetResult.PAID];
+        const _winners = (_result.result as Bet[]).filter((b) => _winnerResuts.includes(b.result as BetResult));
         if (_winners.length > 0) {
           this._dialog.open(GameWinnersDialogComponent, {
             data: {
@@ -239,6 +240,17 @@ export class GameComponent implements OnInit {
           this._messageService.show(`No winners on this game`);
         }
       }
+    });
+  }
+
+  /**
+   * Open dialog with additional info about the game
+   */
+  showInfo() {
+    this._dialog.open(GameInfoDialogComponent, {
+      data: {
+        gameCompound: this.gameCompound,
+      },
     });
   }
 }

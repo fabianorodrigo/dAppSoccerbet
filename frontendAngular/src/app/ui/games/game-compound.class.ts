@@ -1,4 +1,3 @@
-import { GameEvent } from './../../model/events/game-event.interface';
 import { GameService } from 'src/app/contracts';
 import { Game } from 'src/app/model';
 
