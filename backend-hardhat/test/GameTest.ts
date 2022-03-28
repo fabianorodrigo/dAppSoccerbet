@@ -138,7 +138,7 @@ describe("Game", function () {
       await gameContract.connect(owner).openForBetting();
       await expect(
         gameContract.connect(owner).openForBetting()
-      ).to.revertedWith("The game is not closed");
+      ).to.revertedWith("GameNotClosed()");
     });
 
     it(`Should revert if someone different from owner try open a game for betting`, async () => {
@@ -170,7 +170,7 @@ describe("Game", function () {
     it(`Should revert if try close for betting an closed game`, async () => {
       //Game is initially closed for betting
       expect(gameContract.connect(owner).closeForBetting()).to.revertedWith(
-        "The game is not open"
+        "GameNotOpen()"
       );
     });
 
@@ -213,7 +213,7 @@ describe("Game", function () {
       await gameContract.connect(owner).openForBetting();
       await expect(
         gameContract.connect(owner).finalizeGame(score)
-      ).to.revertedWith("The game is still open for bettings, close it first");
+      ).to.revertedWith("GameNotClosed()");
       expect(await gameContract.finalized()).to.be.false;
       const finalScore = await gameContract.finalScore();
       expect(finalScore.home).to.be.equal(ethers.constants.Zero);
@@ -225,7 +225,7 @@ describe("Game", function () {
       await gameContract.connect(owner).finalizeGame(score);
       await expect(
         gameContract.connect(owner).finalizeGame(score)
-      ).to.revertedWith("The game has been already finalized");
+      ).to.revertedWith("GameAlreadyFinalized()");
     });
 
     it(`Should revert if someone different from owner try finalize a game`, async () => {
@@ -307,7 +307,7 @@ describe("Game", function () {
       //Game is initially closed for betting. Since the game was not opened, it has to revert
       await expect(
         gameContract.connect(bettorA).bet(score, betTokenAmount)
-      ).to.be.revertedWith("The game is not open");
+      ).to.be.revertedWith("GameNotOpen()");
     });
 
     it(`Should revert if try to bet zero BetTokens on a game`, async () => {
@@ -318,7 +318,7 @@ describe("Game", function () {
       //////////////// BETTOR MAKES A BET IN THE VALUE OF ZERO BETTOKENS
       await expect(
         gameContract.connect(bettorA).bet(score, ethers.constants.Zero)
-      ).to.be.revertedWith("The betting value has to be greater than zero");
+      ).to.be.revertedWith("InvalidBettingValue()");
     });
 
     it(`Should revert if try to bet on a game without Bet Tokens`, async () => {
@@ -329,7 +329,7 @@ describe("Game", function () {
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
       expect(
         gameContract.connect(bettorA).bet(score, betTokenAmount)
-      ).to.revertedWith("Bet Token balance insufficient");
+      ).to.revertedWith("InsufficientTokenBalance(0)");
     });
 
     it(`Should revert if try to bet on a game without approve enough Bet Tokens for Game contract`, async () => {

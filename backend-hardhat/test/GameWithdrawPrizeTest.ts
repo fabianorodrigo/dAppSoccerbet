@@ -142,15 +142,13 @@ describe("Game Prize Withdraw", function () {
   it(`Should revert if an inexistent bet index is informed`, async () => {
     await expect(
       gameContract.connect(bettorA).withdrawPrize(5)
-    ).to.revertedWith("_betIndex invalid");
+    ).to.revertedWith("InvalidBetIndex()");
   });
 
   it(`Should revert if try to withdraw the prize of a bet with unknown result`, async () => {
     await expect(
       gameContract.connect(bettorA).withdrawPrize(0)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(0)");
   });
 
   it(`Should revert if try to withdraw the prize of a loser bet`, async () => {
@@ -160,9 +158,7 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 1});
     await expect(
       gameContract.connect(bettorE).withdrawPrize(4)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(1)");
   });
 
   it(`Should revert if try to withdraw the prize of already paid bet`, async () => {
@@ -175,9 +171,7 @@ describe("Game Prize Withdraw", function () {
     // pay twice
     await expect(
       gameContract.connect(bettorE).withdrawPrize(4)
-    ).to.revertedWith(
-      "Without result, loser or already paid bets have no prize to be withdrawn"
-    );
+    ).to.revertedWith("InvalidBettingResultForWithdrawing(4)");
   });
 
   it(`Should revert if an account different from the bet's bettor is trying to withdraw the prize`, async () => {
@@ -187,7 +181,9 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
     await expect(
       gameContract.connect(bettorA).withdrawPrize(4)
-    ).to.revertedWith("The prize can be withdrawn just by the bet's bettor");
+    ).to.revertedWith(
+      `InvalidPrizeWithdrawer("${await bettorE.getAddress()}")`
+    );
   });
 
   it(`Should withdraw 90% of stake to the winner bet`, async () => {

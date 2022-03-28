@@ -42,6 +42,16 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     uint8 public immutable LOSER = 1;
     uint8 public immutable NO_RESULT = 0;
 
+    error GameNotOpen();
+    error GameNotClosed();
+    error GameAlreadyFinalized();
+    error GameNotFinalized();
+    error InvalidBettingValue();
+    error InvalidBetIndex();
+    error InvalidBettingResultForWithdrawing(uint8 currentResult);
+    error InsufficientTokenBalance(uint256 currentBalance);
+    error InvalidPrizeWithdrawer(address bettor);
+
     //BetToken contract
     BetTokenUpgradeable private _betTokenContract;
     // Calculator contract
@@ -168,10 +178,17 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Opens a game for betting (sets the open to TRUE). Only allowed
      * if the game is closed for betting. Emits the event GameOpened
+     *
+     * Events: GameOpened
+     * Custom Errors: GameNotClosed, GameAlreadyFinalized
      */
     function openForBetting() external onlyOwner {
-        require(open == false, "The game is not closed");
-        require(finalized == false, "Game has been already finalized");
+        if (open) {
+            revert GameNotClosed();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -183,26 +200,36 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * allowed to spend on behalf of the BETTOR, `owner` of BetTokens, equal or
      * greater than _value.
      *
-     * Emits the event BetOnGame
+     * Events: BetOnGame
+     * Custom Errors: GameNotOpen, GameAlreadyFinalized, InvalidBettingValue, InsufficientTokenBalance
      *
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
     function bet(Score memory _score, uint256 _value) external {
-        require(open, "The game is not open");
-        require(_value > 0, "The betting value has to be greater than zero");
-        require(finalized == false, "Game has been already finalized");
-        require(
-            _betTokenContract.balanceOf(msg.sender) >= _value,
-            "Bet Token balance insufficient"
-        );
+        if (!open) {
+            revert GameNotOpen();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        if (_value <= 0) {
+            revert InvalidBettingValue();
+        }
+        uint256 _senderTokenBalance = _betTokenContract.balanceOf(msg.sender);
+        if (_senderTokenBalance < _value) {
+            revert InsufficientTokenBalance({
+                currentBalance: _senderTokenBalance
+            });
+        }
+
         //In the Bet Token, the sender is gonna be Game Contract.
         //In this case, before calling 'bet' function, the bettor has
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
         require(
             _betTokenContract.transferFrom(msg.sender, address(this), _value),
-            "Transfer of Bet Tokens to Game contract failed"
+            "Transfer failed"
         );
 
         _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
@@ -220,10 +247,17 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Closes a game for betting (sets the open to FALSE). Only
      * allowed if the game is open for betting. Emits the event GameClosed
+     *
+     * Events: GameClosed
+     * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
     function closeForBetting() external onlyOwner {
-        require(open, "The game is not open");
-        require(finalized == false, "Game has been already finalized");
+        if (!open) {
+            revert GameNotOpen();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -232,14 +266,18 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @notice Finalize the game registering the final score. Only allowed
      * if the game is closed and not yet finalized. Emits the event GameFinalized
      *
+     * Events: GameFinalized
+     * Custom Errors: GameAlreadyFinalized, GameNotClosed
+     *
      * @param _finalScore Data of the final score of the match
      */
     function finalizeGame(Score memory _finalScore) external onlyOwner {
-        require(finalized == false, "The game has been already finalized");
-        require(
-            open == false,
-            "The game is still open for bettings, close it first"
-        );
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        if (open) {
+            revert GameNotClosed();
+        }
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
@@ -257,19 +295,29 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Function called by the bettor in order to withdrawal it's prize
      *
+     * Events: GameClosed
+     * Custom Errors: InvalidBetIndex, InvalidBettingResultForWithdrawing(currentResult),
+     *  InvalidPrizeWithdrawer(bettor)
+     *
      * @param _betIndex the index of Bet being withdrawn
      */
     function withdrawPrize(uint256 _betIndex) external nonReentrant {
-        require(_betIndex < _bets.length, "_betIndex invalid");
-        require(
-            _bets[_betIndex].result == WINNER ||
-                _bets[_betIndex].result == TIED,
-            "Without result, loser or already paid bets have no prize to be withdrawn"
-        );
-        require(
-            _bets[_betIndex].bettor == msg.sender,
-            "The prize can be withdrawn just by the bet's bettor"
-        );
+        //Invalid _betIndex
+        if (_betIndex >= _bets.length) {
+            revert InvalidBetIndex();
+        }
+        //Without result, loser or already paid bets have no prize to be withdrawn
+        if (
+            _bets[_betIndex].result != WINNER && _bets[_betIndex].result != TIED
+        ) {
+            revert InvalidBettingResultForWithdrawing({
+                currentResult: _bets[_betIndex].result
+            });
+        }
+
+        if (_bets[_betIndex].bettor != msg.sender) {
+            revert InvalidPrizeWithdrawer({bettor: _bets[_betIndex].bettor});
+        }
         _bets[_betIndex].result = PAID;
         bool tokensSent = _betTokenContract.transfer(
             _bets[_betIndex].bettor,
@@ -332,10 +380,16 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @notice Identify which bets matched the finalScore and calculate the prize (stake less comission fee)
      * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
      * for all
+     *
+     * Custom Errors: GameNotFinalized
+     *
      * @return The number of bets winners
      */
     function calcPrizes() internal onlyOwner returns (uint256) {
-        require(finalized, "Game not finalized yet");
+        if (!finalized) {
+            //TODO: write tests when no longer called by function finalizeGame
+            revert GameNotFinalized();
+        }
         uint256 _totalTokensBetWinners = 0;
         uint256 _totalWinners = 0;
         for (uint256 i = 0; i < _bets.length; i++) {
