@@ -72,16 +72,8 @@ describe("Game Finalize", function () {
     gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
-    GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable", {
-      libraries: {
-        GameUtils: gameUtils.address,
-      },
-    });
-    Game = await ethers.getContractFactory("Game", {
-      libraries: {
-        GameUtils: gameUtils.address,
-      },
-    });
+    GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
+    Game = await ethers.getContractFactory("Game");
     TestingAuxiliar = await ethers.getContractFactory("TestingAuxiliar");
   });
 
@@ -92,17 +84,16 @@ describe("Game Finalize", function () {
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize", unsafeAllowLinkedLibraries: true}
+      {
+        initializer: "initialize",
+        unsafeAllow: ["delegatecall"],
+      }
     );
-    gameContract = await Game.deploy(
-      await owner.getAddress(),
-      "SÃO PAULO",
-      "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
-      erc20BetToken.address,
-      calc.address,
-      10
-    );
+    await gameFactory
+      .connect(owner)
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
+    const games = await gameFactory.listGames();
+    gameContract = Game.attach(games[0].addressGame);
   });
 
   afterEach(async () => {
@@ -117,7 +108,7 @@ describe("Game Finalize", function () {
   it(`Should not fail with DoS costly loops`, async () => {
     //construct a array with a million bets
     const costlyBets = [];
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 1000; i++) {
       let b = null;
       if (i % 5 == 0) {
         b = bettorE;
@@ -162,7 +153,7 @@ describe("Game Finalize", function () {
     } while (false == (await gameContract.connect(owner).calcPrizes()));
 
     //stake value
-    const sumStake = utils.sumBetsAmountBN(BETS);
+    const sumStake = utils.sumBetsAmountBN(costlyBets);
     //prize value (total stake minus the administration commision fee)
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())

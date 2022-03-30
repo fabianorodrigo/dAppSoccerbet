@@ -69,19 +69,7 @@ describe("Game", function () {
     );
     await gameFactory
       .connect(owner)
-      .newGame(
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      ); /*await Game.deploy(
-      await owner.getAddress(),
-      "SÃO PAULO",
-      "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
-      erc20BetToken.address,
-      calc.address,
-      10
-    );*/
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
     const games = await gameFactory.listGames();
     gameContract = Game.attach(games[0].addressGame);
   });

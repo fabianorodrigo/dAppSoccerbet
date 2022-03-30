@@ -21,11 +21,13 @@ let ERC20BetToken: ContractFactory,
   Calculator: ContractFactory,
   GameFactory: ContractFactory,
   Game: ContractFactory,
-  TestingAuxiliar: ContractFactory;
+  TestingAuxiliar: ContractFactory,
+  GameUtils: ContractFactory;
 let erc20BetToken: Contract,
   calc: Contract,
   gameFactory: Contract,
-  gameContract: Contract;
+  gameContract: Contract,
+  gameUtils: Contract;
 const utils = new TestUtils();
 
 describe("Game Finalize", function () {
@@ -97,6 +99,9 @@ describe("Game Finalize", function () {
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
     calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
+    //GameUtils library
+    GameUtils = await ethers.getContractFactory("GameUtils");
+    gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
     GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
@@ -114,23 +119,14 @@ describe("Game Finalize", function () {
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
+      {
+        initializer: "initialize",
+        unsafeAllow: ["delegatecall"],
+      }
     );
     const receiptNewGame = await gameFactory
       .connect(owner)
-      .newGame(
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      ); /*await Game.deploy(
-      await owner.getAddress(),
-      "SÃO PAULO",
-      "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
-      erc20BetToken.address,
-      calc.address,
-      10
-    );*/
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
     const games = await gameFactory.listGames();
     gameContract = Game.attach(games[0].addressGame);
   });
@@ -153,11 +149,15 @@ describe("Game Finalize", function () {
     //Closed for betting
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
-    const finalizeTransction = await gameContract
+    const finalizeTransaction = await gameContract
       .connect(owner)
       .finalizeGame({home: 0, visitor: 3});
     //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
-    await finalizeTransction.wait();
+    await finalizeTransaction.wait();
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
 
     //Pay prizes
     const sumStake = utils.sumBetsAmountBN(BETS);
@@ -184,6 +184,11 @@ describe("Game Finalize", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 2, visitor: 2});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
+
     //Pay prizes
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
@@ -211,6 +216,11 @@ describe("Game Finalize", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 7, visitor: 7});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
+
     //stake value
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
