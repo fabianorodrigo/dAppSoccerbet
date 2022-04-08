@@ -1,11 +1,18 @@
 import {expect} from "chai";
 import {BigNumber, Contract, Signer} from "ethers";
+import {WriteStream} from "fs";
 import {ethers} from "hardhat";
 import {BetDTO} from "./model";
 
 const DATETIME_20220716_170000_IN_MINUTES =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 export class TestUtils {
+  static readonly PAID = 4;
+  static readonly TIED = 3;
+  static readonly WINNER = 2;
+  static readonly LOSER = 1;
+  static readonly NO_RESULT = 0;
+
   calcPercentageBN(amount: BigNumber, percentage: BigNumber): BigNumber {
     //https://github.com/indutny/bn.js/
     //Postfix "n": the argument of the function must be a plain JavaScript Number. Decimals are not supported.
@@ -49,6 +56,7 @@ export class TestUtils {
     //Game is initially closed for betting
     await gameContract.connect(owner).openForBetting();
 
+    let betCount = 0;
     for (let bet of bets) {
       ////////////////// BETTOR HAS TO BUY SOME BET TOKENS
       await bet.bettor.sendTransaction({
@@ -87,11 +95,30 @@ export class TestUtils {
       expect(ethers.constants.Zero).to.be.equal(
         await erc20BetToken.balanceOf(await bet.bettor.getAddress())
       );
+      betCount++;
+
+      this.updateLine(`Bet: ${betCount}/${bets.length}`);
     }
 
     // The BETTOKEN balances of the Game contract is the sum of all bets
     expect(await erc20BetToken.balanceOf(gameContract.address)).to.be.equal(
       totalStake
     );
+  }
+
+  getRandomBetween(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+
+  /**
+   * Print {text} on the console without breaking a new line
+   * It`s like a current line update
+   *
+   * @param text Text to be printed
+   */
+  updateLine(text: string) {
+    process.stdout.clearLine(-1);
+    process.stdout.cursorTo(0);
+    process.stdout.write(text);
   }
 }

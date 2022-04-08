@@ -69,19 +69,7 @@ describe("Game", function () {
     );
     await gameFactory
       .connect(owner)
-      .newGame(
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      ); /*await Game.deploy(
-      await owner.getAddress(),
-      "SÃO PAULO",
-      "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
-      erc20BetToken.address,
-      calc.address,
-      10
-    );*/
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
     const games = await gameFactory.listGames();
     gameContract = Game.attach(games[0].addressGame);
   });
@@ -181,10 +169,10 @@ describe("Game", function () {
     });
   });
 
+  /**
+   * FINALIZEGAME
+   */
   describe("Finalize", () => {
-    /**
-     * FINALIZEGAME
-     */
     it(`Should finalize a closed game`, async () => {
       const score = {home: 3, visitor: 1};
       const receiptFinalize = await gameContract
@@ -236,10 +224,10 @@ describe("Game", function () {
     });
   });
 
+  /**
+   * BET
+   */
   describe("Bet", () => {
-    /**
-     * BET
-     */
     it(`Should make a bet on an open game`, async () => {
       const score = {home: 3, visitor: 1};
       const betTokenAmount = 1001;

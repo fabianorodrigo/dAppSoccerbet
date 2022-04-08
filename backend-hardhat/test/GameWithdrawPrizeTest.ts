@@ -9,6 +9,11 @@ import {ethers, upgrades} from "hardhat";
 import {BetDTO} from "./model";
 import {TestUtils} from "./TestUtils";
 
+// As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
+// Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
+// This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
+upgrades.silenceWarnings();
+
 const DATETIME_20220716_170000_IN_MINUTES =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
@@ -108,20 +113,7 @@ describe("Game Prize Withdraw", function () {
     );
     gameContract = await gameFactory
       .connect(owner)
-      .newGame(
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_170000_IN_MINUTES
-      ); /*await Game.deploy(
-      await owner.getAddress(),
-      "SÃO PAULO",
-      "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
-      erc20BetToken.address,
-      calc.address,
-      10
-    );*/
-    //make bets
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
     const games = await gameFactory.listGames();
     gameContract = Game.attach(games[0].addressGame);
     await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
@@ -140,15 +132,17 @@ describe("Game Prize Withdraw", function () {
    * WITHDRAW PRIZES
    */
   it(`Should revert if an inexistent bet index is informed`, async () => {
+    //Closed for betting
+    await gameContract.connect(owner).closeForBetting();
+    //Finalize the game
+    await gameContract.connect(owner).finalizeGame({home: 0, visitor: 1});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     await expect(
       gameContract.connect(bettorA).withdrawPrize(5)
     ).to.revertedWith("InvalidBetIndex()");
-  });
-
-  it(`Should revert if try to withdraw the prize of a bet with unknown result`, async () => {
-    await expect(
-      gameContract.connect(bettorA).withdrawPrize(0)
-    ).to.revertedWith("InvalidBettingResultForWithdrawing(0)");
   });
 
   it(`Should revert if try to withdraw the prize of a loser bet`, async () => {
@@ -156,6 +150,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 1});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     await expect(
       gameContract.connect(bettorE).withdrawPrize(4)
     ).to.revertedWith("InvalidBettingResultForWithdrawing(1)");
@@ -166,6 +164,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     // pay once
     await gameContract.connect(bettorE).withdrawPrize(4);
     // pay twice
@@ -179,6 +181,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     await expect(
       gameContract.connect(bettorA).withdrawPrize(4)
     ).to.revertedWith(
@@ -191,6 +197,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     //Withdraw prizes
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
@@ -217,6 +227,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 2, visitor: 2});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     //withdraw prizes
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
@@ -251,6 +265,10 @@ describe("Game Prize Withdraw", function () {
     await gameContract.connect(owner).closeForBetting();
     //Finalize the game
     await gameContract.connect(owner).finalizeGame({home: 7, visitor: 7});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    // Calculates the prizes
+    await gameContract.calcPrizes();
     //stake value
     const sumStake = utils.sumBetsAmountBN(BETS);
     //prize value (total stake minus the administration commision fee)
@@ -270,5 +288,17 @@ describe("Game Prize Withdraw", function () {
         await erc20BetToken.balanceOf(await bet.bettor.getAddress())
       ).to.be.equal(prize.mul(bet.tokenAmount).div(sumStake));
     }
+  });
+
+  it(`Should revert if try to withdraw the prize of a game that has not calculated the prize yet`, async () => {
+    //Closed for betting
+    await gameContract.connect(owner).closeForBetting();
+    //Finalize the game
+    await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+    // identify the winners bets
+    await gameContract.identifyWinners();
+    await expect(
+      gameContract.connect(bettorE).withdrawPrize(4)
+    ).to.revertedWith("PrizesNotCalculated()");
   });
 });

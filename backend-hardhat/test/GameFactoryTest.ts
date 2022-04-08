@@ -15,8 +15,12 @@ let ERC20BetToken: ContractFactory,
   Calculator: ContractFactory,
   GameFactory: ContractFactory,
   Game: ContractFactory,
-  TestingAuxiliar: ContractFactory;
-let erc20BetToken: Contract, calc: Contract, gameFactory: Contract;
+  TestingAuxiliar: ContractFactory,
+  GameUtils: ContractFactory;
+let erc20BetToken: Contract,
+  calc: Contract,
+  gameFactory: Contract,
+  gameUtils: Contract;
 const utils = new TestUtils();
 
 describe("GameFactory", function () {
@@ -34,6 +38,9 @@ describe("GameFactory", function () {
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
     calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
+    //GameUtils library
+    GameUtils = await ethers.getContractFactory("GameUtils");
+    gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
     GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
@@ -51,7 +58,10 @@ describe("GameFactory", function () {
     gameFactory = await upgrades.deployProxy(
       GameFactory,
       [erc20BetToken.address, calc.address],
-      {initializer: "initialize", unsafeAllow: ["delegatecall"]}
+      {
+        initializer: "initialize",
+        unsafeAllow: ["delegatecall"],
+      }
     );
     await gameFactory.deployed();
   });
