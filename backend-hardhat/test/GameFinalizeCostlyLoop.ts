@@ -108,7 +108,7 @@ describe("Game Finalize", function () {
   it(`Should not fail with DoS costly loops`, async () => {
     //construct a array with a million bets
     const costlyBets = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 5000; i++) {
       let b = null;
       if (i % 5 == 0) {
         b = bettorE;
@@ -141,16 +141,21 @@ describe("Game Finalize", function () {
     await gameContract.connect(owner).finalizeGame({home: 7, visitor: 7});
     // identify winner bets
     let identifyWinnersCount = 1;
+    let allWinnersIdentified = false;
     do {
-      console.log(`Identify winners: `, identifyWinnersCount);
       identifyWinnersCount++;
-    } while (false == (await gameContract.connect(owner).identifyWinners()));
+      const receipt = await gameContract.identifyWinners();
+      await receipt.wait();
+      allWinnersIdentified = await gameContract.winnersIdentified();
+    } while (false == allWinnersIdentified);
     // Calc bet prizes
-    let calcPrizesCount = 1;
+    let calcPrizesCount = 0;
     do {
       console.log(`Calculate prizes: `, calcPrizesCount);
+      const receipt = await gameContract.calcPrizes();
+      await receipt.wait();
       calcPrizesCount++;
-    } while (false == (await gameContract.connect(owner).calcPrizes()));
+    } while (false == (await gameContract.prizesCalculated()));
 
     //stake value
     const sumStake = utils.sumBetsAmountBN(costlyBets);
@@ -158,6 +163,7 @@ describe("Game Finalize", function () {
     const prize = sumStake.sub(
       utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
     );
+
     //Verify calculated prizes
     const bets = await gameContract.listBets();
     for (let bet of bets) {

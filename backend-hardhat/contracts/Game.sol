@@ -28,7 +28,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libs/GameUtils.sol";
 
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Contract that represents a single game and e responsible for managing all bets
@@ -129,7 +129,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     //total stake
     uint256 private _totalStake = 0;
     //sum of tokens among winning bets
-    uint256 private _totalTokensBetWinners = 0;
+    uint256 public totalTokensBetWinners = 0;
     //real final score
     Score public finalScore;
     //When TRUE, the game is already finalized
@@ -400,11 +400,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
                 _bets[_idWinners_i].score.visitor == finalScore.visitor
             ) {
                 _bets[_idWinners_i].result = WINNER;
-                _totalTokensBetWinners += _bets[_idWinners_i].value;
+                totalTokensBetWinners += _bets[_idWinners_i].value;
                 _winnerBetsIndexes.push(_idWinners_i);
             } else {
                 _bets[_idWinners_i].result = LOSER;
             }
+            //console.log(_idWinners_i, _bets.length);
         }
 
         //If iterator >= number of bets, all the elements were visited
@@ -432,10 +433,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
 
         // if nobody matches the final score, every bettor is refunded with
         // the value of he's bet less the commission fee.
-        if (_totalTokensBetWinners == 0) {
+        if (totalTokensBetWinners == 0) {
             return _calcTiedPrizes(this.getPrize());
         } else {
-            return _calcWinnerPrizes(this.getPrize());
+            bool retorno = _calcWinnerPrizes(this.getPrize());
+            // console.log("retorno retorno", retorno);
+            return retorno;
         }
     }
 
@@ -500,6 +503,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * If you want to return an entire array in one call, then you need to write a function
      */
     function listBets() external view returns (Bet[] memory bets) {
+        console.log("Bets length: ", _bets.length);
         return _bets;
     }
 
@@ -539,23 +543,35 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     function _calcWinnerPrizes(uint256 _totalPrize) private returns (bool) {
         // Each interaction of this loops is spending around 30K gas
         // The loop continues until the end or the gasleft() > 30K
+        //console.log("calcWinner", _winnerBetsIndexes.length);
         for (
             ;
             _calcPrize_i < _winnerBetsIndexes.length &&
                 gasleft() > GAS_INTERACTION_CALC_PRIZES;
             _calcPrize_i++
         ) {
+            //console.log(_calcPrize_i);
             // The value transfered will be proportional: prize * the value of bet divided by
             // the total of tokens of the winning bets (if nobody wins, the total stake)
             uint256 i = _winnerBetsIndexes[_calcPrize_i];
+            //console.log("i", i);
             uint256 _prizeValue = (_totalPrize * _bets[i].value) /
-                _totalTokensBetWinners;
+                totalTokensBetWinners;
+            //console.log("prize", _prizeValue);
             _bets[i].prize = _prizeValue;
+            //console.log("_bets[i].prize", _bets[i].prize);
         }
+        //console.log("saiu do loop", totalTokensBetWinners);
         //If iterator >= number of winner bets, all the elements were visited
         if (_calcPrize_i >= _winnerBetsIndexes.length) {
+            // console.log(
+            //     "entrou no if",
+            //     _calcPrize_i,
+            //     _winnerBetsIndexes.length
+            // );
             prizesCalculated = true;
         }
+        //console.log("return ", prizesCalculated);
         return prizesCalculated;
     }
 
@@ -576,6 +592,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
                 gasleft() > GAS_INTERACTION_CALC_PRIZES;
             _calcPrize_i++
         ) {
+            // console.log("calcTied");
+            // console.log(_calcPrize_i);
             // The value transfered will be proportional: prize * the value of bet divided by
             // the total stake
             uint256 _prizeValue = (_totalPrize * _bets[_calcPrize_i].value) /

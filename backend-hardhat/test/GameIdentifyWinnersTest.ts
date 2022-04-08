@@ -30,7 +30,7 @@ let erc20BetToken: Contract,
   gameUtils: Contract;
 const utils = new TestUtils();
 
-describe("Game Finalize", function () {
+describe("Game", function () {
   // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
   // Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
   // This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
@@ -99,9 +99,6 @@ describe("Game Finalize", function () {
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
     calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
-    //GameUtils library
-    GameUtils = await ethers.getContractFactory("GameUtils");
-    gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
     GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
@@ -124,7 +121,7 @@ describe("Game Finalize", function () {
         unsafeAllow: ["delegatecall"],
       }
     );
-    const receiptNewGame = await gameFactory
+    await gameFactory
       .connect(owner)
       .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
     const games = await gameFactory.listGames();
@@ -140,98 +137,115 @@ describe("Game Finalize", function () {
     }
   });
 
-  /**
-   * CALC PRIZES
-   */
-  it(`Should pay 90% of stake to the winner bet`, async () => {
-    //make bets
-    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
-    //Closed for betting
-    await gameContract.connect(owner).closeForBetting();
-    //Finalize the game
-    const finalizeTransaction = await gameContract
-      .connect(owner)
-      .finalizeGame({home: 0, visitor: 3});
-    //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
-    await finalizeTransaction.wait();
-    // identify the winners bets
-    await gameContract.identifyWinners();
-    // Calculates the prizes
-    await gameContract.calcPrizes();
+  describe("identifyWinners", () => {
+    it(`Should revert if the game is not finalized yet`, async () => {
+      //make bets
+      await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
+      //Closed for betting
+      const closeTransaction = await gameContract
+        .connect(owner)
+        .closeForBetting();
+      //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
+      await closeTransaction.wait();
+      // identify the winners bets
+      await expect(gameContract.identifyWinners()).to.be.revertedWith(
+        "GameNotFinalized()"
+      );
+      expect(await gameContract.winnersIdentified()).to.be.false;
+    });
 
-    //Pay prizes
-    const sumStake = utils.sumBetsAmountBN(BETS);
-    //prize value (total stake minus the administration commision fee)
-    const prize = sumStake.sub(
-      utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
-    );
-    const bets = await gameContract.listBets();
+    it(`Should revert if the game's winners have been already identified`, async () => {
+      //make bets
+      await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
+      //Closed for betting
+      await gameContract.connect(owner).closeForBetting();
+      //Finalize the game
+      const finalizeTransaction = await gameContract
+        .connect(owner)
+        .finalizeGame({home: 0, visitor: 3});
+      //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
+      await finalizeTransaction.wait();
+      // identify the winners bets
+      const receipt = await gameContract.identifyWinners();
+      //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
+      await receipt.wait();
+      // identify the winners bets again
+      await expect(gameContract.identifyWinners()).to.be.revertedWith(
+        "WinnersAlreadyKnown()"
+      );
+      expect(await gameContract.winnersIdentified()).to.be.true;
+    });
 
-    for (let bet of bets) {
-      //the prize of bettorE should be equal 90% of all stake
-      if (bet.bettor == bettorEAddress) {
-        expect(bet.prize).to.be.equal(prize);
-      } else {
-        expect(bet.prize).to.be.equal(ethers.constants.Zero);
+    it(`Should identify winners of a game where only one matched the final score`, async () => {
+      //make bets
+      await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
+      //Closed for betting
+      await gameContract.connect(owner).closeForBetting();
+      //Finalize the game with the score bet by bettorE
+      await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
+      // identify the winners bets
+      await gameContract.identifyWinners();
+      //Verify winners identified
+      const bets = await gameContract.listBets();
+      for (let bet of bets) {
+        //the prize of bettorE should be equal 90% of all stake
+        if (bet.bettor == bettorEAddress) {
+          expect(bet.result).to.be.equal(TestUtils.WINNER);
+        } else {
+          expect(bet.result).to.be.equal(TestUtils.LOSER);
+        }
       }
-    }
-  });
+      //amount bet by bettorE
+      expect(await gameContract.totalTokensBetWinners()).to.be.equal(
+        BETS[4].tokenAmount
+      );
+      expect(await gameContract.winnersIdentified()).to.be.true;
+    });
 
-  it(`Should split proportionally 90% of stake to the winners bets`, async () => {
-    //make bets
-    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
-    //Closed for betting
-    await gameContract.connect(owner).closeForBetting();
-    //Finalize the game
-    await gameContract.connect(owner).finalizeGame({home: 2, visitor: 2});
-    // identify the winners bets
-    await gameContract.identifyWinners();
-    // Calculates the prizes
-    await gameContract.calcPrizes();
-
-    //Pay prizes
-    const sumStake = utils.sumBetsAmountBN(BETS);
-    //prize value (total stake minus the administration commision fee)
-    const prize = sumStake.sub(
-      utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
-    );
-    const bets = await gameContract.listBets();
-
-    for (let bet of bets) {
-      //90% of all stake should be proportionally splited between bettor and bettorB
-      if (bet.bettor == bettorAAddress || bet.bettor == bettorBAddress) {
-        expect(bet.prize).to.be.equal(
-          prize.mul(bet.value).div(BETS[0].tokenAmount.add(BETS[1].tokenAmount))
-        );
-      } else {
-        expect(bet.prize).to.be.equal(ethers.constants.Zero);
+    it(`Should identify winners of a game where more than one matched the final score`, async () => {
+      //make bets
+      await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
+      //Closed for betting
+      await gameContract.connect(owner).closeForBetting();
+      //Finalize the game with the score bet by bettorA and bettorB
+      await gameContract.connect(owner).finalizeGame({home: 2, visitor: 2});
+      // identify the winners bets
+      await gameContract.identifyWinners();
+      //Verify winners identified
+      const bets = await gameContract.listBets();
+      for (let bet of bets) {
+        if (bet.bettor == bettorAAddress || bet.bettor == bettorBAddress) {
+          expect(bet.result).to.be.equal(TestUtils.WINNER);
+        } else {
+          expect(bet.result).to.be.equal(TestUtils.LOSER);
+        }
       }
-    }
-  });
+      //amount bet by bettorA plus amount bet by bettorB
+      expect(await gameContract.totalTokensBetWinners()).to.be.equal(
+        BETS[0].tokenAmount.add(BETS[1].tokenAmount)
+      );
+      expect(await gameContract.winnersIdentified()).to.be.true;
+    });
 
-  it(`Should refund 90% of stake to all bets if nobody matches the final score`, async () => {
-    //make bets
-    await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
-    //Closed for betting
-    await gameContract.connect(owner).closeForBetting();
-    //Finalize the game
-    await gameContract.connect(owner).finalizeGame({home: 7, visitor: 7});
-    // identify the winners bets
-    await gameContract.identifyWinners();
-    // Calculates the prizes
-    await gameContract.calcPrizes();
-
-    //stake value
-    const sumStake = utils.sumBetsAmountBN(BETS);
-    //prize value (total stake minus the administration commision fee)
-    const prize = sumStake.sub(
-      utils.calcPercentageBN(sumStake, utils.getCommissionPercentageBN())
-    );
-    //Verify calculated prizes
-    const bets = await gameContract.listBets();
-    for (let bet of bets) {
-      //the balance of bettokens should be equal to amount proportional to the prize (90% of stake)
-      expect(bet.prize).to.be.equal(prize.mul(bet.value).div(sumStake));
-    }
+    it(`Should not identify winners if nobody matched the final score`, async () => {
+      //make bets
+      await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
+      //Closed for betting
+      await gameContract.connect(owner).closeForBetting();
+      //Finalize the game with the score bet by bettorA and bettorB
+      await gameContract.connect(owner).finalizeGame({home: 3, visitor: 3});
+      // identify the winners bets
+      await gameContract.identifyWinners();
+      //Verify winners identified
+      const bets = await gameContract.listBets();
+      for (let bet of bets) {
+        expect(bet.result).to.be.equal(TestUtils.LOSER);
+      }
+      //If has no winners, there is no tokens of bet winners
+      expect(await gameContract.totalTokensBetWinners()).to.be.equal(
+        ethers.constants.Zero
+      );
+      expect(await gameContract.winnersIdentified()).to.be.true;
+    });
   });
 });
