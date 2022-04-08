@@ -85,8 +85,8 @@ task(
         bettor: b,
         tokenAmount: BigNumber.from(getRandomBetween(1000, 7000000000)),
         score: {
-          home: getRandomBetween(0, 10),
-          visitor: getRandomBetween(0, 10),
+          home: getRandomBetween(0, 5),
+          visitor: getRandomBetween(0, 4),
         },
       });
     }
