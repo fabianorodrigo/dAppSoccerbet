@@ -12,5 +12,7 @@ struct GameDTO {
     bool open;
     bool finalized;
     Score finalScore;
+    bool winnersIdentified;
+    bool prizesCalculated;
     uint256 commission;
 }

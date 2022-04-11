@@ -205,6 +205,8 @@ contract GameFactoryUpgradeable is
                 g.open(),
                 g.finalized(),
                 Score(home, visitor),
+                g.winnersIdentified(),
+                g.prizesCalculated(),
                 g.commission()
             );
         }

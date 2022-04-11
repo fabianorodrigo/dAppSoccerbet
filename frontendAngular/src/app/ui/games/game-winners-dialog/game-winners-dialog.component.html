@@ -33,7 +33,8 @@
           <button
             *ngIf="
               (bet.result == TIED || bet.result == WINNER) &&
-              bet.bettor == userAccountAddress
+              bet.bettor == userAccountAddress &&
+              bet.gamePrizesCalculated
             "
             class="button"
             color="primary"

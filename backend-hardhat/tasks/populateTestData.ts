@@ -83,7 +83,7 @@ task(
 
       bets.push({
         bettor: b,
-        tokenAmount: BigNumber.from(getRandomBetween(1000, 7000000000)),
+        tokenAmount: BigNumber.from(getRandomBetween(1000, 700000)),
         score: {
           home: getRandomBetween(0, 5),
           visitor: getRandomBetween(0, 4),
@@ -93,7 +93,8 @@ task(
     // //make bets
     await makeBets(hre.ethers, erc20BetToken, gameContract, owner, bets);
     //Closed for betting
-    await gameContract.connect(owner).closeForBetting();
+    const receiptClose = await gameContract.connect(owner).closeForBetting();
+    await receiptClose.wait();
     console.log(
       `${taskArgs.totalbets} Bets done and the game was closed for betting`
     );
@@ -122,7 +123,8 @@ async function makeBets(
 ) {
   let totalStake = ethers.constants.Zero;
   //Game is initially closed for betting
-  await gameContract.connect(owner).openForBetting();
+  const receiptOpen = await gameContract.connect(owner).openForBetting();
+  await receiptOpen.wait();
 
   let betCount = 0;
   for (let bet of bets) {

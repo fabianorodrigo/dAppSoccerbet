@@ -5,5 +5,5 @@ export interface GameFinalizedEvent {
   homeTeam: string;
   visitorTeam: string;
   datetimeGame: number;
-  score: Score;
+  finalScore: Score;
 }

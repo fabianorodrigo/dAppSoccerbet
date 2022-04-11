@@ -21,7 +21,7 @@
       formatedRemainingAllowance
     }}</span>
   </div>
-  <!-- ADMIN ROW ACTION -->
+  <!-- ROW ACTION -->
   <div class="row-action">
     <button
       mat-stroked-button
@@ -46,7 +46,11 @@
         remaining Bet Tokens approved
       </button>
       <button mat-menu-item (click)="listBets()">Show bettings ...</button>
-      <button mat-menu-item [disabled]="!finalized" (click)="listWinners()">
+      <button
+        mat-menu-item
+        [disabled]="!winnersIdentified"
+        (click)="listWinners()"
+      >
         Show winners ...
       </button>
     </mat-menu>
@@ -81,6 +85,28 @@
       (click)="finalizeGame()"
     >
       Finalize ...
+    </button>
+    <button
+      class="button"
+      *ngIf="finalized"
+      [disabled]="winnersIdentified || !this.userAccountAddress"
+      mat-flat-button
+      color="accent"
+      (click)="identifyWinners()"
+    >
+      Identify Winners
+    </button>
+    <button
+      class="button"
+      *ngIf="finalized"
+      [disabled]="
+        !winnersIdentified || prizesCalculated || !this.userAccountAddress
+      "
+      mat-flat-button
+      color="warn"
+      (click)="calcPrizes()"
+    >
+      Calc Prizes
     </button>
     <button
       mat-flat-button

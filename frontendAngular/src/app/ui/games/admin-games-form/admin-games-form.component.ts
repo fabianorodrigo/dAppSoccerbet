@@ -40,6 +40,8 @@ export class AdminGamesFormComponent implements OnInit {
       datetimeGame: dateTime.getTime(),
       open: false,
       finalized: false,
+      winnersIdentified: false,
+      prizesCalculated: false
     });
   }
   cancel(event: MouseEvent) {

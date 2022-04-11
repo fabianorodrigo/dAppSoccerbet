@@ -9,6 +9,9 @@ export interface Game {
   open: boolean;
   finalized: boolean;
   finalScore?: Score;
+  winnersIdentified: boolean;
+  prizesCalculated: boolean;
+  
   //TODO: change event attribute name do finalScore
   score?: Score;
   bets?: Bet[];

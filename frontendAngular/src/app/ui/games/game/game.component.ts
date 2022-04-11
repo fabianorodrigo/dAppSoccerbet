@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Bet, BetResult, BetTokenApproval, GameBetEvent, Score } from 'src/app/model';
+import { Bet, BetResult, BetTokenApproval, GameBetEvent, GameEvent, Score } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -31,6 +31,8 @@ export class GameComponent implements OnInit {
   open!: boolean;
   finalized!: boolean;
   finalScore!: Score | undefined;
+  winnersIdentified!: boolean;
+  prizesCalculated!: boolean;
 
   formatedRemainingAllowance!: string | null;
 
@@ -50,6 +52,8 @@ export class GameComponent implements OnInit {
     this.open = this.gameCompound.game.open;
     this.finalized = this.gameCompound.game.finalized;
     this.finalScore = this.gameCompound.game.finalScore;
+    this.winnersIdentified = this.gameCompound.game.winnersIdentified;
+    this.prizesCalculated = this.gameCompound.game.prizesCalculated;
 
     // Subscribing for account address changes in the provider
     this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
@@ -79,6 +83,31 @@ export class GameComponent implements OnInit {
         if (evt == null) return;
         const eventData: GameBetEvent = evt;
         this.showAllowance();
+      });
+
+      //winner identified
+      (
+        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_WINNERS_IDENTIFIED)
+      ).subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameEvent = evt;
+        this.gameCompound.game.winnersIdentified = true;
+        this.winnersIdentified = true;
+        this._messageService.show(
+          `Winner bets identification confirmed for: ${eventData.homeTeam} x  ${eventData.visitorTeam}`
+        );
+      });
+      // prizes calculated
+      (
+        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_PRIZES_CALCULATED)
+      ).subscribe((evt) => {
+        if (evt == null) return;
+        const eventData: GameEvent = evt;
+        this.gameCompound.game.prizesCalculated = true;
+        this.prizesCalculated = true;
+        this._messageService.show(
+          `Prizes calculation confirmed for: ${eventData.homeTeam} x  ${eventData.visitorTeam}`
+        );
       });
     } catch (e: any) {
       console.log('deu ruim');
@@ -120,6 +149,18 @@ export class GameComponent implements OnInit {
           this._messageService.show(`Score is not valid`);
         }
       }
+    });
+  }
+
+  identifyWinners() {
+    this.gameCompound.gameService.identifyWinners().subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.result);
+    });
+  }
+
+  calcPrizes() {
+    this.gameCompound.gameService.calcPrizes().subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.result);
     });
   }
 
@@ -228,6 +269,7 @@ export class GameComponent implements OnInit {
       } else {
         const _winnerResuts = [BetResult.WINNER, BetResult.TIED, BetResult.PAID];
         const _winners = (_result.result as Bet[]).filter((b) => _winnerResuts.includes(b.result as BetResult));
+        //console.log(_winners);
         if (_winners.length > 0) {
           this._dialog.open(GameWinnersDialogComponent, {
             data: {

@@ -13,6 +13,8 @@ export class GameService extends BaseContract {
     GAME_CLOSED: 'GameClosed',
     GAME_FINALIZED: 'GameFinalized',
     BET_ON_GAME: 'BetOnGame',
+    GAME_WINNERS_IDENTIFIED: `GameWinnersIdentified`,
+    GAME_PRIZES_CALCULATED: `GamePrizesCalculated`,
   };
 
   constructor(_messageService: MessageService, _web3Service: Web3Service, _address: string) {
@@ -122,6 +124,78 @@ export class GameService extends BaseContract {
   }
 
   /**
+   * After game is finalized, this method identify the winner bets
+   *
+   * @returns result of transaction submission
+   */
+  identifyWinners(): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (_contract) => {
+          let result;
+          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.identifyWinners().send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                result: `Transaction to identify the game's winner bets was sent successfully`,
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+              }
+              console.warn(e);
+              subscriber.next({ success: false, result: message });
+            }
+          });
+        })
+        .catch((e) => {
+          console.warn(`gameservice`, e);
+        });
+    });
+  }
+
+  /**
+   * After game's winner bets are identified, this method calc the prizes of the winner bets
+   *
+   * @returns result of transaction submission
+   */
+  calcPrizes(): Observable<TransactionResult<string>> {
+    return new Observable<TransactionResult<string>>((subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then(async (_contract) => {
+          let result;
+          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+            try {
+              result = await _contract.methods.calcPrizes().send({
+                from: fromAccount,
+              });
+              subscriber.next({
+                success: true,
+                result: `Transaction to calc prizes for the game's winner bets was sent successfully`,
+              });
+            } catch (e: any) {
+              const providerError = ProviderErrors[e.code];
+              let message = `We had some problem. The transaction wasn't sent.`;
+              if (providerError) {
+                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+              }
+              console.warn(e);
+              subscriber.next({ success: false, result: message });
+            }
+          });
+        })
+        .catch((e) => {
+          console.warn(`gameservice`, e);
+        });
+    });
+  }
+
+  /**
    * Withdraw the prize from the game to the winner bettor account
    *
    * @param _betIndex the index of Bet being withdrawn
@@ -131,7 +205,7 @@ export class GameService extends BaseContract {
     return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then(async (_contract) => {
-          let result;
+          let result: any;
           this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
             try {
               result = await _contract.methods.withdrawPrize(_betIndex).send({
@@ -212,7 +286,12 @@ export class GameService extends BaseContract {
               .listBets()
               .call()
               .then((_result: Bet[]) => {
-                _subscriber.next({ success: true, result: _result });
+                _subscriber.next({
+                  success: true,
+                  result: _result.map((b, i) => {
+                    return { ...b, index: i };
+                  }),
+                });
               })
               .catch((e: any) => {
                 _subscriber.next({ success: false, result: e.message });

@@ -182,6 +182,24 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         uint256 datetimeGame,
         Score finalScore
     );
+    /**
+     * @notice Event triggered when a game has its winner bets identified
+     */
+    event GameWinnersIdentified(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
+    /**
+     * @notice Event triggered when a game has the prizes calculated
+     */
+    event GamePrizesCalculated(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
 
     /**
      * @notice Event triggered when someone bet on a game
@@ -411,6 +429,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         //If iterator >= number of bets, all the elements were visited
         if (_idWinners_i >= _bets.length) {
             winnersIdentified = true;
+            emit GameWinnersIdentified(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
         }
         return winnersIdentified;
     }
@@ -564,12 +588,13 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         //console.log("saiu do loop", totalTokensBetWinners);
         //If iterator >= number of winner bets, all the elements were visited
         if (_calcPrize_i >= _winnerBetsIndexes.length) {
-            // console.log(
-            //     "entrou no if",
-            //     _calcPrize_i,
-            //     _winnerBetsIndexes.length
-            // );
             prizesCalculated = true;
+            emit GamePrizesCalculated(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
         }
         //console.log("return ", prizesCalculated);
         return prizesCalculated;
@@ -605,6 +630,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         //If iterator >= number of bets, all the elements were visited
         if (_calcPrize_i >= _bets.length) {
             prizesCalculated = true;
+            emit GamePrizesCalculated(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
         }
         return prizesCalculated;
     }

@@ -17,7 +17,7 @@
     "slither-inheritance": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print inheritance-graph",
     "slither-statevars": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print vars-and-auth",
     "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore .",
-    "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache ",
+    "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --miner.blockTime 10 ",
     "ganache-debug": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --logging.debug --logging.verbose ",
     "deployLocal": "npx hardhat run --network localhost scripts/deployProxies.ts",
     "upgradeBetTokenLocal": "npx hardhat run --network localhost scripts/upgradeBetToken.ts",
