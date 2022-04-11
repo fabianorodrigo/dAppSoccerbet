@@ -269,7 +269,6 @@ export class GameComponent implements OnInit {
       } else {
         const _winnerResuts = [BetResult.WINNER, BetResult.TIED, BetResult.PAID];
         const _winners = (_result.result as Bet[]).filter((b) => _winnerResuts.includes(b.result as BetResult));
-        //console.log(_winners);
         if (_winners.length > 0) {
           this._dialog.open(GameWinnersDialogComponent, {
             data: {

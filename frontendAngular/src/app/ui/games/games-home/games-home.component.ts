@@ -152,7 +152,6 @@ export class GamesHomeComponent implements OnInit {
 
   private handleFinalizedEvent(evt: any): void {
     if (evt == null) return;
-    console.log(`evt FINALIZED`, evt);
     const eventData: GameFinalizedEvent = {
       addressGame: evt.addressGame,
       homeTeam: evt.homeTeam,

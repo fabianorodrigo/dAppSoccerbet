@@ -1,10 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  Router,
-  Resolve,
-  RouterStateSnapshot,
-  ActivatedRouteSnapshot,
-} from '@angular/router';
+import { Router, Resolve, RouterStateSnapshot, ActivatedRouteSnapshot } from '@angular/router';
 import { Observable, of, take } from 'rxjs';
 import { Web3Service } from '../services';
 
@@ -16,21 +11,7 @@ import { Web3Service } from '../services';
 })
 export class CurrentAccountResolver implements Resolve<string | null> {
   constructor(private _web3Service: Web3Service) {}
-  resolve(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<string | null> {
-    /*console.log('bateu aqui?');
-    const e = this._web3Service.getUserAccountAddress();
-    console.log(
-      `The observable that resolve() is about to return: ${JSON.stringify(e)}`
-    );
-    e.subscribe((evt) =>
-      console.log(
-        `The value that the observable resolves to: ${JSON.stringify(evt)}`
-      )
-    );
-    return e.pipe(take(1));*/
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<string | null> {
     //TODO: THIS WAY IS NOT WORKING, MAYBE BECAUSE IT'S A BEHAVIORSUBJECT. CHECK LATER
     return this._web3Service.getUserAccountAddress();
   }

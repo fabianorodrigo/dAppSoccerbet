@@ -116,7 +116,6 @@ export abstract class BaseContract {
     _filter?: { [key: string]: any }
   ): { new: boolean; key: string } {
     if (!_contract.events[_eventName]) {
-      console.log(_contract.events);
       throw new Error(`Event '${_eventName}' does not exists in the contract`);
     } else {
       let _new = false;
