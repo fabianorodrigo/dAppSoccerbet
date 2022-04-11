@@ -129,15 +129,17 @@ async function makeBets(
   let betCount = 0;
   for (let bet of bets) {
     ////////////////// BETTOR HAS TO BUY SOME BET TOKENS
-    await bet.bettor.sendTransaction({
+    const receiptBuyToken = await bet.bettor.sendTransaction({
       to: erc20BetToken.address,
       value: bet.tokenAmount,
     });
+    await receiptBuyToken.wait();
 
     //////////////// BETTOR ALLOWS {gameContract} SPENT THE VALUE OF THE BET IN HIS NAME
-    await erc20BetToken
+    const receiptApprove = await erc20BetToken
       .connect(bet.bettor)
       .approve(gameContract.address, bet.tokenAmount);
+    await receiptApprove.wait();
     //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
     const receiptBet = await gameContract
       .connect(bet.bettor)
