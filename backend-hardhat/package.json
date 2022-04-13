@@ -1,6 +1,6 @@
 {
   "name": "dappsoccerbet-backend-hardhat",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "slither-inheritance": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print inheritance-graph",
     "slither-statevars": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 slither . --print vars-and-auth",
     "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore .",
-    "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache",
+    "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --miner.blockTime 10 ",
+    "ganache-debug": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --logging.debug --logging.verbose ",
     "deployLocal": "npx hardhat run --network localhost scripts/deployProxies.ts",
     "upgradeBetTokenLocal": "npx hardhat run --network localhost scripts/upgradeBetToken.ts",
     "upgradeGameFactoryLocal": "npx hardhat run --network localhost scripts/upgradeGameFactory.ts"
@@ -27,14 +28,14 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
-    "@openzeppelin/hardhat-upgrades": "^1.16.0",
+    "@openzeppelin/hardhat-upgrades": "^1.17.0",
     "@openzeppelin/test-helpers": "^0.5.15",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.21",
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.6.1",
+    "ethers": "5.6.1",
     "hardhat": "^2.9.2",
     "hardhat-gas-reporter": "^1.0.8",
     "mocha-junit-reporter": "^2.0.2",

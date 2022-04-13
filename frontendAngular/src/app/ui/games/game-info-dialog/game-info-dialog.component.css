@@ -1,0 +1,10 @@
+h2 {
+  margin-bottom: 0px;
+}
+.row {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+}

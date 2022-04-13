@@ -21,17 +21,20 @@
       formatedRemainingAllowance
     }}</span>
   </div>
-  <!-- ADMIN ROW ACTION -->
+  <!-- ROW ACTION -->
   <div class="row-action">
     <button
+      [class.spinner]="currentAction == 'INFO'"
       mat-stroked-button
       color="primary"
       [matMenuTriggerFor]="menu"
       matTooltip="Info about this game"
+      [disabled]="loading"
     >
       <mat-icon>info</mat-icon> Info
     </button>
     <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="showInfo()">Contract Info ...</button>
       <button
         mat-menu-item
         (click)="formatedRemainingAllowance ? hideAllowance() : showAllowance()"
@@ -45,7 +48,11 @@
         remaining Bet Tokens approved
       </button>
       <button mat-menu-item (click)="listBets()">Show bettings ...</button>
-      <button mat-menu-item [disabled]="!finalized" (click)="listWinners()">
+      <button
+        mat-menu-item
+        [disabled]="!winnersIdentified"
+        (click)="listWinners()"
+      >
         Show winners ...
       </button>
     </mat-menu>
@@ -53,7 +60,8 @@
       class="button"
       *ngIf="!open && !finalized && isAdmin"
       mat-flat-button
-      [disabled]="!this.userAccountAddress"
+      [disabled]="!this.userAccountAddress || loading"
+      [class.spinner]="currentAction == 'OPEN'"
       color="primary"
       matTooltip="The game is not receiving bets. Click to open it for betting"
       (click)="openForBetting()"
@@ -64,7 +72,8 @@
       class="button"
       *ngIf="open && !finalized && isAdmin"
       mat-flat-button
-      [disabled]="!this.userAccountAddress"
+      [disabled]="!this.userAccountAddress || loading"
+      [class.spinner]="currentAction == 'CLOSE'"
       color="accent"
       matTooltip="The game is open for betting. Click to close it"
       (click)="closeForBetting()"
@@ -74,7 +83,8 @@
     <button
       class="button"
       *ngIf="!finalized && isAdmin"
-      [disabled]="open || !this.userAccountAddress"
+      [class.spinner]="currentAction == 'FINALIZE'"
+      [disabled]="open || !this.userAccountAddress || loading"
       mat-flat-button
       color="warn"
       (click)="finalizeGame()"
@@ -82,9 +92,37 @@
       Finalize ...
     </button>
     <button
+      class="button"
+      *ngIf="finalized"
+      [class.spinner]="currentAction == 'IDENTIFY_WINNERS'"
+      [disabled]="winnersIdentified || !this.userAccountAddress || loading"
+      mat-flat-button
+      color="accent"
+      (click)="identifyWinners()"
+    >
+      Identify Winners
+    </button>
+    <button
+      class="button"
+      *ngIf="finalized"
+      [class.spinner]="currentAction == 'CALC_PRIZES'"
+      [disabled]="
+        !winnersIdentified ||
+        prizesCalculated ||
+        !this.userAccountAddress ||
+        loading
+      "
+      mat-flat-button
+      color="warn"
+      (click)="calcPrizes()"
+    >
+      Calc Prizes
+    </button>
+    <button
       mat-flat-button
       *ngIf="!finalized && !isAdmin"
-      [disabled]="!this.userAccountAddress"
+      [disabled]="!this.userAccountAddress || loading"
+      [class.spinner]="currentAction == 'APPROVE'"
       color="accent"
       matTooltip="Approve a maximum ammount of Bet Tokens to be spent on bettings on this Game"
       (click)="approve($event)"
@@ -94,7 +132,8 @@
     <button
       mat-flat-button
       *ngIf="!finalized && !isAdmin"
-      [disabled]="!this.userAccountAddress || !open"
+      [disabled]="!this.userAccountAddress || !open || loading"
+      [class.spinner]="currentAction == 'BET'"
       color="primary"
       matTooltip="Click to place your bet"
       (click)="bet()"

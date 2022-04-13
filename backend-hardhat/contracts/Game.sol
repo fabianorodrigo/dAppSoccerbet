@@ -26,6 +26,7 @@ import "./Calculator.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./libs/GameUtils.sol";
 
 import "hardhat/console.sol";
 
@@ -36,11 +37,79 @@ import "hardhat/console.sol";
  * @author Fabiano Nascimento
  */
 contract Game is Initializable, Ownable, ReentrancyGuard {
-    uint8 public immutable PAID = 4;
-    uint8 public immutable TIED = 3;
-    uint8 public immutable WINNER = 2;
-    uint8 public immutable LOSER = 1;
-    uint8 public immutable NO_RESULT = 0;
+    uint8 public constant PAID = 4;
+    uint8 public constant TIED = 3;
+    uint8 public constant WINNER = 2;
+    uint8 public constant LOSER = 1;
+    uint8 public constant NO_RESULT = 0;
+
+    /***
+     * A function demands that the Game is opened for betting and it is closed
+     */
+    error GameNotOpen();
+    /***
+     * A function demands that the Game is closed for betting and it is open
+     */
+    error GameNotClosed();
+    /***
+     * A function demands that the Game has not been finalized yet and it has
+     */
+    error GameAlreadyFinalized();
+    /***
+     * A function demands that the Game has been finalized and it has not
+     */
+    error GameNotFinalized();
+    /***
+     * The bettor tryed to bet a value less or equal zero
+     */
+    error InvalidBettingValue();
+    /***
+     * A function received a reference to a bet the is out of the bounds of game array
+     */
+    error InvalidBetIndex();
+    /***
+     * The bettor tryed to withdraw the prize of a bet that has a invalid status
+     *
+     * @param currentResult The current result of bet
+     */
+    error InvalidBettingResultForWithdrawing(uint8 currentResult);
+    /***
+     * The bettor tryed to bet a value that is beyond its Bet Token balance
+     *
+     * @param currentBalance The current Bet Token balance of the msg.sender
+     */
+    error InsufficientTokenBalance(uint256 currentBalance);
+    /***
+     * Someone different from the bettor of a bet is trying to withdraw the prize
+     *
+     * @param bettor The address of the account that made the bet
+     */
+    error InvalidPrizeWithdrawer(address bettor);
+    /***
+     * When all the winner have already been identified, someone is calling the function
+     * that identifies winners
+     */
+    error WinnersAlreadyKnown();
+    /***
+     * A function demands that all the winners bettors of the game have already been
+     * identified and they haven't
+     */
+    error UnknownWinners();
+    /***
+     * When the prize of all winners bets have already been calculated, someone is calling
+     * the function that calculates the prizes
+     */
+    error PrizesAlreadyCalculated();
+    /***
+     * A function demands that all the prizes of the winner bets of the game have already been
+     * calculated and they haven't
+     */
+    error PrizesNotCalculated();
+
+    /**
+     * An operation of token tranfer failed
+     */
+    error TokenTransferFail();
 
     //BetToken contract
     BetTokenUpgradeable private _betTokenContract;
@@ -48,7 +117,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     CalculatorUpgradeable private _calculator;
     // Percentage of all bets reverted for administration costs
     // After a Game is created, it can't be changed
-    uint256 commission = 10;
+    uint256 public commission = 10;
     //When open, bettors can bet
     bool public open;
     string public homeTeam;
@@ -59,10 +128,31 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     Bet[] private _bets;
     //total stake
     uint256 private _totalStake = 0;
+    //sum of tokens among winning bets
+    uint256 public totalTokensBetWinners = 0;
     //real final score
     Score public finalScore;
     //When TRUE, the game is already finalized
     bool public finalized;
+    // When TRUE, the process of identifying winners is completed
+    bool public winnersIdentified;
+    // Minimum gas for continue for the next interaction in the
+    // process of identify the winner bets
+    uint256 private constant GAS_INTERACTION_WINNERS_IDENTIFICATION = 35000;
+    // When TRUE, the process of calc prizes is completed
+    bool public prizesCalculated;
+    // Minimum gas for continue for the next interaction in the
+    // process of calculate prizes
+    uint256 private constant GAS_INTERACTION_CALC_PRIZES = 40000;
+
+    // Indexes of winner bets in {_bets}. Persisted on storage so as we have
+    // a cheap loop in calcPrizes
+    uint256[] private _winnerBetsIndexes;
+
+    // iteraction variables in order to avoid DoS Costly loops
+    // in case the number of bets is too high
+    uint256 private _idWinners_i = 0;
+    uint256 private _calcPrize_i = 0;
 
     /**
      * @notice Event triggered when a game is opened for betting
@@ -90,8 +180,25 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         string homeTeam,
         string visitorTeam,
         uint256 datetimeGame,
-        uint256 totalWinners,
         Score finalScore
+    );
+    /**
+     * @notice Event triggered when a game has its winner bets identified
+     */
+    event GameWinnersIdentified(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
+    );
+    /**
+     * @notice Event triggered when a game has the prizes calculated
+     */
+    event GamePrizesCalculated(
+        address addressGame,
+        string homeTeam,
+        string visitorTeam,
+        uint256 datetimeGame
     );
 
     /**
@@ -140,7 +247,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) public initializer {
+    ) external initializer {
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
@@ -168,10 +275,17 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Opens a game for betting (sets the open to TRUE). Only allowed
      * if the game is closed for betting. Emits the event GameOpened
+     *
+     * Events: GameOpened
+     * Custom Errors: GameNotClosed, GameAlreadyFinalized
      */
     function openForBetting() external onlyOwner {
-        require(open == false, "The game is not closed");
-        require(finalized == false, "Game has been already finalized");
+        if (open) {
+            revert GameNotClosed();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -183,27 +297,38 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * allowed to spend on behalf of the BETTOR, `owner` of BetTokens, equal or
      * greater than _value.
      *
-     * Emits the event BetOnGame
+     * Events: BetOnGame
+     * Custom Errors: GameNotOpen, GameAlreadyFinalized, InvalidBettingValue, InsufficientTokenBalance
      *
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
     function bet(Score memory _score, uint256 _value) external {
-        require(open, "The game is not open");
-        require(_value > 0, "The betting value has to be greater than zero");
-        require(finalized == false, "Game has been already finalized");
-        require(
-            _betTokenContract.balanceOf(msg.sender) >= _value,
-            "Bet Token balance insufficient"
-        );
+        if (!open) {
+            revert GameNotOpen();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        if (_value <= 0) {
+            revert InvalidBettingValue();
+        }
+        uint256 _senderTokenBalance = _betTokenContract.balanceOf(msg.sender);
+        if (_senderTokenBalance < _value) {
+            revert InsufficientTokenBalance({
+                currentBalance: _senderTokenBalance
+            });
+        }
+
         //In the Bet Token, the sender is gonna be Game Contract.
         //In this case, before calling 'bet' function, the bettor has
         //to approve the spent of at least the amount of tokens of this bet
         //Then, the 'transferFrom' can tranfer those tokens to Game contract itself
-        require(
-            _betTokenContract.transferFrom(msg.sender, address(this), _value),
-            "Transfer of Bet Tokens to Game contract failed"
-        );
+        if (
+            !_betTokenContract.transferFrom(msg.sender, address(this), _value)
+        ) {
+            revert TokenTransferFail();
+        }
 
         _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
         _totalStake += _value;
@@ -220,10 +345,17 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
     /**
      * @notice Closes a game for betting (sets the open to FALSE). Only
      * allowed if the game is open for betting. Emits the event GameClosed
+     *
+     * Events: GameClosed
+     * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
     function closeForBetting() external onlyOwner {
-        require(open, "The game is not open");
-        require(finalized == false, "Game has been already finalized");
+        if (!open) {
+            revert GameNotOpen();
+        }
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -232,52 +364,152 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @notice Finalize the game registering the final score. Only allowed
      * if the game is closed and not yet finalized. Emits the event GameFinalized
      *
+     * Events: GameFinalized
+     * Custom Errors: GameAlreadyFinalized, GameNotClosed
+     *
      * @param _finalScore Data of the final score of the match
      */
     function finalizeGame(Score memory _finalScore) external onlyOwner {
-        require(finalized == false, "The game has been already finalized");
-        require(
-            open == false,
-            "The game is still open for bettings, close it first"
-        );
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        if (open) {
+            revert GameNotClosed();
+        }
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
-        uint256 totalWinners = calcPrizes();
         emit GameFinalized(
             address(this),
             homeTeam,
             visitorTeam,
             datetimeGame,
-            totalWinners,
             finalScore
         );
     }
 
     /**
+     * @notice Identify which bets matched the finalScore and updates: _bets[i].result,
+     * _totalTokensBetWinners,
+     *
+     * Custom Errors: GameNotFinalized, WinnersAlreadyKnown
+     *
+     * @return TRUE if the process of identifying winners is completed (loop for all _bets)
+     */
+    function identifyWinners() external returns (bool) {
+        if (!finalized) {
+            revert GameNotFinalized();
+        }
+        if (winnersIdentified) {
+            revert WinnersAlreadyKnown();
+        }
+
+        uint256 startGas = gasleft();
+        console.log("block.gasLimit", block.gaslimit);
+
+        // Each interaction of this loops is spending around 30K gas
+        // The loop continues until the end or the gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION
+        //uint256[] memory winners = GameUtils.identifyWinners(_bets, finalScore);
+        for (
+            ;
+            _idWinners_i < _bets.length &&
+                gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION;
+            _idWinners_i++
+        ) {
+            console.log("block.gasLimit", block.gaslimit);
+            console.log("gasLeft", gasleft());
+            console.log("gas used", startGas - gasleft());
+            if (
+                _bets[_idWinners_i].score.home == finalScore.home &&
+                _bets[_idWinners_i].score.visitor == finalScore.visitor
+            ) {
+                _bets[_idWinners_i].result = WINNER;
+                totalTokensBetWinners += _bets[_idWinners_i].value;
+                _winnerBetsIndexes.push(_idWinners_i);
+            } else {
+                _bets[_idWinners_i].result = LOSER;
+            }
+            //console.log(_idWinners_i, _bets.length);
+        }
+
+        //If iterator >= number of bets, all the elements were visited
+        if (_idWinners_i >= _bets.length) {
+            winnersIdentified = true;
+            emit GameWinnersIdentified(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
+        }
+        return winnersIdentified;
+    }
+
+    /**
+     * @notice Calculate the prize (stake less comission fee) between the bets proportionally to the bet value.
+     * If none bet matches, the prize is split proportionally for all
+     *
+     * Custom Errors: UnknownWinners, PrizesAlreadyCalculated
+     *
+     * @return TRUE if the process of calc prizes is completed (loop for all _bets)
+     */
+    function calcPrizes() external returns (bool) {
+        if (!winnersIdentified) {
+            revert UnknownWinners();
+        }
+        if (prizesCalculated) {
+            revert PrizesAlreadyCalculated();
+        }
+
+        // if nobody matches the final score, every bettor is refunded with
+        // the value of he's bet less the commission fee.
+        if (totalTokensBetWinners == 0) {
+            return _calcTiedPrizes(this.getPrize());
+        } else {
+            bool retorno = _calcWinnerPrizes(this.getPrize());
+            // console.log("retorno retorno", retorno);
+            return retorno;
+        }
+    }
+
+    /**
      * @notice Function called by the bettor in order to withdrawal it's prize
+     *
+     * Events: GameClosed
+     * Custom Errors: PrizesNotCalculated, InvalidBetIndex, InvalidBettingResultForWithdrawing(currentResult),
+     *  InvalidPrizeWithdrawer(bettor)
      *
      * @param _betIndex the index of Bet being withdrawn
      */
     function withdrawPrize(uint256 _betIndex) external nonReentrant {
-        require(_betIndex < _bets.length, "_betIndex invalid");
-        require(
-            _bets[_betIndex].result == WINNER ||
-                _bets[_betIndex].result == TIED,
-            "Without result, loser or already paid bets have no prize to be withdrawn"
-        );
-        require(
-            _bets[_betIndex].bettor == msg.sender,
-            "The prize can be withdrawn just by the bet's bettor"
-        );
+        if (!prizesCalculated) {
+            revert PrizesNotCalculated();
+        }
+        //Invalid _betIndex
+        if (_betIndex >= _bets.length) {
+            revert InvalidBetIndex();
+        }
+        //Without result, loser or already paid bets have no prize to be withdrawn
+        if (
+            _bets[_betIndex].result != WINNER && _bets[_betIndex].result != TIED
+        ) {
+            revert InvalidBettingResultForWithdrawing({
+                currentResult: _bets[_betIndex].result
+            });
+        }
+
+        if (_bets[_betIndex].bettor != msg.sender) {
+            revert InvalidPrizeWithdrawer({bettor: _bets[_betIndex].bettor});
+        }
         _bets[_betIndex].result = PAID;
-        bool tokensSent = _betTokenContract.transfer(
-            _bets[_betIndex].bettor,
-            _bets[_betIndex].prize
-        );
-        //console.log("sender", msg.sender);
-        //console.log("balance", address(this).balance);
-        require(tokensSent, "Fail to pay the prize");
+        if (
+            !_betTokenContract.transfer(
+                _bets[_betIndex].bettor,
+                _bets[_betIndex].prize
+            )
+        ) {
+            revert TokenTransferFail();
+        }
     }
 
     /**
@@ -300,7 +532,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * This mechanism exists to avoid high gas costs when returning an entire array.
      * If you want to return an entire array in one call, then you need to write a function
      */
-    function listBets() public view returns (Bet[] memory bets) {
+    function listBets() external view returns (Bet[] memory bets) {
+        console.log("Bets length: ", _bets.length);
         return _bets;
     }
 
@@ -308,75 +541,108 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @notice Return the sum of value in BetTokens of all bets
      * @return the stake of all bets, the amount of BetToken
      */
-    function getTotalStake() public view returns (uint256) {
+    function getTotalStake() external view returns (uint256) {
         return _totalStake;
-    }
-
-    /**
-     * @notice Return percentage of {commission} applyed on the sum of value in BetTokens of all bets
-     * @return administration commission
-     */
-    function getCommissionValue() public view returns (uint256) {
-        return _calculator.calcPercentage(_totalStake, commission);
     }
 
     /**
      * @notice Return the sum of value in BetTokens of all bets discounted the commission for administration
      * @return stake value less commissions
      */
-    function getPrize() public view returns (uint256) {
+    function getPrize() external view returns (uint256) {
         return _totalStake - this.getCommissionValue();
     }
 
     /**
-     * @notice Identify which bets matched the finalScore and calculate the prize (stake less comission fee)
-     * between them proportionally to the bet value. If none bet matches, the prize is split proportionally
-     * for all
-     * @return The number of bets winners
+     * @notice Return percentage of {commission} applyed on the sum of value in BetTokens of all bets
+     * @return administration commission
      */
-    function calcPrizes() internal onlyOwner returns (uint256) {
-        require(finalized, "Game not finalized yet");
-        uint256 _totalTokensBetWinners = 0;
-        uint256 _totalWinners = 0;
-        for (uint256 i = 0; i < _bets.length; i++) {
-            if (
-                _bets[i].score.home == finalScore.home &&
-                _bets[i].score.visitor == finalScore.visitor
-            ) {
-                _bets[i].result = WINNER;
-                _totalTokensBetWinners += _bets[i].value;
-                _totalWinners++;
-            } else {
-                _bets[i].result = LOSER;
-            }
+    function getCommissionValue() external view returns (uint256) {
+        return _calculator.calcPercentage(_totalStake, commission);
+    }
+
+    /**
+     * @notice When there is winner bets, at least one matched the game's final score, this function
+     * calculate the prize (stake less comission fee) between the bets proportionally to the bet value
+     * based on the array _winnerBetsIndexes.
+     *
+     * @param _totalPrize The total stake less administration fees
+     *
+     * @return TRUE if the process of calc prizes is completed (loop for all _winnerBetsIndexes)
+     */
+    function _calcWinnerPrizes(uint256 _totalPrize) private returns (bool) {
+        // Each interaction of this loops is spending around 30K gas
+        // The loop continues until the end or the gasleft() > 30K
+        //console.log("calcWinner", _winnerBetsIndexes.length);
+        for (
+            ;
+            _calcPrize_i < _winnerBetsIndexes.length &&
+                gasleft() > GAS_INTERACTION_CALC_PRIZES;
+            _calcPrize_i++
+        ) {
+            //console.log(_calcPrize_i);
+            // The value transfered will be proportional: prize * the value of bet divided by
+            // the total of tokens of the winning bets (if nobody wins, the total stake)
+            uint256 i = _winnerBetsIndexes[_calcPrize_i];
+            //console.log("i", i);
+            uint256 _prizeValue = (_totalPrize * _bets[i].value) /
+                totalTokensBetWinners;
+            //console.log("prize", _prizeValue);
+            _bets[i].prize = _prizeValue;
+            //console.log("_bets[i].prize", _bets[i].prize);
         }
-        uint256 _totalPrize = this.getPrize();
-        uint256 _divider;
-        // if nobody matches the final score, every bettor is refunded with
-        // the value of he's bet less the commission fee
-        // In this case, the divider applyed to the formula will be the total stake
-        if (_totalWinners == 0) {
-            _divider = _totalStake;
+        //console.log("saiu do loop", totalTokensBetWinners);
+        //If iterator >= number of winner bets, all the elements were visited
+        if (_calcPrize_i >= _winnerBetsIndexes.length) {
+            prizesCalculated = true;
+            emit GamePrizesCalculated(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
         }
-        //Otherwise, the divider will be the _totalTokensBetWinners
-        else {
-            _divider = _totalTokensBetWinners;
+        //console.log("return ", prizesCalculated);
+        return prizesCalculated;
+    }
+
+    /**
+     * @notice When there is NOT winner bets, nobody matched the game's final score, this function
+     * calculate the prize is split proportionally for all
+     *
+     * @param _totalPrize The total stake less administration fees
+     *
+     * @return TRUE if the process of calc prizes is completed (loop for all _winnerBetsIndexes)
+     */
+    function _calcTiedPrizes(uint256 _totalPrize) private returns (bool) {
+        // Each interaction of this loops is spending around 30K gas
+        // The loop continues until the end or the gasleft() > 30K
+        for (
+            ;
+            _calcPrize_i < _bets.length &&
+                gasleft() > GAS_INTERACTION_CALC_PRIZES;
+            _calcPrize_i++
+        ) {
+            // console.log("calcTied");
+            // console.log(_calcPrize_i);
+            // The value transfered will be proportional: prize * the value of bet divided by
+            // the total stake
+            uint256 _prizeValue = (_totalPrize * _bets[_calcPrize_i].value) /
+                _totalStake;
+            _bets[_calcPrize_i].prize = _prizeValue;
+            //The result is TIED
+            _bets[_calcPrize_i].result = TIED;
         }
-        for (uint256 i = 0; i < _bets.length; i++) {
-            //If nobody matches the final score, _totalTokensBetWinners will be zero
-            //and it will always return TRUE. Otherwise, only when for bets that matched
-            //the final score the IF will be TRUE
-            if (_bets[i].result == WINNER || _totalTokensBetWinners == 0) {
-                // The value transfered will be proportional: prize * the value of bet divided by
-                // the total of tokens of the winning bets (if nobody wins, the total stake)
-                uint256 _prizeValue = (_totalPrize * _bets[i].value) / _divider;
-                _bets[i].prize = _prizeValue;
-                //if totalTokensBetWinners equals zero, nobody won and the result is TIED
-                if (_totalTokensBetWinners == 0) {
-                    _bets[i].result = TIED;
-                }
-            }
+        //If iterator >= number of bets, all the elements were visited
+        if (_calcPrize_i >= _bets.length) {
+            prizesCalculated = true;
+            emit GamePrizesCalculated(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame
+            );
         }
-        return _totalWinners;
+        return prizesCalculated;
     }
 }

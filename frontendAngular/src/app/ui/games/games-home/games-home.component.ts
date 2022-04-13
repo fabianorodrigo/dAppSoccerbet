@@ -1,10 +1,10 @@
 import { GameCompound } from './../game-compound.class';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { GameFactoryService, GameService } from 'src/app/contracts';
 import { Game } from 'src/app/model/game.interface';
 import { GameEvent } from '../../../model/events/game-event.interface';
 import { MessageService, Web3Service } from '../../../services';
-import { GameFinalizedEvent } from 'src/app/model';
+import { GameFinalizedEvent, Score } from 'src/app/model';
 import { Router } from '@angular/router';
 
 @Component({
@@ -47,6 +47,10 @@ export class GamesHomeComponent implements OnInit {
               //when created, the game is not open and is not finalized
               open: false,
               finalized: false,
+              winnersIdentified: false,
+              prizesCalculated: false,
+              commission: eventData.commission,
+              owner: eventData.owner,
             },
             new GameService(this._messageService, this._webService, eventData.addressGame)
           )
@@ -69,9 +73,9 @@ export class GamesHomeComponent implements OnInit {
         targetArray.push(new GameCompound({ ..._game }, gameService));
       }
       //sort the 3 state-based arrays by datetime
-      this.gamesOpen.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
-      this.gamesClosed.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
-      this.gamesFinalized.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
+      this.gamesOpen.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? -1 : 1));
+      this.gamesClosed.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? -1 : 1));
+      this.gamesFinalized.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? -1 : 1));
     } else {
       console.warn(`gameFactory.listGamesDTO has no return`);
     }
@@ -128,7 +132,7 @@ export class GamesHomeComponent implements OnInit {
     if (index > -1) {
       this.gamesClosed[index].game.open = true;
       this.gamesOpen.push(this.gamesClosed[index]);
-      this.gamesOpen.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
+      this.gamesOpen.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? -1 : 1));
       this.gamesClosed.splice(index, 1);
     }
   }
@@ -148,13 +152,21 @@ export class GamesHomeComponent implements OnInit {
 
   private handleFinalizedEvent(evt: any): void {
     if (evt == null) return;
-    const eventData: GameFinalizedEvent = evt;
+    const eventData: GameFinalizedEvent = {
+      addressGame: evt.addressGame,
+      homeTeam: evt.homeTeam,
+      visitorTeam: evt.visitorTeam,
+      datetimeGame: evt.datetimeGame,
+      finalScore: { home: evt.finalScore.home, visitor: evt.finalScore.visitor },
+    };
     const index = this.gamesClosed.findIndex((g) => g.game.addressGame == eventData.addressGame);
     if (index > -1) {
       this.gamesClosed[index].game.finalized = true;
+      this.gamesClosed[index].game.finalScore = eventData.finalScore;
       this.gamesFinalized.push(this.gamesClosed[index]);
-      this.gamesFinalized.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? 1 : -1));
+      this.gamesFinalized.sort((a, b) => (a.game.datetimeGame > b.game.datetimeGame ? -1 : 1));
       this.gamesClosed.splice(index, 1);
+      this._messageService.show(`Game finalization confirmed for: ${eventData.homeTeam} x  ${eventData.visitorTeam}`);
     }
   }
 

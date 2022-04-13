@@ -16,9 +16,9 @@ export const environment = {
   // betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',
   // gameFactoryAddress: '0x06D0020790D42df662bB04Ab01f0208Cfbbb956F',
   // HARDHAT COM GANACHE
-  betTokenAddress: '0xC89Ce4735882C9F0f0FE26686c53074E09B0D550',
-  CalculatorAddress: '0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb',
-  gameFactoryAddress: '0x59d3631c86BbE35EF041872d502F218A39FBa150',
+  betTokenAddress: '0x5b1869D9A4C187F2EAa108f3062412ecf0526b24',
+  calculatorAddress: '0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B',
+  gameFactoryAddress: '0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7',
 };
 
 /*

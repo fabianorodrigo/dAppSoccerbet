@@ -1,10 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Game } from 'src/app/model/game.interface';
 
@@ -46,6 +40,8 @@ export class AdminGamesFormComponent implements OnInit {
       datetimeGame: dateTime.getTime(),
       open: false,
       finalized: false,
+      winnersIdentified: false,
+      prizesCalculated: false
     });
   }
   cancel(event: MouseEvent) {

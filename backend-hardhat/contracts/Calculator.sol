@@ -28,7 +28,7 @@ contract CalculatorUpgradeable is
         private
     **/
 
-    function initialize() public initializer {
+    function initialize() external initializer {
         __Ownable_init();
     }
 
@@ -41,7 +41,7 @@ contract CalculatorUpgradeable is
      * @return The percentage of the amount
      */
     function calcPercentage(uint256 amount, uint256 percentage)
-        public
+        external
         pure
         returns (uint256)
     {

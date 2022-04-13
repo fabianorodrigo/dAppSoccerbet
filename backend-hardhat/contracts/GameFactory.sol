@@ -61,7 +61,9 @@ contract GameFactoryUpgradeable is
         address addressGame,
         string homeTeam,
         string visitorTeam,
-        uint256 datetimeGame
+        uint256 datetimeGame,
+        uint256 commission,
+        address owner
     );
 
     /**
@@ -98,7 +100,7 @@ contract GameFactoryUpgradeable is
      * @notice Allows the owner update the Game contract implementation for future games created
      */
     function setGameImplementation(address _gameImplementationAddress)
-        public
+        external
         onlyOwner
         onlyDelegateCall
     {
@@ -152,7 +154,9 @@ contract GameFactoryUpgradeable is
             clone,
             g.homeTeam(),
             g.visitorTeam(),
-            g.datetimeGame()
+            g.datetimeGame(),
+            g.commission(),
+            g.owner()
         );
     }
 
@@ -188,7 +192,7 @@ contract GameFactoryUpgradeable is
      * make requests to provider. Otherwise, the frontend receives just the contract address:
      * https://docs.soliditylang.org/en/v0.7.5/abi-spec.html#contract-abi-specification
      */
-    function listGames() public view returns (GameDTO[] memory games) {
+    function listGames() external view returns (GameDTO[] memory games) {
         GameDTO[] memory result = new GameDTO[](_games.length);
         for (uint256 i = 0; i < _games.length; i++) {
             Game g = _games[i];
@@ -200,7 +204,10 @@ contract GameFactoryUpgradeable is
                 g.datetimeGame(),
                 g.open(),
                 g.finalized(),
-                Score(home, visitor)
+                Score(home, visitor),
+                g.winnersIdentified(),
+                g.prizesCalculated(),
+                g.commission()
             );
         }
         return result;

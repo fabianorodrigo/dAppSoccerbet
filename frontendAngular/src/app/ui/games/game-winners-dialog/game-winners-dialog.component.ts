@@ -46,6 +46,7 @@ export class GameWinnersDialogComponent implements OnInit {
         value: bet.value,
         prize: bet.prize,
         result: bet.result,
+        gamePrizesCalculated: this.data.gameCompound.game.prizesCalculated,
       };
     });
 
@@ -64,10 +65,14 @@ export class GameWinnersDialogComponent implements OnInit {
     } else if (this.userAccountAddress != this.data.winnerBets[_betIndex].bettor) {
       this._messageService.show(`You can't execute withdraw of others bets`);
     } else {
-      this.dataSource[_betIndex].result = this.PAID;
-      this.data.gameCompound.gameService.withdrawPrize(_betIndex).subscribe((transactionResult) => {
-        this._messageService.show(transactionResult.result);
-      });
+      this.data.gameCompound.gameService
+        .withdrawPrize(this.data.winnerBets[_betIndex].index)
+        .subscribe((transactionResult) => {
+          this._messageService.show(transactionResult.result);
+          if (transactionResult.success) {
+            this.dataSource[_betIndex].result = this.PAID;
+          }
+        });
     }
   }
 

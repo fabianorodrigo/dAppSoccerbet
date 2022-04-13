@@ -1,17 +1,21 @@
 import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
-import {PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
+import {ProxiesAddresses, PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
 
-const hre = require("hardhat");
+let proxyAddresses: ProxiesAddresses = {
+  BETTOKEN_PROXY_ADDRESS: "",
+  CALCULATOR_PROXY_ADDRESS: "",
+  GAMEFACTORY_PROXY_ADDRESS: "",
+};
 
 function getProxyContractAddress(): string {
-  return JSON.parse(
+  proxyAddresses = JSON.parse(
     fs.readFileSync(`./${PROXIES_ADDRESSES_FILENAME}`).toString()
-  ).BETTOKEN_PROXY_ADDRESS;
+  );
+  return proxyAddresses.BETTOKEN_PROXY_ADDRESS;
 }
 
 async function main() {
-  await hre.run("compile");
   const [deployer, addr1, addr2] = await ethers.getSigners();
 
   console.log("Upgrading BetToken with the account:", deployer.address);

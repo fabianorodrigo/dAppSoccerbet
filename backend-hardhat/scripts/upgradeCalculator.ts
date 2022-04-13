@@ -1,7 +1,18 @@
+import * as fs from "fs";
 import {ethers, upgrades} from "hardhat";
+import {ProxiesAddresses, PROXIES_ADDRESSES_FILENAME} from "./ProxiesAddresses";
+
+let proxyAddresses: ProxiesAddresses = {
+  BETTOKEN_PROXY_ADDRESS: "",
+  CALCULATOR_PROXY_ADDRESS: "",
+  GAMEFACTORY_PROXY_ADDRESS: "",
+};
 
 function getProxyContractAddress(): string {
-  throw new Error("Calculator address not defined");
+  proxyAddresses = JSON.parse(
+    fs.readFileSync(`./${PROXIES_ADDRESSES_FILENAME}`).toString()
+  );
+  return proxyAddresses.CALCULATOR_PROXY_ADDRESS;
 }
 
 async function main() {
