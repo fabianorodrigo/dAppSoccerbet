@@ -404,6 +404,9 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
             revert WinnersAlreadyKnown();
         }
 
+        uint256 startGas = gasleft();
+        console.log("block.gasLimit", block.gaslimit);
+
         // Each interaction of this loops is spending around 30K gas
         // The loop continues until the end or the gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION
         //uint256[] memory winners = GameUtils.identifyWinners(_bets, finalScore);
@@ -413,6 +416,9 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
                 gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION;
             _idWinners_i++
         ) {
+            console.log("block.gasLimit", block.gaslimit);
+            console.log("gasLeft", gasleft());
+            console.log("gas used", startGas - gasleft());
             if (
                 _bets[_idWinners_i].score.home == finalScore.home &&
                 _bets[_idWinners_i].score.visitor == finalScore.visitor

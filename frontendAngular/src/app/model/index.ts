@@ -6,3 +6,4 @@ export * from './game.interface';
 export * from './metamask/ProviderMessage';
 export * from './score.interface';
 export * from './transaction-result.interface';
+export * from './CallbackFunction';

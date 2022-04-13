@@ -25,6 +25,10 @@ export class GameComponent implements OnInit {
 
   userAccountAddress: string | null = null;
 
+  // just control of the `loading` visual behavior
+  currentAction = Action.NONE;
+  loading: boolean = false;
+
   homeTeam!: string;
   visitorTeam!: string;
   datetimeGame!: Date;
@@ -116,14 +120,18 @@ export class GameComponent implements OnInit {
   }
 
   openForBetting() {
+    this.action(Action.OPEN);
     this.gameCompound.gameService.openForBetting().subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
+      this.action();
     });
   }
 
   closeForBetting() {
+    this.action(Action.CLOSE);
     this.gameCompound.gameService.closeForBetting().subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
+      this.action();
     });
   }
 
@@ -142,26 +150,60 @@ export class GameComponent implements OnInit {
     dialogRef.afterClosed().subscribe((score) => {
       if (score) {
         if (score.home != null && score.visitor != null) {
-          this.gameCompound.gameService.finalizeGame(score).subscribe((transactionResult) => {
-            this._messageService.show(transactionResult.result);
-          });
+          this.action(Action.FINALIZE);
+          this.gameCompound.gameService
+            .finalizeGame(this.gameCompound.game, score, this.finalizeCallback.bind(this))
+            .subscribe((transactionResult) => {
+              if (transactionResult.success) {
+                this._messageService.show(transactionResult.result);
+              } else {
+                this.action();
+              }
+            });
         } else {
           this._messageService.show(`Score is not valid`);
         }
       }
     });
   }
+  private async finalizeCallback() {
+    this.finalized = await this.gameCompound.gameService.finalized();
+    this.gameCompound.game.finalized = this.finalized;
+    this.action();
+  }
 
   identifyWinners() {
-    this.gameCompound.gameService.identifyWinners().subscribe((transactionResult) => {
-      this._messageService.show(transactionResult.result);
-    });
+    this.action(Action.IDENTIFY_WINNERS);
+    this.gameCompound.gameService
+      .identifyWinners(this.gameCompound.game, this.identifyWinnersCallback.bind(this))
+      .subscribe((transactionResult) => {
+        if (!transactionResult.success) {
+          this.action();
+        }
+        this._messageService.show(transactionResult.result);
+      });
+  }
+  private async identifyWinnersCallback() {
+    this.winnersIdentified = await this.gameCompound.gameService.winnersIdentified();
+    this.gameCompound.game.winnersIdentified = this.winnersIdentified;
+    this.action();
   }
 
   calcPrizes() {
-    this.gameCompound.gameService.calcPrizes().subscribe((transactionResult) => {
-      this._messageService.show(transactionResult.result);
-    });
+    this.action(Action.CALC_PRIZES);
+    this.gameCompound.gameService
+      .calcPrizes(this.gameCompound.game, this.calcPrizesCallback.bind(this))
+      .subscribe((transactionResult) => {
+        if (!transactionResult.success) {
+          this.action();
+        }
+        //this._messageService.show(transactionResult.result);
+      });
+  }
+  private async calcPrizesCallback() {
+    this.prizesCalculated = await this.gameCompound.gameService.prizesCalculated();
+    this.gameCompound.game.prizesCalculated = this.prizesCalculated;
+    this.action();
   }
 
   approve(event: MouseEvent) {
@@ -177,6 +219,7 @@ export class GameComponent implements OnInit {
       dialogRef.afterClosed().subscribe((_allowanceData) => {
         if (_allowanceData) {
           if (_allowanceData.value != null && this.userAccountAddress) {
+            this.action(Action.APPROVE);
             this._betTokenService
               .approve(
                 this.userAccountAddress,
@@ -186,6 +229,7 @@ export class GameComponent implements OnInit {
               .subscribe((_result) => {
                 console.log(_result);
                 this._messageService.show(_result.result);
+                this.action();
               });
           } else {
             this._messageService.show(`Quantity of BetTokens is not valid`);
@@ -199,9 +243,11 @@ export class GameComponent implements OnInit {
     if (!this.userAccountAddress || !this.gameCompound?.game?.addressGame) {
       return;
     }
+    this.action(Action.BET);
     this._betTokenService
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame)
       .subscribe((_allowance) => {
+        this.action();
         if (!_allowance || _allowance.eq(new BN(0))) {
           this._messageService.show(`There is no BetTokens approved to be spent on this game`);
         } else {
@@ -217,10 +263,12 @@ export class GameComponent implements OnInit {
           dialogRef.afterClosed().subscribe((_bet) => {
             if (_bet) {
               if (_bet.home != null && _bet.visitor != null && _bet.value != null) {
+                this.action(Action.BET);
                 this.gameCompound.gameService
                   .bet({ home: _bet.home, visitor: _bet.visitor }, _bet.value)
                   .subscribe((transactionResult) => {
                     this._messageService.show(transactionResult.result);
+                    this.action();
                   });
               } else {
                 this._messageService.show(`Bet is not valid`);
@@ -236,18 +284,22 @@ export class GameComponent implements OnInit {
   }
   showAllowance() {
     if (!this.userAccountAddress) return;
+    this.action(Action.INFO);
     this._betTokenService
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame as string)
       .subscribe((_remainingAllowance) => {
+        this.action();
         this.formatedRemainingAllowance = this._numberService.formatBNShortScale(_remainingAllowance);
         this._changeDetectorRefs.detectChanges();
       });
   }
 
   listBets() {
+    this.action(Action.INFO);
     this.gameCompound.gameService.listBets().subscribe((_result) => {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
+        this.action();
       } else {
         this._dialog.open(GameBetsDialogComponent, {
           data: {
@@ -258,14 +310,17 @@ export class GameComponent implements OnInit {
           },
           minWidth: 900,
         });
+        this.action();
       }
     });
   }
 
   listWinners() {
+    this.action(Action.INFO);
     this.gameCompound.gameService.listBets().subscribe((_result) => {
       if (!_result.success) {
         this._messageService.show(_result.result as string);
+        this.action();
       } else {
         const _winnerResuts = [BetResult.WINNER, BetResult.TIED, BetResult.PAID];
         const _winners = (_result.result as Bet[]).filter((b) => _winnerResuts.includes(b.result as BetResult));
@@ -280,6 +335,7 @@ export class GameComponent implements OnInit {
         } else {
           this._messageService.show(`No winners on this game`);
         }
+        this.action();
       }
     });
   }
@@ -294,4 +350,26 @@ export class GameComponent implements OnInit {
       },
     });
   }
+
+  private action(a?: Action) {
+    if (a) {
+      this.currentAction = a;
+      this.loading = true;
+    } else {
+      this.currentAction = Action.NONE;
+      this.loading = false;
+    }
+  }
+}
+
+enum Action {
+  NONE = '',
+  INFO = 'INFO',
+  APPROVE = `APPROVE`,
+  BET = 'BET',
+  OPEN = `OPEN`,
+  CLOSE = `CLOSE`,
+  FINALIZE = `FINALIZE`,
+  IDENTIFY_WINNERS = `IDENTIFY_WINNERS`,
+  CALC_PRIZES = `CALC_PRIZES`,
 }

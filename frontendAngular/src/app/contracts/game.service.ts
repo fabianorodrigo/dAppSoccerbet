@@ -2,7 +2,7 @@ import BN from 'bn.js';
 import { Observable } from 'rxjs';
 import { AbiItem } from 'web3-utils';
 import contractABI from '../../../../backend-hardhat/artifacts/contracts/Game.sol/Game.json';
-import { Bet, ProviderErrors, Score } from '../model';
+import { Bet, CallbackFunction, Game, ProviderErrors, Score } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 import { BaseContract } from './baseContract';
@@ -30,7 +30,7 @@ export class GameService extends BaseContract {
    * @returns result of transaction submission
    */
   openForBetting(): Observable<TransactionResult<string>> {
-    return this.sendParamlessVoidFunction(
+    return this.send(
       contractABI.abi as AbiItem[],
       'openForBetting',
       'Transaction to open the game for betting was sent successfully'
@@ -42,7 +42,7 @@ export class GameService extends BaseContract {
    * @returns result of transaction submission
    */
   closeForBetting(): Observable<TransactionResult<string>> {
-    return this.sendParamlessVoidFunction(
+    return this.send(
       contractABI.abi as AbiItem[],
       'closeForBetting',
       'Transaction to close the game for betting was sent successfully'
@@ -89,110 +89,60 @@ export class GameService extends BaseContract {
 
   /**
    * Finalize the game
+   *
+   * @param _game Game being finalized
    * @param _score The final score of the game
+   * @param callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  finalizeGame(_score: Score): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (_contract) => {
-          let result;
-          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods.finalizeGame(_score).send({
-                from: fromAccount,
-              });
-              subscriber.next({
-                success: true,
-                result: 'Transaction to finalize the game for betting was sent successfully',
-              });
-            } catch (e: any) {
-              const providerError = ProviderErrors[e.code];
-              let message = `We had some problem. The transaction wasn't sent.`;
-              if (providerError) {
-                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-              }
-              console.warn(e);
-              subscriber.next({ success: false, result: message });
-            }
-          });
-        })
-        .catch((e) => {
-          console.warn(`gameservice`, e);
-        });
-    });
+  finalizeGame(_game: Game, _score: Score, callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'finalizeGame',
+      `Transaction to finalize the game ${_game.homeTeam} ${_score.home} X ${_score.visitor} ${_game.visitorTeam} was sent successfully`,
+      callback,
+      `Transaction to finalize the game ${_game.homeTeam} ${_score.home} X ${_score.visitor} ${_game.visitorTeam} was confirmed`,
+      _score
+    );
   }
 
   /**
    * After game is finalized, this method identify the winner bets
    *
+   * @param _game Game having its winner bets being identified
+   * @param callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  identifyWinners(): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (_contract) => {
-          let result;
-          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods.identifyWinners().send({
-                from: fromAccount,
-              });
-              subscriber.next({
-                success: true,
-                result: `Transaction to identify the game's winner bets was sent successfully`,
-              });
-            } catch (e: any) {
-              const providerError = ProviderErrors[e.code];
-              let message = `We had some problem. The transaction wasn't sent.`;
-              if (providerError) {
-                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-              }
-              console.warn(e);
-              subscriber.next({ success: false, result: message });
-            }
-          });
-        })
-        .catch((e) => {
-          console.warn(`gameservice`, e);
-        });
-    });
+  identifyWinners(_game: Game, callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'identifyWinners',
+      `Transaction to identify the game's winner bets was sent successfully`,
+      callback,
+      `Transaction to identify the game's winner bets was confirmed for ${_game.homeTeam} ${_game.finalScore?.home}  x ${_game.finalScore?.visitor} ${_game.visitorTeam}`
+    );
   }
 
   /**
    * After game's winner bets are identified, this method calc the prizes of the winner bets
    *
+   * @param _game Game having the prizes being calculated
+   * @param callback  Function to be called when the transaction is confirmed
+   *
    * @returns result of transaction submission
    */
-  calcPrizes(): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (_contract) => {
-          let result;
-          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods.calcPrizes().send({
-                from: fromAccount,
-              });
-              subscriber.next({
-                success: true,
-                result: `Transaction to calc prizes for the game's winner bets was sent successfully`,
-              });
-            } catch (e: any) {
-              const providerError = ProviderErrors[e.code];
-              let message = `We had some problem. The transaction wasn't sent.`;
-              if (providerError) {
-                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-              }
-              console.warn(e);
-              subscriber.next({ success: false, result: message });
-            }
-          });
-        })
-        .catch((e) => {
-          console.warn(`gameservice`, e);
-        });
-    });
+  calcPrizes(
+    _game: Game,
+    callback?: CallbackFunction,
+    confirmationMessage?: string
+  ): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'calcPrizes',
+      `Transaction to calc prizes for the game's winner bets was sent successfully`,
+      callback,
+      `Transaction to calc prizes for the game's winner bets was confirmed for ${_game.homeTeam} ${_game.finalScore?.home}  x ${_game.finalScore?.visitor} ${_game.visitorTeam}`
+    );
   }
 
   /**
@@ -249,6 +199,12 @@ export class GameService extends BaseContract {
   }
   getPrize(): Promise<BN> {
     return this.getBN(contractABI.abi as AbiItem[], 'getPrize');
+  }
+  winnersIdentified(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], `winnersIdentified`);
+  }
+  prizesCalculated(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], `prizesCalculated`);
   }
 
   finalScore(): Observable<Score> {

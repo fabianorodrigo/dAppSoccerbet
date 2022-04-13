@@ -2,7 +2,7 @@ import BN from 'bn.js';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
-import { ProviderErrors } from '../model';
+import { CallbackFunction, ProviderErrors } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 
@@ -129,28 +129,45 @@ export abstract class BaseContract {
   }
 
   /**
-   * Execute a SEND (change state) to a function without input parameter
-   * and without return from the currentAccount selected on the wallet provider
+   * Execute a SEND (change state) to a function  from the currentAccount selected on the wallet provider
    *
    * @param _abi  Contract's ABI
    * @param _functionName Name of contract's function to be invoked
-   * @param _successMessage Message to be sent in the Observable in case of successfully execution
+   * @param _successMessage Message to be sent in the Observable in case of successfully transaction sent
+   * @param _callback Function to be called when the transaction is confirmed
+   * @param _confirmationMessage Message to be sent in the callback function when transaction confirmed by the network
+   * @param _args Contract`s function arguments
    * @returns Observable<TransactionResult>
    */
-  protected sendParamlessVoidFunction(
+  protected send(
     _abi: AbiItem[],
     _functionName: string,
-    _successMessage: string
+    _successMessage: string,
+    _callback?: CallbackFunction,
+    _confirmationMessage?: string,
+    ..._args: any
   ): Observable<TransactionResult<string>> {
     return new Observable<TransactionResult<string>>((subscriber) => {
       this.getContract(_abi as AbiItem[]).then((_contract) => {
         let result;
         this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
           try {
-            result = await _contract.methods[_functionName]().send({
-              from: fromAccount,
-            });
-            subscriber.next({ success: true, result: _successMessage });
+            console.log(_args);
+            console.log(..._args);
+            result = await _contract.methods[_functionName](..._args)
+              .send({
+                from: fromAccount,
+              })
+              .on(`transactionHash`, (hash: string) => {
+                subscriber.next({ success: true, result: _successMessage });
+              })
+              .once(`confirmation`, (confNumber: number, receipt: any, latestBlockHash: string) => {
+                if (_callback)
+                  _callback({
+                    success: true,
+                    result: _confirmationMessage || ``,
+                  });
+              });
           } catch (e: any) {
             const providerError = ProviderErrors[e.code];
             let message = `We had some problem. The transaction wasn't sent.`;
