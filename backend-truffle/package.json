@@ -1,6 +1,6 @@
 {
   "name": "dappsoccerbet-backend-truffle",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "ganache": "ganache -p 7545 -i 7777 --wallet.deterministic --database.dbPath ~/sgbds/ganache",
     "ganache-debug": "ganache -p 7545 -i 7777 --logging.debug --logging.verbose  --wallet.deterministic --database.dbPath ~/sgbds/ganache",
