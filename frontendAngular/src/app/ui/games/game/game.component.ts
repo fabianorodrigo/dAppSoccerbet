@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Bet, BetResult, BetTokenApproval, GameBetEvent, GameEvent, Score } from 'src/app/model';
+import { Bet, BetResult, BetTokenApproval, GameBetEvent, GameEvent, Score, TransactionResult } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { BetDialogComponent } from '../bet-dialog/bet-dialog.component';
 import { ScoreDialogComponent } from '../score-dialog/score-dialog.component';
@@ -166,10 +166,13 @@ export class GameComponent implements OnInit {
       }
     });
   }
-  private async finalizeCallback() {
+  private async finalizeCallback(confirmationResult: TransactionResult<string>) {
     this.finalized = await this.gameCompound.gameService.finalized();
     this.gameCompound.game.finalized = this.finalized;
     this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
   }
 
   identifyWinners() {
@@ -183,10 +186,13 @@ export class GameComponent implements OnInit {
         this._messageService.show(transactionResult.result);
       });
   }
-  private async identifyWinnersCallback() {
+  private async identifyWinnersCallback(confirmationResult: TransactionResult<string>) {
     this.winnersIdentified = await this.gameCompound.gameService.winnersIdentified();
     this.gameCompound.game.winnersIdentified = this.winnersIdentified;
     this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
   }
 
   calcPrizes() {
@@ -197,13 +203,16 @@ export class GameComponent implements OnInit {
         if (!transactionResult.success) {
           this.action();
         }
-        //this._messageService.show(transactionResult.result);
+        this._messageService.show(transactionResult.result);
       });
   }
-  private async calcPrizesCallback() {
+  private async calcPrizesCallback(confirmationResult: TransactionResult<string>) {
     this.prizesCalculated = await this.gameCompound.gameService.prizesCalculated();
     this.gameCompound.game.prizesCalculated = this.prizesCalculated;
     this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
   }
 
   approve(event: MouseEvent) {
