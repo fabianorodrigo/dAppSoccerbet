@@ -6,8 +6,8 @@ import {BigNumber, Contract, ContractFactory, Signer} from "ethers";
  * be available in the global scope and you will need to import everything explicitly.
  */
 import {ethers, upgrades} from "hardhat";
-import {BetDTO} from "./model";
-import {TestUtils} from "./TestUtils";
+import {BetDTO} from "../test/model";
+import {TestUtils} from "../test/TestUtils";
 
 // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
 // Upgrades emits a warning message for each test case: Warning: A proxy admin was previously deployed on this network
@@ -21,13 +21,12 @@ let ERC20BetToken: ContractFactory,
   Calculator: ContractFactory,
   GameFactory: ContractFactory,
   Game: ContractFactory,
-  TestingAuxiliar: ContractFactory,
   GameUtils: ContractFactory;
 let erc20BetToken: Contract,
   calc: Contract,
   gameFactory: Contract,
   gameContract: Contract;
-let gameUtils: Contract;
+
 const utils = new TestUtils();
 
 describe("Game Finalize", function () {
@@ -69,12 +68,10 @@ describe("Game Finalize", function () {
     await calc.deployed();
     //GameUtils library
     GameUtils = await ethers.getContractFactory("GameUtils");
-    gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
     GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
     Game = await ethers.getContractFactory("Game");
-    TestingAuxiliar = await ethers.getContractFactory("TestingAuxiliar");
   });
 
   beforeEach(async () => {
