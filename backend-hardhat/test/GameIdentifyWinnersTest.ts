@@ -138,7 +138,7 @@ describe("Game", function () {
   });
 
   describe("identifyWinners", () => {
-    it(`Should revert if the game is not finalized yet`, async () => {
+    it(`Should revert when the game is not finalized yet`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -154,7 +154,7 @@ describe("Game", function () {
       expect(await gameContract.winnersIdentified()).to.be.false;
     });
 
-    it(`Should revert if the game's winners have been already identified`, async () => {
+    it(`Should revert when the game's winners have been already identified`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -176,7 +176,7 @@ describe("Game", function () {
       expect(await gameContract.winnersIdentified()).to.be.true;
     });
 
-    it(`Should identify winners of a game where only one matched the final score`, async () => {
+    it(`Should identify winners of a game where only one matched the final score and emit event 'GameWinnersIdentified'`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -184,7 +184,15 @@ describe("Game", function () {
       //Finalize the game with the score bet by bettorE
       await gameContract.connect(owner).finalizeGame({home: 0, visitor: 3});
       // identify the winners bets
-      await gameContract.identifyWinners();
+      const receipt = await gameContract.identifyWinners();
+      expect(receipt)
+        .to.emit(gameContract, "GameWinnersIdentified")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES
+        );
       //Verify winners identified
       const bets = await gameContract.listBets();
       for (let bet of bets) {
@@ -202,7 +210,7 @@ describe("Game", function () {
       expect(await gameContract.winnersIdentified()).to.be.true;
     });
 
-    it(`Should identify winners of a game where more than one matched the final score`, async () => {
+    it(`Should identify winners of a game where more than one matched the final score and emit event 'GameWinnersIdentified'`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -210,7 +218,15 @@ describe("Game", function () {
       //Finalize the game with the score bet by bettorA and bettorB
       await gameContract.connect(owner).finalizeGame({home: 2, visitor: 2});
       // identify the winners bets
-      await gameContract.identifyWinners();
+      const receipt = await gameContract.identifyWinners();
+      expect(receipt)
+        .to.emit(gameContract, "GameWinnersIdentified")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES
+        );
       //Verify winners identified
       const bets = await gameContract.listBets();
       for (let bet of bets) {
@@ -227,7 +243,7 @@ describe("Game", function () {
       expect(await gameContract.winnersIdentified()).to.be.true;
     });
 
-    it(`Should not identify winners if nobody matched the final score`, async () => {
+    it(`Should not identify winners if nobody matched the final score and emit event 'GameWinnersIdentified'`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -235,7 +251,15 @@ describe("Game", function () {
       //Finalize the game with the score bet by bettorA and bettorB
       await gameContract.connect(owner).finalizeGame({home: 3, visitor: 3});
       // identify the winners bets
-      await gameContract.identifyWinners();
+      const receipt = await gameContract.identifyWinners();
+      expect(receipt)
+        .to.emit(gameContract, "GameWinnersIdentified")
+        .withArgs(
+          gameContract.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_170000_IN_MINUTES
+        );
       //Verify winners identified
       const bets = await gameContract.listBets();
       for (let bet of bets) {

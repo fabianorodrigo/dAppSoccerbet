@@ -117,7 +117,7 @@ describe("GameFactory", function () {
   /**
    * SETCOMMISSION
    */
-  it(`Should set commision fee for future created Games`, async () => {
+  it(`Should set commision fee for future created Games and emit event 'CommissionChanged'`, async () => {
     await createGame();
     expect(await gameFactory.getCommission()).to.be.equal(10);
     const setCommissionReceipt = await gameFactory

@@ -141,7 +141,7 @@ describe("Game", function () {
   });
 
   describe("calcPrizes", () => {
-    it(`Should revert if the game's winners have NOT been identified yet`, async () => {
+    it(`Should revert when the game's winners have NOT been identified yet`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -159,7 +159,7 @@ describe("Game", function () {
       expect(await gameContract.prizesCalculated()).to.be.false;
     });
 
-    it(`Should revert if the game's prizes have been already calculated`, async () => {
+    it(`Should revert when the game's prizes have been already calculated`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -183,7 +183,7 @@ describe("Game", function () {
       expect(await gameContract.winnersIdentified()).to.be.true;
     });
 
-    it(`Should pay 90% of stake to the only one matched the final score`, async () => {
+    it(`Should pay 90% of stake to the only one who matched the final score`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting
@@ -220,7 +220,7 @@ describe("Game", function () {
       expect(await gameContract.prizesCalculated()).to.be.true;
     });
 
-    it(`Should split proportionally 90% of stake to the multiples matched the final score`, async () => {
+    it(`Should split proportionally 90% of stake to the multiples who matched the final score`, async () => {
       //make bets
       await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
       //Closed for betting

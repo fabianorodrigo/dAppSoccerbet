@@ -17,7 +17,7 @@ import {ethers, upgrades, waffle} from "hardhat";
 let ERC20BetToken: ContractFactory;
 let erc20BetToken: Contract;
 
-describe("Token", function () {
+describe("BetToken", function () {
   let accounts: Signer[];
   let owner: Signer;
   let bettor: Signer;
@@ -46,7 +46,7 @@ describe("Token", function () {
   });
 
   describe("Transactions", () => {
-    it(`Should buy some tokens with Ether`, async () => {
+    it(`Should buy some tokens with Ether and emit event 'TokenMinted'`, async () => {
       //One wei => 1 Ether = 1 * 10^18 wei
       const weiAmount = 1; //new BN(1);
       //contract ERC20 Ether balance
@@ -79,7 +79,7 @@ describe("Token", function () {
       ).to.be.revertedWith("ERC20: burn amount exceeds balance");
     });
 
-    it(`Should exchange Bet Tokens for Ether`, async () => {
+    it(`Should exchange Bet Tokens for Ether and emit event 'Transfer'`, async () => {
       //One wei => 1 Ether = 1 * 10^18 wei
       const weiAmount = 1; //new BN(1);
       //contract ERC20 Ether balance before bettor purchase
