@@ -1,4 +1,5 @@
 .sol linguist-language=Solidity
 docs/** linguist-documentation
-backend-hardhat/reports/** linguist-documentation
-backend-truffle/reports/** linguist-documentation
+./frontendAngular/reports/** linguist-documentation
+./backend-hardhat/reports/** linguist-documentation
+./backend-truffle/reports/** linguist-documentation
