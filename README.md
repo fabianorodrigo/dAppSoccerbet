@@ -1,5 +1,4 @@
-Ðapp Soccer Bet ⚽💰
-===
+# Ðapp Soccer Bet ⚽💰
 
 [![licence GPL-3.0](https://img.shields.io/github/license/fabianorodrigo/dappsoccerbet?style=flat-square&logo=creativecommons)](https://github.com/fabianorodrigo/dappsoccerbet/blob/master/LICENSE.md)
 ![Web3](https://img.shields.io/badge/web3-Decentralized%20Web-brightgreen?style=flat-square&logo=ethereum)
@@ -12,14 +11,16 @@ The BETTOR buy Soccer Bet Tokens, a ERC20 token provided by this Ðapp, using Et
 The OWNER account is responsabile for execute the administrative operations such as register games for betting, open and close games for betting, input the game's final score on chain etc.
 
 Visit the [worflow documentation](./docs/workflow/) for a more detailed description of Ðapp usage.
+
 # Technology Stack
 
 ## Backend
 
 - Hardhat 2.9
 - Truffle 5.6
-  
+
 ### On-chain
+
 - Solidity 0.8
 - Openzeppelin Upgrade Plugin Hardhat
 - Openzeppelin Contracts
@@ -31,22 +32,32 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
   - ERC20Upgradeable
   - UUPSUpgradeable
   - Clones
-  
+
 ### Quality Assurance
+
 - Openzeppelin/test_helpers
-- Waffle 
+- Waffle
 - Ethers.js
 - Mocha
 - Chai
 - eth-gas-reporter
-- Solidity Coverage 
+- Solidity Coverage
 - Slither
+
 ## Frontend
+
 - Angular 13
 - Angular Material
-- Typescript 
+- Typescript
 - Web3.js
+
+### Quality Assurance
+
+- Jasmine
+- Karma
+
 ## CI/CD
+
 - [CircleCI](https://app.circleci.com/pipelines/github/fabianorodrigo/dAppSoccerbet)
 
 # Running Locally
@@ -84,29 +95,34 @@ ng serve --open
 ```
 
 # Modules
+
 ## UI Angular
 
 User interface built in Angular where bettors buy tokens, make their toss and withdraw their prize in Ether.
 
 ## Smart Contracts
 
-### BetToken: 
-It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken. It's upgradeable by use of OpenZeppelin Upgrades following the UUPS pattern. 
+### BetToken:
 
-### GameFactory: 
-It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
+It's a ERC20 token implementation. A token or fraction is minted when the same quantity of Ether is received by the contract. The bettings are made using BetToken. It's upgradeable by use of OpenZeppelin Upgrades following the UUPS pattern.
 
-### Game: 
+### GameFactory:
+
+It's the management center of soccer games. It's through it that games are registred by ADMIN. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern.
+
+### Game:
+
 Represents a soccer game and manages the bets related to this specific game, registring bets and spliting prize.
 
 ### Calculator:
-Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern. 
+
+Contract that provides Math functions. It's upgradeable by use of OpenZeppelin Upgrades following the Transparent Proxy pattern.
 
 # Cost track
 
-In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [backend-hardhat/reports/eth-gas-reporter.txt](https://github.com/fabianorodrigo/dAppSoccerbet/blob/develop/backend-hardhat/reports/eth-gas-reporter.txt)*
+In order to compare the evolution of costs, the hardhat gas reporter is configured to export the data to file [backend-hardhat/reports/eth-gas-reporter.txt](https://github.com/fabianorodrigo/dAppSoccerbet/blob/develop/backend-hardhat/reports/eth-gas-reporter.txt)\*
 
-*Better view using `cat reports/eth-gas-reporter.txt` on shell.
+\*Better view using `cat reports/eth-gas-reporter.txt` on shell.
 
 # TODO
 
