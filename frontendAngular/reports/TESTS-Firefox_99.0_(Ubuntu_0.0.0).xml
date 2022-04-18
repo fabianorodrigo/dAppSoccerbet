@@ -1,68 +1,36 @@
 <?xml version="1.0"?>
-<testsuite name="Firefox 99.0 (Ubuntu 0.0.0)" package="" timestamp="2022-04-14T20:07:10" id="0" hostname="DellG15" tests="26" errors="0" failures="0" time="0.804">
+<testsuite name="Firefox 99.0 (Ubuntu 0.0.0)" package="" timestamp="2022-04-18T17:27:34" id="0" hostname="DellG15" tests="26" errors="0" failures="0" time="0.809">
   <properties>
     <property name="browser.fullName" value="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0"/>
   </properties>
-  <testcase name="BettokenHomeComponent should create" time="0.207" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenHomeComponent"/>
-  <testcase name="BuyDialogComponent should create" time="0.054" classname="Firefox_99_0_(Ubuntu_0_0_0).BuyDialogComponent"/>
-  <testcase name="Web3Service should be created" time="0.003" classname="Firefox_99_0_(Ubuntu_0_0_0).Web3Service"/>
-  <testcase name="ErrorComponent should create" time="0.008" classname="Firefox_99_0_(Ubuntu_0_0_0).ErrorComponent"/>
-  <testcase name="WalletComponent should create" time="0.021" classname="Firefox_99_0_(Ubuntu_0_0_0).WalletComponent"/>
-  <testcase name="GameFactoryService should be created" time="0.009" classname="Firefox_99_0_(Ubuntu_0_0_0).GameFactoryService"/>
-  <testcase name="GameWinnersDialogComponent should create" time="0.035" classname="Firefox_99_0_(Ubuntu_0_0_0).GameWinnersDialogComponent"/>
-  <testcase name="AdminGamesFormComponent should create" time="0.073" classname="Firefox_99_0_(Ubuntu_0_0_0).AdminGamesFormComponent"/>
-  <testcase name="MenuComponent should create" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).MenuComponent"/>
-  <testcase name="AppComponent should render title" time="0.058" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
-  <testcase name="AppComponent should have as title 'Soccer Bet Ðapp'" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
-  <testcase name="AppComponent should create the app" time="0.027" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
-  <testcase name="ShortScaleNumberComponent should create" time="0.008" classname="Firefox_99_0_(Ubuntu_0_0_0).ShortScaleNumberComponent"/>
-  <testcase name="GamesHomeComponent should create" time="0.041" classname="Firefox_99_0_(Ubuntu_0_0_0).GamesHomeComponent"/>
-  <testcase name="BettokenService should be created" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenService"/>
+  <testcase name="Web3Service should be created" time="0.023" classname="Firefox_99_0_(Ubuntu_0_0_0).Web3Service"/>
+  <testcase name="WalletComponent should create" time="0.115" classname="Firefox_99_0_(Ubuntu_0_0_0).WalletComponent"/>
+  <testcase name="GameFactoryService should be created" time="0.012" classname="Firefox_99_0_(Ubuntu_0_0_0).GameFactoryService"/>
+  <testcase name="AdminGamesFormComponent should create" time="0.152" classname="Firefox_99_0_(Ubuntu_0_0_0).AdminGamesFormComponent"/>
+  <testcase name="BuyDialogComponent should create" time="0.032" classname="Firefox_99_0_(Ubuntu_0_0_0).BuyDialogComponent"/>
+  <testcase name="GameWinnersDialogComponent should create" time="0.034" classname="Firefox_99_0_(Ubuntu_0_0_0).GameWinnersDialogComponent"/>
+  <testcase name="GameInfoDialogComponent should create" time="0.018" classname="Firefox_99_0_(Ubuntu_0_0_0).GameInfoDialogComponent"/>
+  <testcase name="CurrentAccountResolver should be created" time="0.004" classname="Firefox_99_0_(Ubuntu_0_0_0).CurrentAccountResolver"/>
+  <testcase name="AppComponent should render title" time="0.081" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="AppComponent should have as title 'Soccer Bet Ðapp'" time="0.031" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="AppComponent should create the app" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="GamesHomeComponent should create" time="0.046" classname="Firefox_99_0_(Ubuntu_0_0_0).GamesHomeComponent"/>
+  <testcase name="GameService should be created" time="0.01" classname="Firefox_99_0_(Ubuntu_0_0_0).GameService"/>
   <testcase name="GamesGameComponent should create" time="0.03" classname="Firefox_99_0_(Ubuntu_0_0_0).GamesGameComponent"/>
-  <testcase name="ConfirmDialogComponent should create" time="0.015" classname="Firefox_99_0_(Ubuntu_0_0_0).ConfirmDialogComponent"/>
-  <testcase name="HomeComponent should create" time="0.013" classname="Firefox_99_0_(Ubuntu_0_0_0).HomeComponent"/>
-  <testcase name="GameInfoDialogComponent should create" time="0.014" classname="Firefox_99_0_(Ubuntu_0_0_0).GameInfoDialogComponent"/>
-  <testcase name="GameService should be created" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).GameService"/>
-  <testcase name="ScoreDialogComponent should create" time="0.031" classname="Firefox_99_0_(Ubuntu_0_0_0).ScoreDialogComponent"/>
-  <testcase name="BetDialogComponent should create" time="0.034" classname="Firefox_99_0_(Ubuntu_0_0_0).BetDialogComponent"/>
-  <testcase name="GameBetsDialogComponent should create" time="0.026" classname="Firefox_99_0_(Ubuntu_0_0_0).GameBetsDialogComponent"/>
-  <testcase name="CurrentAccountResolver should be created" time="0.005" classname="Firefox_99_0_(Ubuntu_0_0_0).CurrentAccountResolver"/>
+  <testcase name="ErrorComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).ErrorComponent"/>
+  <testcase name="MenuComponent should create" time="0.022" classname="Firefox_99_0_(Ubuntu_0_0_0).MenuComponent"/>
+  <testcase name="BettokenService should be created" time="0.008" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenService"/>
+  <testcase name="ShortScaleNumberComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).ShortScaleNumberComponent"/>
   <testcase name="HeaderComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).HeaderComponent"/>
-  <testcase name="LayoutComponent should create" time="0.005" classname="Firefox_99_0_(Ubuntu_0_0_0).LayoutComponent"/>
+  <testcase name="LayoutComponent should create" time="0.006" classname="Firefox_99_0_(Ubuntu_0_0_0).LayoutComponent"/>
+  <testcase name="BettokenHomeComponent should create" time="0.017" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenHomeComponent"/>
+  <testcase name="ConfirmDialogComponent should create" time="0.018" classname="Firefox_99_0_(Ubuntu_0_0_0).ConfirmDialogComponent"/>
+  <testcase name="BetDialogComponent should create" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).BetDialogComponent"/>
+  <testcase name="HomeComponent should create" time="0.013" classname="Firefox_99_0_(Ubuntu_0_0_0).HomeComponent"/>
+  <testcase name="GameBetsDialogComponent should create" time="0.024" classname="Firefox_99_0_(Ubuntu_0_0_0).GameBetsDialogComponent"/>
+  <testcase name="ScoreDialogComponent should create" time="0.026" classname="Firefox_99_0_(Ubuntu_0_0_0).ScoreDialogComponent"/>
   <system-out>
-    <![CDATA[Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: '@metamask/detect-provider:', 'Unable to detect window.ethereum.'
-,Firefox 99.0 (Ubuntu 0.0.0) ALERT: 'You need a wallet to connect. You can install Metamask plugin in your browser or you can use the Brave browser that has already a native wallet'
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR
-  Disconnected , because no message in 30000 ms.
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR
-  Disconnected , because no message in 30000 ms.
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR
-  Disconnected Client disconnected from CONNECTED state (transport close)
-,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0303: Can't bind to 'formGroup' since it isn't a known property of 'form'.'
+    <![CDATA[Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0303: Can't bind to 'formGroup' since it isn't a known property of 'form'.'
 ,Firefox 99.0 (Ubuntu 0.0.0) LOG: 'BetToken.address', '0x5b1869D9A4C187F2EAa108f3062412ecf0526b24'
 ,Firefox 99.0 (Ubuntu 0.0.0) LOG: 'GameFactory.address', '0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7'
 ,Firefox 99.0 (Ubuntu 0.0.0) WARN: 'Spec 'AppComponent should render title' has no expectations.'
