@@ -1,5 +1,5 @@
 import { GameCompound } from './../game-compound.class';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { GameFactoryService, GameService } from 'src/app/contracts';
 import { Game } from 'src/app/model/game.interface';
 import { GameEvent } from '../../../model/events/game-event.interface';
@@ -13,7 +13,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './games-home.component.html',
   styleUrls: ['./games-home.component.css'],
 })
-export class GamesHomeComponent implements OnInit {
+export class GamesHomeComponent implements OnInit, OnDestroy {
   constructor(
     private _messageService: MessageService,
     private _webService: Web3Service,
@@ -44,6 +44,9 @@ export class GamesHomeComponent implements OnInit {
     const currentBlock = await this._webService.getCurrentBlockNumber();
     this.loadMore(currentBlock);
     this._subscribeGameCreated();
+  }
+  ngOnDestroy(): void {
+    this.web3GameCreatedSubscription.unsubscribe();
   }
 
   newGame(event: MouseEvent) {
