@@ -1,8 +1,15 @@
 import BN from 'bn.js';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
-import { CallbackFunction, ProviderErrors } from '../model';
+import {
+  CallbackFunction,
+  EventMonitoringParameters,
+  EventPastParameters,
+  ProviderErrors,
+  Web3Event,
+  Web3Subscription,
+} from '../model';
 import { MessageService, Web3Service } from '../services';
 import { TransactionResult } from './../model/transaction-result.interface';
 
@@ -77,27 +84,66 @@ export abstract class BaseContract {
    * If already exists an BehaviorSubject associated to the event {_eventName} and {_filter}, returns it
    * Otherwise, instances a BehaviorSubject associated to the event and returns it
    *
-   * @param _eventName Name of the event which BehaviorSubject will be associated
-   * @param _filter a optional object of type Key:Value that is used to filter events
+   * @param _monitorParameter Object with the parameteres of event monitoring including Name of the event
+   * which BehaviorSubject will be associated; an optional filter and an optional  parameter that indicates,
+   * if is a historical search, from which block
+   *
    * @returns Promise of instance of BehaviorSubject associated with the event {_eventName}
    */
-  async getEventBehaviorSubject(_eventName: string, _filter?: { [key: string]: any }): Promise<BehaviorSubject<any>> {
+  async getEventBehaviorSubject(_monitorParameter: EventMonitoringParameters): Promise<BehaviorSubject<any>> {
     const _contract = await this.getContract(this.getContractABI());
-    const _validationResult = this._validateEventAndInstanceSubject(_contract, _eventName, _filter);
+    const _validationResult = this._validateEventAndInstanceSubject(
+      _contract,
+      _monitorParameter.eventName,
+      _monitorParameter.filter
+    );
     const _key = _validationResult.key;
     if (_validationResult.new) {
-      _contract.events[_eventName](_filter ? { filter: _filter } : undefined)
+      let _eventParam = undefined;
+      if (_monitorParameter.filter) {
+        _eventParam = { filter: _monitorParameter.filter };
+      }
+
+      const subscription = _contract.events[_monitorParameter.eventName](_eventParam);
+      // console.log(_monitorParameter.eventName, subscription);
+      // console.log(`unsub`, subscription.unsubscribe);
+      subscription
         .on('data', (event: any) => {
           if (this._eventListeners[_key]) {
             this._eventListeners[_key].next(event.returnValues);
           }
         })
         .on('error', (e: any) => {
-          console.error(_eventName, e);
+          console.error(_monitorParameter.eventName, e);
           //throw e;
         });
     }
     return this._eventListeners[_key];
+  }
+
+  /**
+   * Gets a instance of WEB3.JS Subscription of an event with the parameters requested
+   * @param _monitorParameter  Object with the parameteres of event monitoring including Name of the event
+   * and an optional filter and an optional  parameter that indicates,
+   * if is a historical search, from which block
+   *
+   * @returns WEB3.JS Subscription
+   */
+  async getWeb3EventSubscription(_monitorParameter: EventMonitoringParameters): Promise<Web3Subscription> {
+    const _contract = await this.getContract(this.getContractABI());
+    return _contract.events[_monitorParameter.eventName](_monitorParameter);
+  }
+
+  /**
+   * Gets a instance of WEB3.JS Subscription of past events with the parameters requested
+   * @param _monitorParameter  Object with the parameteres of event monitoring including Name of the event;
+   * an optional filter and, for historical search, the initial and final block of search
+   *
+   * @returns WEB3.JS Subscription
+   */
+  async getWeb3PastEventSubscription(_monitorParameter: EventPastParameters): Promise<Web3Event[]> {
+    const _contract = await this.getContract(this.getContractABI());
+    return _contract.getPastEvents(_monitorParameter.eventName, _monitorParameter);
   }
 
   /**

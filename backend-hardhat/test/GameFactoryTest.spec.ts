@@ -1,5 +1,6 @@
 import {expect} from "chai";
 import {Contract, ContractFactory, Signer, Transaction} from "ethers";
+import {Result} from "ethers/lib/utils";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
@@ -68,12 +69,15 @@ describe("GameFactory", function () {
 
   afterEach(async () => {
     if (await utils.isContract(gameFactory.address)) {
-      const games = await gameFactory.listGames();
+      //catching GameCreated event
+      const filter = gameFactory.filters.GameCreated();
+      const events = await gameFactory.queryFilter(filter);
+
       //since the owner of the games is the same owner of GameFactory,
       //not the GameFactory itself, its destroyContract function has
       //to be called by the owner
-      for (const gameDTO of games) {
-        const game = await Game.attach(gameDTO.addressGame);
+      for (const event of events) {
+        const game = await Game.attach((event.args as Result).addressGame);
         await game.destroyContract();
       }
     }
@@ -104,12 +108,15 @@ describe("GameFactory", function () {
   /**
    * LISTGAME
    */
-  it(`Should list games`, async () => {
+  it(`Should catch events CreateGame`, async () => {
     await createGame();
-    const games = await gameFactory.listGames();
+    //catching GameCreated event
+    const filter = gameFactory.filters.GameCreated();
+    const games = await gameFactory.queryFilter(filter);
+
     expect(games).to.be.an("array");
     expect(games).to.have.lengthOf(1);
-    const g = await Game.attach(games[0].addressGame);
+    const g = await Game.attach((games[0].args as Result).addressGame);
     expect(await g.open()).to.be.false;
     expect(await g.finalized()).to.be.false;
   });

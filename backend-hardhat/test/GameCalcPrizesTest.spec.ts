@@ -1,5 +1,6 @@
 import {expect} from "chai";
 import {BigNumber, Contract, ContractFactory, Signer} from "ethers";
+import {Result} from "ethers/lib/utils";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
@@ -127,8 +128,11 @@ describe("Game", function () {
     const receiptNewGame = await gameFactory
       .connect(owner)
       .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
-    const games = await gameFactory.listGames();
-    gameContract = Game.attach(games[0].addressGame);
+    //catching GameCreated event
+    const filter = gameFactory.filters.GameCreated();
+    const events = await gameFactory.queryFilter(filter);
+
+    gameContract = Game.attach((events[0].args as Result).addressGame);
   });
 
   afterEach(async () => {

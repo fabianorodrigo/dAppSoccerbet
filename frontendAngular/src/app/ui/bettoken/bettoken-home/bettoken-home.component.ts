@@ -37,8 +37,11 @@ export class BettokenHomeComponent implements OnInit {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
       // balance of BetTokens changes
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED, {
-          tokenBuyer: this.userAccountAddress,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.MINTED,
+          filter: {
+            tokenBuyer: this.userAccountAddress,
+          },
         })
       )?.subscribe((evt) => {
         if (evt == null) return;
@@ -49,8 +52,11 @@ export class BettokenHomeComponent implements OnInit {
         this.getBalance();
       });
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.TRANSFER, {
-          from: this.userAccountAddress,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.TRANSFER,
+          filter: {
+            from: this.userAccountAddress,
+          },
         })
       )?.subscribe((evt) => {
         if (evt == null) return;

@@ -1,12 +1,13 @@
 import {expect} from "chai";
 import {BigNumber, Contract, ContractFactory, Signer} from "ethers";
+import {Result} from "ethers/lib/utils";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
  * be available in the global scope and you will need to import everything explicitly.
  */
 import {ethers, upgrades} from "hardhat";
-import {BetDTO} from "./model";
+import {BetDTO, GameEvent} from "./model";
 import {TestUtils} from "./TestUtils";
 
 // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
@@ -111,11 +112,15 @@ describe("Game Prize Withdraw", function () {
       [erc20BetToken.address, calc.address],
       {initializer: "initialize", unsafeAllow: ["delegatecall"]}
     );
-    gameContract = await gameFactory
+    const receipt = await gameFactory
       .connect(owner)
       .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
-    const games = await gameFactory.listGames();
-    gameContract = Game.attach(games[0].addressGame);
+    await receipt.wait();
+    //catching GameCreated event
+    const filter = gameFactory.filters.GameCreated();
+    const events = await gameFactory.queryFilter(filter);
+
+    gameContract = Game.attach((events[0].args as Result).addressGame);
     await utils.makeBets(erc20BetToken, gameContract, owner, BETS);
   });
 

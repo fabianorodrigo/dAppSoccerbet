@@ -68,9 +68,12 @@ export class GameComponent implements OnInit {
     try {
       //bettoken approve for game contract
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.APPROVAL, {
-          owner: this.userAccountAddress,
-          spender: this.gameCompound.game.addressGame,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.APPROVAL,
+          filter: {
+            owner: this.userAccountAddress,
+            spender: this.gameCompound.game.addressGame,
+          },
         })
       ).subscribe((evt) => {
         if (evt == null) return;
@@ -80,8 +83,11 @@ export class GameComponent implements OnInit {
 
       //bet on game
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.BET_ON_GAME, {
-          addressBettor: this.userAccountAddress,
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.BET_ON_GAME,
+          filter: {
+            addressBettor: this.userAccountAddress,
+          },
         })
       ).subscribe((evt) => {
         if (evt == null) return;
@@ -91,7 +97,9 @@ export class GameComponent implements OnInit {
 
       //winner identified
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_WINNERS_IDENTIFIED)
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.GAME_WINNERS_IDENTIFIED,
+        })
       ).subscribe((evt) => {
         if (evt == null) return;
         const eventData: GameEvent = evt;
@@ -103,7 +111,9 @@ export class GameComponent implements OnInit {
       });
       // prizes calculated
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_PRIZES_CALCULATED)
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.GAME_PRIZES_CALCULATED,
+        })
       ).subscribe((evt) => {
         if (evt == null) return;
         const eventData: GameEvent = evt;
@@ -236,7 +246,6 @@ export class GameComponent implements OnInit {
                 new BN(_allowanceData.value)
               )
               .subscribe((_result) => {
-                console.log(_result);
                 this._messageService.show(_result.result);
                 this.action();
               });

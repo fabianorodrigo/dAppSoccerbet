@@ -185,6 +185,10 @@ export class Web3Service {
     return this._web3.utils.toChecksumAddress(_address);
   }
 
+  getCurrentBlockNumber(): Promise<number> {
+    return this._web3.eth.getBlockNumber();
+  }
+
   private async hasEthereumProvider(): Promise<boolean> {
     // this returns the provider, or null if it wasn't detected
     const provider = await detectEthereumProvider();
@@ -243,11 +247,11 @@ export class Web3Service {
   }
 
   /**
-   * Handles disconnect event. This event is emited when becomes unable to submit RPC
-   * requests to any chain. In general, this will only happen due to network connectivity
-   * issues or some unforeseen error.
+   * The MetaMask provider emits this event when it receives
+   * some message that the consumer should be notified of. The
+   * kind of message is identified by the type string.
    *
-   * @param connectInfo ProviderRpcError
+   * @param _message ProviderMessage
    */
   private handleOnMessage(_message: ProviderMessage) {
     console.log('Mensagem', _message);

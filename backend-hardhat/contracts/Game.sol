@@ -27,6 +27,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libs/GameUtils.sol";
+import "./structs/GameDTO.sol";
 
 import "hardhat/console.sol";
 
@@ -271,6 +272,26 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         Override
         Custom modifiers
      */
+
+    /**
+     * @notice returns the DTO with the game`s data
+     */
+    function getDTO() external view returns (GameDTO memory) {
+        (uint8 home, uint8 visitor) = this.finalScore();
+        return
+            GameDTO(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame,
+                open,
+                finalized,
+                Score(home, visitor),
+                winnersIdentified,
+                prizesCalculated,
+                commission
+            );
+    }
 
     /**
      * @notice Opens a game for betting (sets the open to TRUE). Only allowed

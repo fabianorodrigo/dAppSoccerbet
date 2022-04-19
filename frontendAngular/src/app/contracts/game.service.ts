@@ -207,11 +207,34 @@ export class GameService extends BaseContract {
     return this.getBoolean(contractABI.abi as AbiItem[], `prizesCalculated`);
   }
 
+  getDTO(): Observable<Game> {
+    return new Observable<Game>((_subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then((_contract) => {
+          try {
+            _contract.methods
+              .getDTO()
+              .call()
+              .then((result: Game | undefined) => {
+                _subscriber.next(result);
+              })
+              .catch((e: any) => {
+                _subscriber.error(e);
+              });
+          } catch (e) {
+            console.warn(e);
+          }
+        })
+        .catch((e) => {
+          console.warn(`game final`, e);
+        });
+    });
+  }
+
   finalScore(): Observable<Score> {
     return new Observable<Score>((_subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then((_contract) => {
-          let result;
           try {
             _contract.methods
               .finalScore()
@@ -220,12 +243,11 @@ export class GameService extends BaseContract {
                 _subscriber.next(result);
               })
               .catch((e: any) => {
-                _subscriber.next(undefined);
+                _subscriber.error(e);
               });
           } catch (e) {
             console.warn(e);
           }
-          _subscriber.next(result);
         })
         .catch((e) => {
           console.warn(`gameservice final`, e);
