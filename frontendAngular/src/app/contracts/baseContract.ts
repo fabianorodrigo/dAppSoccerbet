@@ -198,8 +198,6 @@ export abstract class BaseContract {
         let result;
         this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
           try {
-            console.log(_args);
-            console.log(..._args);
             result = await _contract.methods[_functionName](..._args)
               .send({
                 from: fromAccount,
