@@ -7,7 +7,7 @@ import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 import { WEB3 } from '../core/web3';
-import { ProviderMessage, TransactionResult } from '../model';
+import { CallbackFunction, ProviderErrors, ProviderMessage, TransactionResult } from '../model';
 
 declare let window: any;
 
@@ -102,28 +102,42 @@ export class Web3Service {
    *
    * @returns a TransactionResult that indicates if successful or not and message
    */
-  sendWei(_addressFrom: string, _addressTo: string, _valueInWei: BN): Observable<TransactionResult<string>> {
+  sendWei(
+    _addressFrom: string,
+    _addressTo: string,
+    _valueInWei: BN,
+    _successMessage: string,
+    _callback?: CallbackFunction,
+    _confirmationMessage?: string
+  ): Observable<TransactionResult<string>> {
     return new Observable<TransactionResult<string>>((_subscriber) => {
       if (window.ethereum) {
         const weiAmmountHEX = this._web3.utils.toHex(_valueInWei);
-        window.ethereum
-          .request({
-            method: 'eth_sendTransaction',
-            params: [
-              {
-                from: _addressFrom,
-                to: _addressTo,
-                value: weiAmmountHEX,
-                /*gasPrice: '0x09184e72a000',
-                gas: '0x2710',*/
-              },
-            ],
+        this._web3.eth
+          .sendTransaction({ from: _addressFrom, to: _addressTo, value: weiAmmountHEX })
+          .on(`transactionHash`, (hash: string) => {
+            _subscriber.next({ success: true, result: _successMessage });
           })
-          .then((_transaction: any) => {
-            _subscriber.next({ success: true, result: _transaction });
+          .once(`confirmation`, (confNumber: any) => {
+            if (_callback)
+              _callback({
+                success: true,
+                result: _confirmationMessage || ``,
+              });
           })
-          .catch((e: { message: any }) => {
-            _subscriber.next({ success: false, result: e.message });
+          .on(`error`, (e: any) => {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            if (_callback) {
+              _callback({
+                success: false,
+                result: message,
+              });
+            }
           });
       } else {
         _subscriber.next({
