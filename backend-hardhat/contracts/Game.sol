@@ -214,6 +214,30 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         Score score
     );
 
+    /// @notice Demands that the Game be closed for betting. Otherwise, reverts with {GameNotClosed}
+    modifier isClosed() {
+        if (open) {
+            revert GameNotClosed();
+        }
+        _;
+    }
+
+    /// @notice Demands that the Game be opened for betting. Otherwise, reverts with {GameNotOpen}
+    modifier isOpen() {
+        if (!open) {
+            revert GameNotOpen();
+        }
+        _;
+    }
+
+    /// @notice Demands that the Game has not finalized yet. Otherwise, reverts with {GameAlreadyFinalized}
+    modifier isNotFinalized() {
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        _;
+    }
+
     /** SOLIDITY STYLE GUIDE **
 
         Order of Functions
@@ -300,13 +324,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * Events: GameOpened
      * Custom Errors: GameNotClosed, GameAlreadyFinalized
      */
-    function openForBetting() external onlyOwner {
-        if (open) {
-            revert GameNotClosed();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function openForBetting() external onlyOwner isClosed isNotFinalized {
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -324,13 +342,11 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
-    function bet(Score memory _score, uint256 _value) external {
-        if (!open) {
-            revert GameNotOpen();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function bet(Score memory _score, uint256 _value)
+        external
+        isOpen
+        isNotFinalized
+    {
         if (_value <= 0) {
             revert InvalidBettingValue();
         }
@@ -370,13 +386,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting() external onlyOwner {
-        if (!open) {
-            revert GameNotOpen();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function closeForBetting() external onlyOwner isOpen isNotFinalized {
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -390,13 +400,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @param _finalScore Data of the final score of the match
      */
-    function finalizeGame(Score memory _finalScore) external onlyOwner {
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
-        if (open) {
-            revert GameNotClosed();
-        }
+    function finalizeGame(Score memory _finalScore)
+        external
+        onlyOwner
+        isClosed
+        isNotFinalized
+    {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
@@ -554,7 +563,6 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * If you want to return an entire array in one call, then you need to write a function
      */
     function listBets() external view returns (Bet[] memory bets) {
-        console.log("Bets length: ", _bets.length);
         return _bets;
     }
 
