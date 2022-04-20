@@ -12,7 +12,7 @@ library GameUtils {
      *
      * @return _winners The quantity of bets in {_bets} that matched the {finalScore}
      */
-    function countWinners(Bet[] memory _bets, Score memory _finalScore)
+    function countWinners(Bet[] memory _bets, Score calldata _finalScore)
         public
         pure
         returns (uint256)

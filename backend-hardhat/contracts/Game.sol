@@ -26,7 +26,6 @@ import "./Calculator.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./libs/GameUtils.sol";
 import "./structs/GameDTO.sol";
 
 import "hardhat/console.sol";
@@ -266,8 +265,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      */
     function initialize(
         address payable _owner,
-        string memory _home,
-        string memory _visitor,
+        string calldata _home,
+        string calldata _visitor,
         uint256 _datetimeGame,
         address _betTokenContractAddress,
         address _calculatorContractAddress,
@@ -342,7 +341,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
-    function bet(Score memory _score, uint256 _value)
+    function bet(Score calldata _score, uint256 _value)
         external
         isOpen
         isNotFinalized
@@ -400,7 +399,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @param _finalScore Data of the final score of the match
      */
-    function finalizeGame(Score memory _finalScore)
+    function finalizeGame(Score calldata _finalScore)
         external
         onlyOwner
         isClosed
@@ -439,7 +438,6 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
 
         // Each interaction of this loops is spending around 30K gas
         // The loop continues until the end or the gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION
-        //uint256[] memory winners = GameUtils.identifyWinners(_bets, finalScore);
         for (
             ;
             _idWinners_i < _bets.length &&

@@ -126,8 +126,8 @@ contract GameFactoryUpgradeable is
      * @param _datetimeGame The date/time of the game expressed in seconds
      */
     function newGame(
-        string memory _home,
-        string memory _visitor,
+        string calldata _home,
+        string calldata _visitor,
         uint256 _datetimeGame
     ) external onlyOwner {
         //Clones the Game contract implementation
