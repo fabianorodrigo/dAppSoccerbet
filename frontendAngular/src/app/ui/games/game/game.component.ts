@@ -183,6 +183,9 @@ export class GameComponent implements OnInit {
     // not showing message because the capture of the event is already doing it
     //this._messageService.show(confirmationResult.result);
     this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
   }
 
   identifyWinners() {
@@ -243,11 +246,14 @@ export class GameComponent implements OnInit {
               .approve(
                 this.userAccountAddress,
                 this.gameCompound.game.addressGame as string,
-                new BN(_allowanceData.value)
+                new BN(_allowanceData.value),
+                this._genericCallback.bind(this)
               )
-              .subscribe((_result) => {
-                this._messageService.show(_result.result);
-                this.action();
+              .subscribe((transactionResult) => {
+                if (!transactionResult.success) {
+                  this.action();
+                }
+                this._messageService.show(transactionResult.result);
               });
           } else {
             this._messageService.show(`Quantity of BetTokens is not valid`);
@@ -255,6 +261,16 @@ export class GameComponent implements OnInit {
         }
       });
     });
+  }
+
+  private _genericCallback(confirmationResult: TransactionResult<string>) {
+    this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
   }
 
   bet() {
@@ -266,7 +282,11 @@ export class GameComponent implements OnInit {
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame)
       .subscribe((_allowance) => {
         this.action();
-        if (!_allowance || _allowance.eq(new BN(0))) {
+        if (_allowance.success == false) {
+          this._messageService.show(
+            `It was not possible to get the number of Bet Tokens approved to be spent on this game`
+          );
+        } else if ((_allowance.result as BN).eq(new BN(0))) {
           this._messageService.show(`There is no BetTokens approved to be spent on this game`);
         } else {
           const dialogRef = this._dialog.open(BetDialogComponent, {
@@ -274,7 +294,7 @@ export class GameComponent implements OnInit {
               title: `Place your Bet`,
               homeTeam: this.homeTeam,
               visitorTeam: this.visitorTeam,
-              allowance: _allowance,
+              allowance: _allowance.result,
             },
           });
 
@@ -307,8 +327,14 @@ export class GameComponent implements OnInit {
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame as string)
       .subscribe((_remainingAllowance) => {
         this.action();
-        this.formatedRemainingAllowance = this._numberService.formatBNShortScale(_remainingAllowance);
-        this._changeDetectorRefs.detectChanges();
+        if (_remainingAllowance.success == false) {
+          this._messageService.show(
+            `It was not possible to get the number of Bet Tokens approved to be spent on this game`
+          );
+        } else {
+          this.formatedRemainingAllowance = this._numberService.formatBNShortScale(_remainingAllowance.result as BN);
+          this._changeDetectorRefs.detectChanges();
+        }
       });
   }
 
