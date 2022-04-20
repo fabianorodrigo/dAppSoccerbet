@@ -39,9 +39,6 @@ describe("GameFactory", function () {
     Calculator = await ethers.getContractFactory("CalculatorUpgradeable");
     calc = await upgrades.deployProxy(Calculator, {kind: "uups"});
     await calc.deployed();
-    //GameUtils library
-    GameUtils = await ethers.getContractFactory("GameUtils");
-    gameUtils = await GameUtils.deploy();
     //Factories
     ERC20BetToken = await ethers.getContractFactory("BetTokenUpgradeable");
     GameFactory = await ethers.getContractFactory("GameFactoryUpgradeable");
