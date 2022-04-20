@@ -175,6 +175,44 @@ export abstract class BaseContract {
   }
 
   /**
+   * Execute a CALL (DOEST NOT change state) to a function  from the currentAccount selected on the wallet provider
+   *
+   * @param _abi  Contract's ABI
+   * @param _functionName Name of contract's function to be invoked
+   * @param _args Contract`s function arguments
+   * @returns Observable<TransactionResult<T>>
+   */
+  protected call<T>(_abi: AbiItem[], _functionName: string, ..._args: any): Observable<TransactionResult<T>> {
+    return new Observable<TransactionResult<T>>((subscriber) => {
+      this.getContract(_abi as AbiItem[]).then((_contract) => {
+        let result;
+        this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+          try {
+            result = await _contract.methods[_functionName](..._args).call({
+              from: fromAccount,
+            });
+            subscriber.next({
+              success: true,
+              result,
+            });
+          } catch (e: any) {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            subscriber.next({
+              success: false,
+              result: message,
+            });
+          }
+        });
+      });
+    });
+  }
+
+  /**
    * Execute a SEND (change state) to a function  from the currentAccount selected on the wallet provider
    *
    * @param _abi  Contract's ABI
@@ -219,7 +257,12 @@ export abstract class BaseContract {
               message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
             }
             console.warn(e);
-            subscriber.next({ success: false, result: message });
+            if (_callback) {
+              _callback({
+                success: false,
+                result: message,
+              });
+            }
           }
         });
       });
