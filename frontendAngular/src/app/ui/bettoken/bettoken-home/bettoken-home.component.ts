@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
-import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer } from 'src/app/model';
+import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer, TransactionResult } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
@@ -17,6 +17,10 @@ export class BettokenHomeComponent implements OnInit {
   formatedBalance: string = '0';
   formatedBalanceTooltip: string = '0';
   chainCurrencyName: string = environment.chainCurrencyName;
+
+  // just control of the `loading` visual behavior
+  currentAction = Action.NONE;
+  loading: boolean = false;
 
   constructor(
     private _changeDetectorRefs: ChangeDetectorRef,
@@ -73,6 +77,7 @@ export class BettokenHomeComponent implements OnInit {
 
   buy(event: MouseEvent) {
     if (!this.userAccountAddress) return;
+    this.action(Action.BUY);
     this._web3Service.chainCurrencyBalanceOf(this.userAccountAddress).subscribe((_balance) => {
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
@@ -84,9 +89,11 @@ export class BettokenHomeComponent implements OnInit {
       dialogRef.afterClosed().subscribe((_purchaseData) => {
         if (_purchaseData) {
           if (_purchaseData.value != null && this.userAccountAddress) {
-            this._betTokenService.buy(this.userAccountAddress, new BN(_purchaseData.value)).subscribe((_result) => {
-              //this._messageService.show(_result.result);
-            });
+            this._betTokenService
+              .buy(this.userAccountAddress, new BN(_purchaseData.value), this._genericCallback.bind(this))
+              .subscribe((_result) => {
+                //this._messageService.show(_result.result);
+              });
           } else {
             this._messageService.show(`Quantity of Bet Tokens is not valid`);
           }
@@ -95,8 +102,19 @@ export class BettokenHomeComponent implements OnInit {
     });
   }
 
+  private _genericCallback(confirmationResult: TransactionResult<string>) {
+    this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
+  }
+
   exchange(event: MouseEvent) {
     if (!this.userAccountAddress) return;
+    this.action(Action.EXCHANGE);
     this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
@@ -109,7 +127,7 @@ export class BettokenHomeComponent implements OnInit {
         if (_amount) {
           if (_amount.value != null && this.userAccountAddress) {
             this._betTokenService
-              .exchange4Ether(this.userAccountAddress, new BN(_amount.value))
+              .exchange4Ether(this.userAccountAddress, new BN(_amount.value), this._genericCallback.bind(this))
               .subscribe((_result) => {
                 console.log(_result);
                 //this._messageService.show(_result.result);
@@ -133,4 +151,20 @@ export class BettokenHomeComponent implements OnInit {
       });
     }
   }
+
+  private action(a?: Action) {
+    if (a) {
+      this.currentAction = a;
+      this.loading = true;
+    } else {
+      this.currentAction = Action.NONE;
+      this.loading = false;
+    }
+  }
+}
+
+enum Action {
+  NONE = '',
+  BUY = 'BUY',
+  EXCHANGE = `EXCHANGE`,
 }
