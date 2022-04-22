@@ -77,8 +77,9 @@ export class BettokenHomeComponent implements OnInit {
 
   buy(event: MouseEvent) {
     if (!this.userAccountAddress) return;
-    this.action(Action.BUY);
+    this.action(Action.BALANCE);
     this._web3Service.chainCurrencyBalanceOf(this.userAccountAddress).subscribe((_balance) => {
+      this.action();
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Buy Soccer Bet Tokens`,
@@ -89,6 +90,7 @@ export class BettokenHomeComponent implements OnInit {
       dialogRef.afterClosed().subscribe((_purchaseData) => {
         if (_purchaseData) {
           if (_purchaseData.value != null && this.userAccountAddress) {
+            this.action(Action.BUY);
             this._betTokenService
               .buy(this.userAccountAddress, new BN(_purchaseData.value), this._genericCallback.bind(this))
               .subscribe((_result) => {
@@ -114,8 +116,9 @@ export class BettokenHomeComponent implements OnInit {
 
   exchange(event: MouseEvent) {
     if (!this.userAccountAddress) return;
-    this.action(Action.EXCHANGE);
+    this.action(Action.BALANCE);
     this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      this.action();
       if (_balanceSBT.success == false) {
         this._messageService.show(`It was not possible to get Bet Tokens balance`);
         return;
@@ -130,6 +133,7 @@ export class BettokenHomeComponent implements OnInit {
       dialogRef.afterClosed().subscribe((_amount) => {
         if (_amount) {
           if (_amount.value != null && this.userAccountAddress) {
+            this.action(Action.EXCHANGE);
             this._betTokenService
               .exchange4Ether(this.userAccountAddress, new BN(_amount.value), this._genericCallback.bind(this))
               .subscribe((_result) => {
@@ -175,4 +179,5 @@ enum Action {
   NONE = '',
   BUY = 'BUY',
   EXCHANGE = `EXCHANGE`,
+  BALANCE = `BALANCE`,
 }
