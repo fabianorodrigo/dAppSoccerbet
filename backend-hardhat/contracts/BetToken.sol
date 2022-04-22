@@ -26,15 +26,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./OnlyDelegateCall.sol";
-
 contract BetTokenUpgradeable is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    ReentrancyGuardUpgradeable,
-    OnlyDelegateCall
+    ReentrancyGuardUpgradeable
 {
     event TokenMinted(
         address indexed tokenBuyer,
@@ -55,7 +52,7 @@ contract BetTokenUpgradeable is
         private
     **/
 
-    function initialize() external initializer {
+    function initialize() external initializer onlyProxy {
         __ERC20_init("Soccer Bet Token", "SBT");
         __Ownable_init();
         __ReentrancyGuard_init();
@@ -64,7 +61,7 @@ contract BetTokenUpgradeable is
     /**
      * @notice sending Ether to the contract, the sender is buying tokens for betting
      */
-    receive() external payable {
+    receive() external payable onlyProxy {
         // _mint sums the second parameter to the token's totalSupply and assign the
         // new tokens to the address of the msg.sender
         _mint(msg.sender, msg.value);
@@ -74,7 +71,7 @@ contract BetTokenUpgradeable is
     /**
      * @notice exchange the amount of Soccer Bet Tokens for the same quantity of Wei
      */
-    function exchange4Ether(uint256 _amount) external nonReentrant {
+    function exchange4Ether(uint256 _amount) external nonReentrant onlyProxy {
         //_burn already has require validating account balance, account not being 0x0 ...
         _burn(msg.sender, _amount);
         // If gas costs are subject to change, then smart contracts can’t
