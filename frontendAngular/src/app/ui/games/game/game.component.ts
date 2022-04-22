@@ -230,11 +230,15 @@ export class GameComponent implements OnInit {
 
   approve(event: MouseEvent) {
     if (!this.userAccountAddress) return;
-    this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
+    this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      if (_balanceSBT.success == false) {
+        this._messageService.show(`It was not possible to get Bet Tokens balance`);
+        return;
+      }
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Approve BetTokens for: ${this.homeTeam} x ${this.visitorTeam}`,
-          maxAmmount: _balance,
+          maxAmmount: _balanceSBT.result,
         },
       });
 

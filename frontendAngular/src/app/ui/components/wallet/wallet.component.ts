@@ -1,12 +1,5 @@
 import { MessageService } from './../../../services/message.service';
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { BetTokenService } from 'src/app/contracts/bettoken.service';
 import { Web3Service } from 'src/app/services';
 import { ProviderErrors } from './../../../model/eip1193/providerErrors';
@@ -57,10 +50,8 @@ export class WalletComponent implements OnInit {
    * @param _accountAddress Account address to show balance
    */
   showBalance(_accountAddress: string) {
-    this._betTokenContractService
-      .balanceOf(_accountAddress)
-      .subscribe((value) => {
-        console.log(value);
-      });
+    this._betTokenContractService.balanceOf(_accountAddress).subscribe((value) => {
+      console.log(value.result);
+    });
   }
 }

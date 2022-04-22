@@ -116,10 +116,14 @@ export class BettokenHomeComponent implements OnInit {
     if (!this.userAccountAddress) return;
     this.action(Action.EXCHANGE);
     this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      if (_balanceSBT.success == false) {
+        this._messageService.show(`It was not possible to get Bet Tokens balance`);
+        return;
+      }
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Exchange Soccer Bet Tokens for Ether`,
-          maxAmmount: new BN(_balanceSBT),
+          maxAmmount: new BN(_balanceSBT.result),
         },
       });
 
@@ -144,9 +148,13 @@ export class BettokenHomeComponent implements OnInit {
 
   private getBalance() {
     if (this.userAccountAddress) {
-      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
-        this.formatedBalance = this._numberService.formatBNShortScale(_balance);
-        this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
+      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+        if (_balanceSBT.success == false) {
+          this._messageService.show(`It was not possible to get Bet Tokens balance`);
+          return;
+        }
+        this.formatedBalance = this._numberService.formatBNShortScale(_balanceSBT.result as BN);
+        this.formatedBalanceTooltip = this._numberService.formatBN(_balanceSBT.result as BN);
         this._changeDetectorRefs.detectChanges();
       });
     }

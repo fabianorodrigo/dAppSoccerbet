@@ -1,3 +1,4 @@
+import { Type } from '@angular/core';
 import BN from 'bn.js';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Contract } from 'web3-eth-contract';
@@ -183,33 +184,27 @@ export abstract class BaseContract {
    * @returns Observable<TransactionResult<T>>
    */
   protected call<T>(_abi: AbiItem[], _functionName: string, ..._args: any): Observable<TransactionResult<T>> {
-    return new Observable<TransactionResult<T>>((subscriber) => {
-      this.getContract(_abi as AbiItem[]).then((_contract) => {
-        let result;
-        this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
-          try {
-            result = await _contract.methods[_functionName](..._args).call({
-              from: fromAccount,
-            });
-            subscriber.next({
-              success: true,
-              result,
-            });
-          } catch (e: any) {
-            const providerError = ProviderErrors[e.code];
-            let message = `We had some problem. The transaction wasn't sent.`;
-            if (providerError) {
-              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-            }
-            console.warn(e);
-            subscriber.next({
-              success: false,
-              result: message,
-            });
-          }
-        });
-      });
-    });
+    return this.callPrivate(_abi, _functionName, this.justReturnV, ..._args);
+  }
+
+  /**
+   * Execute a CALL (DOEST NOT change state) to a function  from the currentAccount selected on the wallet provider
+   * This function makes the same as call<T> and converts the result to type {BN}, since the provider returns string
+   *
+   * @param _abi  Contract's ABI
+   * @param _functionName Name of contract's function to be invoked
+   * @param _args Contract`s function arguments
+   * @returns Observable<TransactionResult<T>>
+   */
+  protected callBN(_abi: AbiItem[], _functionName: string, ..._args: any): Observable<TransactionResult<BN>> {
+    return this.callPrivate(
+      _abi,
+      _functionName,
+      (v: any) => {
+        return new BN(v);
+      },
+      ..._args
+    );
   }
 
   /**
@@ -327,5 +322,57 @@ export abstract class BaseContract {
     } catch (e: any) {
       this._messageService.show(e.message);
     }
+  }
+
+  /**
+   * Just return the value received. It is used by callPrivate as default
+   * @param v value to be received and to be returned
+   * @returns
+   */
+  private justReturnV(v: any) {
+    return v;
+  }
+
+  /**
+   * Execute a CALL (DOEST NOT change state) to a function  from the currentAccount selected on the wallet provider
+   *
+   * @param _abi  Contract's ABI
+   * @param _functionName Name of contract's function to be invoked
+   * @param _args Contract`s function arguments
+   * @returns Observable<TransactionResult<T>>
+   */
+  private callPrivate<T>(
+    _abi: AbiItem[],
+    _functionName: string,
+    transform: Function = this.justReturnV,
+    ..._args: any
+  ): Observable<TransactionResult<T>> {
+    return new Observable<TransactionResult<T>>((subscriber) => {
+      this.getContract(_abi as AbiItem[]).then((_contract) => {
+        let result;
+        this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
+          try {
+            result = await _contract.methods[_functionName](..._args).call({
+              from: fromAccount,
+            });
+            subscriber.next({
+              success: true,
+              result: transform(result),
+            });
+          } catch (e: any) {
+            const providerError = ProviderErrors[e.code];
+            let message = `We had some problem. The transaction wasn't sent.`;
+            if (providerError) {
+              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
+            }
+            console.warn(e);
+            subscriber.next({
+              success: false,
+              result: message,
+            });
+          }
+        });
+      });
+    });
   }
 }

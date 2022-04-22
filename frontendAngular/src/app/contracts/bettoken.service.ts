@@ -26,22 +26,8 @@ export class BetTokenService extends BaseContract {
     return contractABI.abi as AbiItem[];
   }
 
-  balanceOf(_accountAddress: string): Observable<BN> {
-    return new Observable<BN>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (contract) => {
-          let _balance;
-          try {
-            _balance = await contract.methods.balanceOf(_accountAddress).call();
-          } catch (e: any) {
-            alert(e.message);
-          }
-          subscriber.next(new BN(_balance));
-        })
-        .catch((e) => {
-          console.warn(`bettoken`, e);
-        });
-    });
+  balanceOf(_accountAddress: string): Observable<TransactionResult<BN>> {
+    return this.callBN(contractABI.abi as AbiItem[], `balanceOf`, _accountAddress);
   }
 
   buy(_fromAccountAddress: string, _value: BN, _callback?: CallbackFunction): Observable<TransactionResult<string>> {
@@ -81,7 +67,7 @@ export class BetTokenService extends BaseContract {
    * @returns The quantity of BetTokens remaining
    */
   allowance(_accountAddress: string, _gameContractAddress: string): Observable<TransactionResult<BN>> {
-    return this.call<BN>(contractABI.abi as AbiItem[], `allowance`, _accountAddress, _gameContractAddress);
+    return this.callBN(contractABI.abi as AbiItem[], `allowance`, _accountAddress, _gameContractAddress);
   }
 
   /**
