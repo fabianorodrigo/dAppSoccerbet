@@ -45,8 +45,6 @@ contract GameFactoryUpgradeable is
     address private betTokenContractAddress;
     // Calculator proxy contract address
     address private calculatorContractAddress;
-    // All games registered
-    Game[] private _games;
     // Percentage of administration costs passed in the constructor of Game
     // It can be changed along the time by ADMINISTRATOR for new games.
     // However, after a Game is created, it can't be changed for that Game
@@ -128,8 +126,8 @@ contract GameFactoryUpgradeable is
      * @param _datetimeGame The date/time of the game expressed in seconds
      */
     function newGame(
-        string memory _home,
-        string memory _visitor,
+        string calldata _home,
+        string calldata _visitor,
         uint256 _datetimeGame
     ) external onlyOwner {
         //Clones the Game contract implementation
@@ -148,8 +146,6 @@ contract GameFactoryUpgradeable is
             calculatorContractAddress,
             commission
         );
-        //TODO: what about not store the Game (or even address) and the frontend base just on events to recover the list?
-        _games.push(g);
         emit GameCreated(
             clone,
             g.homeTeam(),
@@ -178,38 +174,5 @@ contract GameFactoryUpgradeable is
         uint256 old = commission;
         commission = _commission;
         emit CommissionChanged(old, commission);
-    }
-
-    /**
-     * @notice Return the list of all games registered
-     * @return games Array of games
-     * @dev If you have a public state variable of array type, then you can only
-     * retrieve single elements of the array via the generated getter function.
-     * This mechanism exists to avoid high gas costs when returning an entire array.
-     * If you want to return an entire array in one call, then you need to write a function
-     *
-     * @dev We're returning the struct GameDTO so as the frontEnd has all the basic data without
-     * make requests to provider. Otherwise, the frontend receives just the contract address:
-     * https://docs.soliditylang.org/en/v0.7.5/abi-spec.html#contract-abi-specification
-     */
-    function listGames() external view returns (GameDTO[] memory games) {
-        GameDTO[] memory result = new GameDTO[](_games.length);
-        for (uint256 i = 0; i < _games.length; i++) {
-            Game g = _games[i];
-            (uint8 home, uint8 visitor) = g.finalScore();
-            result[i] = GameDTO(
-                address(g),
-                g.homeTeam(),
-                g.visitorTeam(),
-                g.datetimeGame(),
-                g.open(),
-                g.finalized(),
-                Score(home, visitor),
-                g.winnersIdentified(),
-                g.prizesCalculated(),
-                g.commission()
-            );
-        }
-        return result;
     }
 }

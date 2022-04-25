@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AbiItem } from 'web3-utils/types';
 import contractABI from '../../../../backend-hardhat/artifacts/contracts/BetToken.sol/BetTokenUpgradeable.json';
-import { ProviderErrors, TransactionResult } from '../model';
+import { CallbackFunction, ProviderErrors, TransactionResult } from '../model';
 import { MessageService, Web3Service } from '../services';
 import { BaseContract } from './baseContract';
 
@@ -26,55 +26,36 @@ export class BetTokenService extends BaseContract {
     return contractABI.abi as AbiItem[];
   }
 
-  balanceOf(_accountAddress: string): Observable<BN> {
-    return new Observable<BN>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (contract) => {
-          let _balance;
-          try {
-            _balance = await contract.methods.balanceOf(_accountAddress).call();
-          } catch (e: any) {
-            alert(e.message);
-          }
-          subscriber.next(new BN(_balance));
-        })
-        .catch((e) => {
-          console.warn(`bettoken`, e);
-        });
-    });
+  balanceOf(_accountAddress: string): Observable<TransactionResult<BN>> {
+    return this.callBN(contractABI.abi as AbiItem[], `balanceOf`, _accountAddress);
   }
 
-  buy(_fromAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
-    return this._web3Service.sendWei(_fromAccountAddress, environment.betTokenAddress, _value);
+  buy(_fromAccountAddress: string, _value: BN, _callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this._web3Service.sendWei(
+      _fromAccountAddress,
+      environment.betTokenAddress,
+      _value,
+      `Transaction to buy Bet Tokens was sent successfully`,
+      _callback,
+      `Transaction to buy Bet Tokens was confirmed`
+    );
   }
 
-  approve(_fromAccountAddress: string, _toAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (contract) => {
-          let result;
-          try {
-            result = await contract.methods.approve(_toAccountAddress, _value).send({
-              from: _fromAccountAddress,
-            });
-            subscriber.next({
-              success: true,
-              result: 'Transaction to approve allowance of Bet Tokens was sent successfully',
-            });
-          } catch (e: any) {
-            const providerError = ProviderErrors[e.code];
-            let message = `We had some problem. The transaction wasn't sent.`;
-            if (providerError) {
-              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-            }
-            console.warn(e);
-            subscriber.next({ success: false, result: message });
-          }
-        })
-        .catch((e) => {
-          console.warn(`bettoken`, e);
-        });
-    });
+  approve(
+    _fromAccountAddress: string,
+    _toAccountAddress: string,
+    _value: BN,
+    _callback?: CallbackFunction
+  ): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'approve',
+      `Transaction to approve allowance of Bet Tokens was sent successfully`,
+      _callback,
+      `Transaction to approve allowance of Bet Tokens was confirmed`,
+      _toAccountAddress,
+      _value
+    );
   }
 
   /**
@@ -85,22 +66,8 @@ export class BetTokenService extends BaseContract {
    * @param _gameContractAddress Game Contract address
    * @returns The quantity of BetTokens remaining
    */
-  allowance(_accountAddress: string, _gameContractAddress: string): Observable<BN> {
-    return new Observable<BN>((_subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (contract) => {
-          let _remainingAllowance;
-          try {
-            _remainingAllowance = await contract.methods.allowance(_accountAddress, _gameContractAddress).call();
-          } catch (e: any) {
-            alert(e.message);
-          }
-          _subscriber.next(new BN(_remainingAllowance));
-        })
-        .catch((e) => {
-          console.warn(`bettoken.allowance`, e);
-        });
-    });
+  allowance(_accountAddress: string, _gameContractAddress: string): Observable<TransactionResult<BN>> {
+    return this.callBN(contractABI.abi as AbiItem[], `allowance`, _accountAddress, _gameContractAddress);
   }
 
   /**
@@ -109,34 +76,21 @@ export class BetTokenService extends BaseContract {
    *
    * @param _toAccountAddress Sender of transaction (recipient of Ethers when the transaction is confirmed)
    * @param _value Amount of Soccer Bet Tokens to be exchange
+   * @param _callback  Function to be called when the transaction is confirmed
    * @returns The details of sending transaction
    */
-  exchange4Ether(_toAccountAddress: string, _value: BN): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (contract) => {
-          let result;
-          try {
-            result = await contract.methods.exchange4Ether(_value).send({
-              from: _toAccountAddress, //TODO: fazer um teste fixando um outro endereço aqui
-            });
-            subscriber.next({
-              success: true,
-              result: 'Transaction to exchange your Bet Tokens for Ether was sent successfully',
-            });
-          } catch (e: any) {
-            const providerError = ProviderErrors[e.code];
-            let message = `We had some problem. The transaction wasn't sent.`;
-            if (providerError) {
-              message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-            }
-            console.warn(e);
-            subscriber.next({ success: false, result: message });
-          }
-        })
-        .catch((e) => {
-          console.warn(`bettoken`, e);
-        });
-    });
+  exchange4Ether(
+    _toAccountAddress: string,
+    _value: BN,
+    _callback?: CallbackFunction
+  ): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'exchange4Ether',
+      `Transaction to exchange your Bet Tokens for Ether was sent successfully`,
+      _callback,
+      `Transaction to exchange your Bet Tokens for Ether was confirmed`,
+      _value
+    );
   }
 }

@@ -1,8 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import BN from 'bn.js';
-import { GameService } from 'src/app/contracts';
-import { Bet, BetResult } from 'src/app/model';
+import { Bet, BetResult, TransactionResult } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { GameCompound } from '../game-compound.class';
 
@@ -17,6 +16,8 @@ export class GameWinnersDialogComponent implements OnInit {
   TIED = BetResult.TIED;
 
   userAccountAddress: string | null = null;
+
+  loading: boolean = false;
 
   displayedColumns: string[] = ['bettor', 'value', 'prize', 'action'];
   dataSource: {
@@ -65,14 +66,26 @@ export class GameWinnersDialogComponent implements OnInit {
     } else if (this.userAccountAddress != this.data.winnerBets[_betIndex].bettor) {
       this._messageService.show(`You can't execute withdraw of others bets`);
     } else {
+      this.loading = true;
       this.data.gameCompound.gameService
-        .withdrawPrize(this.data.winnerBets[_betIndex].index)
+        .withdrawPrize(
+          this.data.gameCompound.game,
+          this.data.winnerBets[_betIndex].index,
+          this._genericCallback.bind(this)
+        )
         .subscribe((transactionResult) => {
           this._messageService.show(transactionResult.result);
           if (transactionResult.success) {
             this.dataSource[_betIndex].result = this.PAID;
           }
         });
+    }
+  }
+
+  private _genericCallback(confirmationResult: TransactionResult<string>) {
+    this.loading = false;
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
     }
   }
 

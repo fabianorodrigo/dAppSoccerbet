@@ -5,6 +5,8 @@
 export const environment = {
   production: false,
   chainCurrencyName: 'Ether',
+  //Number of blocks to do historical searches (like for GameCreated events)
+  numberOfBlocksInHistoricSearches: 10000,
   //notebook Dell
   //betTokenAddress: '0xAec06a3112Ce416701a8C0333E502376205073fc',
   //gameFactoryAddress: '0x8F7364cF8A2383e25818552692B7399712eeb8EF',

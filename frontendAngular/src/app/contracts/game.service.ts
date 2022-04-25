@@ -92,15 +92,15 @@ export class GameService extends BaseContract {
    *
    * @param _game Game being finalized
    * @param _score The final score of the game
-   * @param callback  Function to be called when the transaction is confirmed
+   * @param _callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  finalizeGame(_game: Game, _score: Score, callback?: CallbackFunction): Observable<TransactionResult<string>> {
+  finalizeGame(_game: Game, _score: Score, _callback?: CallbackFunction): Observable<TransactionResult<string>> {
     return this.send(
       contractABI.abi as AbiItem[],
       'finalizeGame',
       `Transaction to finalize the game ${_game.homeTeam} ${_score.home} X ${_score.visitor} ${_game.visitorTeam} was sent successfully`,
-      callback,
+      _callback,
       `Transaction to finalize the game ${_game.homeTeam} ${_score.home} X ${_score.visitor} ${_game.visitorTeam} was confirmed`,
       _score
     );
@@ -110,15 +110,15 @@ export class GameService extends BaseContract {
    * After game is finalized, this method identify the winner bets
    *
    * @param _game Game having its winner bets being identified
-   * @param callback  Function to be called when the transaction is confirmed
+   * @param _callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  identifyWinners(_game: Game, callback?: CallbackFunction): Observable<TransactionResult<string>> {
+  identifyWinners(_game: Game, _callback?: CallbackFunction): Observable<TransactionResult<string>> {
     return this.send(
       contractABI.abi as AbiItem[],
       'identifyWinners',
       `Transaction to identify the game's winner bets was sent successfully`,
-      callback,
+      _callback,
       `Transaction to identify the game's winner bets was confirmed for ${_game.homeTeam} ${_game.finalScore?.home}  x ${_game.finalScore?.visitor} ${_game.visitorTeam}`
     );
   }
@@ -127,20 +127,20 @@ export class GameService extends BaseContract {
    * After game's winner bets are identified, this method calc the prizes of the winner bets
    *
    * @param _game Game having the prizes being calculated
-   * @param callback  Function to be called when the transaction is confirmed
+   * @param _callback  Function to be called when the transaction is confirmed
    *
    * @returns result of transaction submission
    */
   calcPrizes(
     _game: Game,
-    callback?: CallbackFunction,
+    _callback?: CallbackFunction,
     confirmationMessage?: string
   ): Observable<TransactionResult<string>> {
     return this.send(
       contractABI.abi as AbiItem[],
       'calcPrizes',
       `Transaction to calc prizes for the game's winner bets was sent successfully`,
-      callback,
+      _callback,
       `Transaction to calc prizes for the game's winner bets was confirmed for ${_game.homeTeam} ${_game.finalScore?.home}  x ${_game.finalScore?.visitor} ${_game.visitorTeam}`
     );
   }
@@ -151,35 +151,20 @@ export class GameService extends BaseContract {
    * @param _betIndex the index of Bet being withdrawn
    * @returns result of transaction submission
    */
-  withdrawPrize(_betIndex: number): Observable<TransactionResult<string>> {
-    return new Observable<TransactionResult<string>>((subscriber) => {
-      this.getContract(contractABI.abi as AbiItem[])
-        .then(async (_contract) => {
-          let result: any;
-          this._web3Service.getUserAccountAddress().subscribe(async (fromAccount) => {
-            try {
-              result = await _contract.methods.withdrawPrize(_betIndex).send({
-                from: fromAccount,
-              });
-              subscriber.next({
-                success: true,
-                result: 'Transaction for withdraw the prize was sent successfully',
-              });
-            } catch (e: any) {
-              const providerError = ProviderErrors[e.code];
-              let message = `We had some problem. The transaction wasn't sent.`;
-              if (providerError) {
-                message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
-              }
-              console.warn(e);
-              subscriber.next({ success: false, result: message });
-            }
-          });
-        })
-        .catch((e) => {
-          console.warn(`gameservice`, e);
-        });
-    });
+  withdrawPrize(
+    _game: Game,
+    _betIndex: number,
+    _callback?: CallbackFunction,
+    confirmationMessage?: string
+  ): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'withdrawPrize',
+      `Transaction for withdraw the prize was sent successfully`,
+      _callback,
+      `Transaction for withdraw the prize  was confirmed`,
+      _betIndex
+    );
   }
 
   homeTeam(): Promise<string> {
@@ -207,11 +192,34 @@ export class GameService extends BaseContract {
     return this.getBoolean(contractABI.abi as AbiItem[], `prizesCalculated`);
   }
 
+  getDTO(): Observable<Game> {
+    return new Observable<Game>((_subscriber) => {
+      this.getContract(contractABI.abi as AbiItem[])
+        .then((_contract) => {
+          try {
+            _contract.methods
+              .getDTO()
+              .call()
+              .then((result: Game | undefined) => {
+                _subscriber.next(result);
+              })
+              .catch((e: any) => {
+                _subscriber.error(e);
+              });
+          } catch (e) {
+            console.warn(e);
+          }
+        })
+        .catch((e) => {
+          console.warn(`game final`, e);
+        });
+    });
+  }
+
   finalScore(): Observable<Score> {
     return new Observable<Score>((_subscriber) => {
       this.getContract(contractABI.abi as AbiItem[])
         .then((_contract) => {
-          let result;
           try {
             _contract.methods
               .finalScore()
@@ -220,12 +228,11 @@ export class GameService extends BaseContract {
                 _subscriber.next(result);
               })
               .catch((e: any) => {
-                _subscriber.next(undefined);
+                _subscriber.error(e);
               });
           } catch (e) {
             console.warn(e);
           }
-          _subscriber.next(result);
         })
         .catch((e) => {
           console.warn(`gameservice final`, e);
