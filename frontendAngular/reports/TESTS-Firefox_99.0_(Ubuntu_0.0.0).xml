@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<testsuite name="Firefox 99.0 (Ubuntu 0.0.0)" package="" timestamp="2022-04-18T17:27:34" id="0" hostname="DellG15" tests="26" errors="0" failures="0" time="0.809">
+  <properties>
+    <property name="browser.fullName" value="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0"/>
+  </properties>
+  <testcase name="Web3Service should be created" time="0.023" classname="Firefox_99_0_(Ubuntu_0_0_0).Web3Service"/>
+  <testcase name="WalletComponent should create" time="0.115" classname="Firefox_99_0_(Ubuntu_0_0_0).WalletComponent"/>
+  <testcase name="GameFactoryService should be created" time="0.012" classname="Firefox_99_0_(Ubuntu_0_0_0).GameFactoryService"/>
+  <testcase name="AdminGamesFormComponent should create" time="0.152" classname="Firefox_99_0_(Ubuntu_0_0_0).AdminGamesFormComponent"/>
+  <testcase name="BuyDialogComponent should create" time="0.032" classname="Firefox_99_0_(Ubuntu_0_0_0).BuyDialogComponent"/>
+  <testcase name="GameWinnersDialogComponent should create" time="0.034" classname="Firefox_99_0_(Ubuntu_0_0_0).GameWinnersDialogComponent"/>
+  <testcase name="GameInfoDialogComponent should create" time="0.018" classname="Firefox_99_0_(Ubuntu_0_0_0).GameInfoDialogComponent"/>
+  <testcase name="CurrentAccountResolver should be created" time="0.004" classname="Firefox_99_0_(Ubuntu_0_0_0).CurrentAccountResolver"/>
+  <testcase name="AppComponent should render title" time="0.081" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="AppComponent should have as title 'Soccer Bet Ðapp'" time="0.031" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="AppComponent should create the app" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).AppComponent"/>
+  <testcase name="GamesHomeComponent should create" time="0.046" classname="Firefox_99_0_(Ubuntu_0_0_0).GamesHomeComponent"/>
+  <testcase name="GameService should be created" time="0.01" classname="Firefox_99_0_(Ubuntu_0_0_0).GameService"/>
+  <testcase name="GamesGameComponent should create" time="0.03" classname="Firefox_99_0_(Ubuntu_0_0_0).GamesGameComponent"/>
+  <testcase name="ErrorComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).ErrorComponent"/>
+  <testcase name="MenuComponent should create" time="0.022" classname="Firefox_99_0_(Ubuntu_0_0_0).MenuComponent"/>
+  <testcase name="BettokenService should be created" time="0.008" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenService"/>
+  <testcase name="ShortScaleNumberComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).ShortScaleNumberComponent"/>
+  <testcase name="HeaderComponent should create" time="0.007" classname="Firefox_99_0_(Ubuntu_0_0_0).HeaderComponent"/>
+  <testcase name="LayoutComponent should create" time="0.006" classname="Firefox_99_0_(Ubuntu_0_0_0).LayoutComponent"/>
+  <testcase name="BettokenHomeComponent should create" time="0.017" classname="Firefox_99_0_(Ubuntu_0_0_0).BettokenHomeComponent"/>
+  <testcase name="ConfirmDialogComponent should create" time="0.018" classname="Firefox_99_0_(Ubuntu_0_0_0).ConfirmDialogComponent"/>
+  <testcase name="BetDialogComponent should create" time="0.033" classname="Firefox_99_0_(Ubuntu_0_0_0).BetDialogComponent"/>
+  <testcase name="HomeComponent should create" time="0.013" classname="Firefox_99_0_(Ubuntu_0_0_0).HomeComponent"/>
+  <testcase name="GameBetsDialogComponent should create" time="0.024" classname="Firefox_99_0_(Ubuntu_0_0_0).GameBetsDialogComponent"/>
+  <testcase name="ScoreDialogComponent should create" time="0.026" classname="Firefox_99_0_(Ubuntu_0_0_0).ScoreDialogComponent"/>
+  <system-out>
+    <![CDATA[Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0303: Can't bind to 'formGroup' since it isn't a known property of 'form'.'
+,Firefox 99.0 (Ubuntu 0.0.0) LOG: 'BetToken.address', '0x5b1869D9A4C187F2EAa108f3062412ecf0526b24'
+,Firefox 99.0 (Ubuntu 0.0.0) LOG: 'GameFactory.address', '0x9561C133DD8580860B6b7E504bC5Aa500f0f06a7'
+,Firefox 99.0 (Ubuntu 0.0.0) WARN: 'Spec 'AppComponent should render title' has no expectations.'
+,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0303: Can't bind to 'matTooltip' since it isn't a known property of 'div'.'
+,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0304: 'mat-toolbar' is not a known element:
+1. If 'mat-toolbar' is an Angular component, then verify that it is part of this module.
+2. If 'mat-toolbar' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@NgModule.schemas' of this component to suppress this message.'
+,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0304: 'mat-icon' is not a known element:
+1. If 'mat-icon' is an Angular component, then verify that it is part of this module.
+2. If 'mat-icon' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@NgModule.schemas' of this component to suppress this message.'
+,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0304: 'dapp-wallet' is not a known element:
+1. If 'dapp-wallet' is an Angular component, then verify that it is part of this module.
+2. If 'dapp-wallet' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@NgModule.schemas' of this component to suppress this message.'
+,Firefox 99.0 (Ubuntu 0.0.0) ERROR: 'NG0303: Can't bind to 'userAccountAddress' since it isn't a known property of 'dapp-wallet'.'
+
+]]>
+  </system-out>
+  <system-err/>
+</testsuite>

@@ -1,12 +1,14 @@
 {
   "name": "frontend-angular",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test-ci": "ng test --browsers FirefoxHeadless --watch=false --reporters junit",
+    "coverage": "ng test --watch=false --sourceMap=true --codeCoverage=true --browsers FirefoxHeadless"
   },
   "private": true,
   "dependencies": {
@@ -42,8 +44,10 @@
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.1.0",
+    "karma-firefox-launcher": "^2.1.2",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
+    "karma-junit-reporter": "^2.0.1",
     "os-browserify": "^0.3.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

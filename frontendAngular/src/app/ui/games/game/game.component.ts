@@ -68,9 +68,12 @@ export class GameComponent implements OnInit {
     try {
       //bettoken approve for game contract
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.APPROVAL, {
-          owner: this.userAccountAddress,
-          spender: this.gameCompound.game.addressGame,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.APPROVAL,
+          filter: {
+            owner: this.userAccountAddress,
+            spender: this.gameCompound.game.addressGame,
+          },
         })
       ).subscribe((evt) => {
         if (evt == null) return;
@@ -80,8 +83,11 @@ export class GameComponent implements OnInit {
 
       //bet on game
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.BET_ON_GAME, {
-          addressBettor: this.userAccountAddress,
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.BET_ON_GAME,
+          filter: {
+            addressBettor: this.userAccountAddress,
+          },
         })
       ).subscribe((evt) => {
         if (evt == null) return;
@@ -91,7 +97,9 @@ export class GameComponent implements OnInit {
 
       //winner identified
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_WINNERS_IDENTIFIED)
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.GAME_WINNERS_IDENTIFIED,
+        })
       ).subscribe((evt) => {
         if (evt == null) return;
         const eventData: GameEvent = evt;
@@ -103,7 +111,9 @@ export class GameComponent implements OnInit {
       });
       // prizes calculated
       (
-        await this.gameCompound.gameService.getEventBehaviorSubject(GameService.EVENTS.GAME_PRIZES_CALCULATED)
+        await this.gameCompound.gameService.getEventBehaviorSubject({
+          eventName: GameService.EVENTS.GAME_PRIZES_CALCULATED,
+        })
       ).subscribe((evt) => {
         if (evt == null) return;
         const eventData: GameEvent = evt;
@@ -173,6 +183,9 @@ export class GameComponent implements OnInit {
     // not showing message because the capture of the event is already doing it
     //this._messageService.show(confirmationResult.result);
     this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
   }
 
   identifyWinners() {
@@ -190,8 +203,10 @@ export class GameComponent implements OnInit {
     this.winnersIdentified = await this.gameCompound.gameService.winnersIdentified();
     this.gameCompound.game.winnersIdentified = this.winnersIdentified;
     this.action();
-    // not showing message because the capture of the event is already doing it
-    //this._messageService.show(confirmationResult.result);
+    // showing message only if not succeded because the capture of the event is already doing it when it is confirmed
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
     this._changeDetectorRefs.detectChanges();
   }
 
@@ -210,18 +225,24 @@ export class GameComponent implements OnInit {
     this.prizesCalculated = await this.gameCompound.gameService.prizesCalculated();
     this.gameCompound.game.prizesCalculated = this.prizesCalculated;
     this.action();
-    // not showing message because the capture of the event is already doing it
-    //this._messageService.show(confirmationResult.result);
+    // showing message only if not succeded because the capture of the event is already doing it when it is confirmed
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
     this._changeDetectorRefs.detectChanges();
   }
 
   approve(event: MouseEvent) {
     if (!this.userAccountAddress) return;
-    this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
+    this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      if (_balanceSBT.success == false) {
+        this._messageService.show(`It was not possible to get Bet Tokens balance`);
+        return;
+      }
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Approve BetTokens for: ${this.homeTeam} x ${this.visitorTeam}`,
-          maxAmmount: _balance,
+          maxAmmount: _balanceSBT.result,
         },
       });
 
@@ -233,12 +254,14 @@ export class GameComponent implements OnInit {
               .approve(
                 this.userAccountAddress,
                 this.gameCompound.game.addressGame as string,
-                new BN(_allowanceData.value)
+                new BN(_allowanceData.value),
+                this._genericCallback.bind(this)
               )
-              .subscribe((_result) => {
-                console.log(_result);
-                this._messageService.show(_result.result);
-                this.action();
+              .subscribe((transactionResult) => {
+                if (!transactionResult.success) {
+                  this.action();
+                }
+                this._messageService.show(transactionResult.result);
               });
           } else {
             this._messageService.show(`Quantity of BetTokens is not valid`);
@@ -246,6 +269,16 @@ export class GameComponent implements OnInit {
         }
       });
     });
+  }
+
+  private _genericCallback(confirmationResult: TransactionResult<string>) {
+    this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
   }
 
   bet() {
@@ -257,7 +290,11 @@ export class GameComponent implements OnInit {
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame)
       .subscribe((_allowance) => {
         this.action();
-        if (!_allowance || _allowance.eq(new BN(0))) {
+        if (_allowance.success == false) {
+          this._messageService.show(
+            `It was not possible to get the number of Bet Tokens approved to be spent on this game`
+          );
+        } else if ((_allowance.result as BN).eq(new BN(0))) {
           this._messageService.show(`There is no BetTokens approved to be spent on this game`);
         } else {
           const dialogRef = this._dialog.open(BetDialogComponent, {
@@ -265,7 +302,7 @@ export class GameComponent implements OnInit {
               title: `Place your Bet`,
               homeTeam: this.homeTeam,
               visitorTeam: this.visitorTeam,
-              allowance: _allowance,
+              allowance: _allowance.result,
             },
           });
 
@@ -298,8 +335,14 @@ export class GameComponent implements OnInit {
       .allowance(this.userAccountAddress, this.gameCompound.game.addressGame as string)
       .subscribe((_remainingAllowance) => {
         this.action();
-        this.formatedRemainingAllowance = this._numberService.formatBNShortScale(_remainingAllowance);
-        this._changeDetectorRefs.detectChanges();
+        if (_remainingAllowance.success == false) {
+          this._messageService.show(
+            `It was not possible to get the number of Bet Tokens approved to be spent on this game`
+          );
+        } else {
+          this.formatedRemainingAllowance = this._numberService.formatBNShortScale(_remainingAllowance.result as BN);
+          this._changeDetectorRefs.detectChanges();
+        }
       });
   }
 

@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { GamesModule } from '../games.module';
 
 import { AdminGamesFormComponent } from './admin-games-form.component';
 
@@ -8,9 +10,9 @@ describe('AdminGamesFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AdminGamesFormComponent ]
-    })
-    .compileComponents();
+      declarations: [AdminGamesFormComponent],
+      imports: [GamesModule, BrowserAnimationsModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {

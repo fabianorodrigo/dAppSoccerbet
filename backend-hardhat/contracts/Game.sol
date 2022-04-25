@@ -26,7 +26,7 @@ import "./Calculator.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./libs/GameUtils.sol";
+import "./structs/GameDTO.sol";
 
 import "hardhat/console.sol";
 
@@ -213,6 +213,30 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         Score score
     );
 
+    /// @notice Demands that the Game be closed for betting. Otherwise, reverts with {GameNotClosed}
+    modifier isClosed() {
+        if (open) {
+            revert GameNotClosed();
+        }
+        _;
+    }
+
+    /// @notice Demands that the Game be opened for betting. Otherwise, reverts with {GameNotOpen}
+    modifier isOpen() {
+        if (!open) {
+            revert GameNotOpen();
+        }
+        _;
+    }
+
+    /// @notice Demands that the Game has not finalized yet. Otherwise, reverts with {GameAlreadyFinalized}
+    modifier isNotFinalized() {
+        if (finalized) {
+            revert GameAlreadyFinalized();
+        }
+        _;
+    }
+
     /** SOLIDITY STYLE GUIDE **
 
         Order of Functions
@@ -241,8 +265,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      */
     function initialize(
         address payable _owner,
-        string memory _home,
-        string memory _visitor,
+        string calldata _home,
+        string calldata _visitor,
         uint256 _datetimeGame,
         address _betTokenContractAddress,
         address _calculatorContractAddress,
@@ -273,19 +297,33 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      */
 
     /**
+     * @notice returns the DTO with the game`s data
+     */
+    function getDTO() external view returns (GameDTO memory) {
+        (uint8 home, uint8 visitor) = this.finalScore();
+        return
+            GameDTO(
+                address(this),
+                homeTeam,
+                visitorTeam,
+                datetimeGame,
+                open,
+                finalized,
+                Score(home, visitor),
+                winnersIdentified,
+                prizesCalculated,
+                commission
+            );
+    }
+
+    /**
      * @notice Opens a game for betting (sets the open to TRUE). Only allowed
      * if the game is closed for betting. Emits the event GameOpened
      *
      * Events: GameOpened
      * Custom Errors: GameNotClosed, GameAlreadyFinalized
      */
-    function openForBetting() external onlyOwner {
-        if (open) {
-            revert GameNotClosed();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function openForBetting() external onlyOwner isClosed isNotFinalized {
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -303,13 +341,11 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * @param _score The score guessed by the bettor
      * @param _value The amount of BetToken put on the bet by the player
      */
-    function bet(Score memory _score, uint256 _value) external {
-        if (!open) {
-            revert GameNotOpen();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function bet(Score calldata _score, uint256 _value)
+        external
+        isOpen
+        isNotFinalized
+    {
         if (_value <= 0) {
             revert InvalidBettingValue();
         }
@@ -349,13 +385,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting() external onlyOwner {
-        if (!open) {
-            revert GameNotOpen();
-        }
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
+    function closeForBetting() external onlyOwner isOpen isNotFinalized {
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -369,13 +399,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @param _finalScore Data of the final score of the match
      */
-    function finalizeGame(Score memory _finalScore) external onlyOwner {
-        if (finalized) {
-            revert GameAlreadyFinalized();
-        }
-        if (open) {
-            revert GameNotClosed();
-        }
+    function finalizeGame(Score calldata _finalScore)
+        external
+        onlyOwner
+        isClosed
+        isNotFinalized
+    {
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
@@ -409,7 +438,6 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
 
         // Each interaction of this loops is spending around 30K gas
         // The loop continues until the end or the gasleft() > GAS_INTERACTION_WINNERS_IDENTIFICATION
-        //uint256[] memory winners = GameUtils.identifyWinners(_bets, finalScore);
         for (
             ;
             _idWinners_i < _bets.length &&
@@ -533,7 +561,6 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * If you want to return an entire array in one call, then you need to write a function
      */
     function listBets() external view returns (Bet[] memory bets) {
-        console.log("Bets length: ", _bets.length);
         return _bets;
     }
 

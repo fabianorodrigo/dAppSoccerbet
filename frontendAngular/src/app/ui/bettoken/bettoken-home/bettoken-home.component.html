@@ -11,7 +11,8 @@
   <button
     class="button"
     mat-raised-button
-    [disabled]="!this.userAccountAddress"
+    [disabled]="!this.userAccountAddress || loading"
+    [class.spinner]="currentAction == 'BUY'"
     color="primary"
     [matTooltip]="
       'Buy an ammount of Soccer Bet Tokens using ' + chainCurrencyName
@@ -23,7 +24,8 @@
   <button
     class="button"
     mat-raised-button
-    [disabled]="!this.userAccountAddress"
+    [disabled]="!this.userAccountAddress || loading"
+    [class.spinner]="currentAction == 'EXCHANGE'"
     matTooltip="Exchange an ammount of Soccer Bet Tokens for Ether"
     (click)="exchange($event)"
   >

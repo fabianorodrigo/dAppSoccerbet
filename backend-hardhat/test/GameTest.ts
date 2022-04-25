@@ -1,5 +1,6 @@
 import {expect} from "chai";
 import {Contract, ContractFactory, Signer} from "ethers";
+import {Result} from "ethers/lib/utils";
 /**
  * When using JavaScript, all the properties in the HRE are injected into the global scope,
  * and are also available by getting the HRE explicitly. When using TypeScript nothing will
@@ -70,8 +71,11 @@ describe("Game", function () {
     await gameFactory
       .connect(owner)
       .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
-    const games = await gameFactory.listGames();
-    gameContract = Game.attach(games[0].addressGame);
+    //catching GameCreated event
+    const filter = gameFactory.filters.GameCreated();
+    const events = await gameFactory.queryFilter(filter);
+
+    gameContract = Game.attach((events[0].args as Result).addressGame);
   });
 
   afterEach(async () => {
@@ -107,7 +111,7 @@ describe("Game", function () {
      * OPENFORBETTING
      */
 
-    it(`Should open closed game for betting`, async () => {
+    it(`Should open closed game for betting and emit event 'GameOpened'`, async () => {
       //Game is initially closed for betting
       const receiptOpen = await gameContract.connect(owner).openForBetting();
       expect(await gameContract.open()).to.be.true;
@@ -121,7 +125,7 @@ describe("Game", function () {
         );
     });
 
-    it(`Should revert if try open for betting an already open game`, async () => {
+    it(`Should revert when try open for betting an already open game`, async () => {
       //Game is initially closed for betting
       await gameContract.connect(owner).openForBetting();
       await expect(
@@ -140,7 +144,7 @@ describe("Game", function () {
     /**
      * CLOSEFORBETTING
      */
-    it(`Should close open game for betting`, async () => {
+    it(`Should close open game for betting and emit event 'GameClosed'`, async () => {
       //Game is initially closed for betting
       await gameContract.connect(owner).openForBetting();
       const receiptClose = await gameContract.connect(owner).closeForBetting();
@@ -173,7 +177,7 @@ describe("Game", function () {
    * FINALIZEGAME
    */
   describe("Finalize", () => {
-    it(`Should finalize a closed game`, async () => {
+    it(`Should finalize a closed game and emit event 'GameFinalized'`, async () => {
       const score = {home: 3, visitor: 1};
       const receiptFinalize = await gameContract
         .connect(owner)
@@ -228,7 +232,7 @@ describe("Game", function () {
    * BET
    */
   describe("Bet", () => {
-    it(`Should make a bet on an open game`, async () => {
+    it(`Should make a bet on an open game and emit events: 'Approval' and 'BetOnGame'`, async () => {
       const score = {home: 3, visitor: 1};
       const betTokenAmount = 1001;
       //Game is initially closed for betting

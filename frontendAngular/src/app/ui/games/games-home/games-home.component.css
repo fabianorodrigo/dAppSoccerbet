@@ -20,3 +20,10 @@ mat-tab-group {
 mat-tab-group p {
   padding-top: 20px;
 }
+
+.load-more-container {
+  margin-top:10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}

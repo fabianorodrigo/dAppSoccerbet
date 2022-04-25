@@ -13,7 +13,7 @@
   (onCloseEdition)="closeForm($event)"
 ></dapp-admin-games-form>
 <section fxLayout="column" fxFlexAlign="stretch">
-  <mat-tab-group (selectedTabChange)="executeSelectedChange($event)">
+  <mat-tab-group>
     <mat-tab label="Open">
       <div class="game-list">
         <ng-container *ngFor="let game of gamesOpen">
@@ -45,4 +45,16 @@
       </div>
     </mat-tab>
   </mat-tab-group>
+  <div class="load-more-container" *ngIf="fromBlock > 0">
+    <button
+      mat-stroked-button
+      color="primary"
+      [disabled]="loading"
+      [class.spinner]="loading"
+      matTooltip="Click to load games from older blocks"
+      (click)="loadMore(fromBlock - 1)"
+    >
+      Load before block #{{ fromBlock }} ...
+    </button>
+  </div>
 </section>

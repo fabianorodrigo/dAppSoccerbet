@@ -1,5 +1,6 @@
 import "@nomiclabs/hardhat-waffle";
 import {BigNumber} from "ethers";
+import {Result} from "ethers/lib/utils";
 import * as fs from "fs";
 import {task} from "hardhat/config";
 import {
@@ -63,8 +64,17 @@ task(
         BigNumber.from(Math.floor(gameDate.getTime() / 1000))
       );
     await receiptNewGame.wait();
-    const games = await gameFactory.listGames();
-    const gameContract = Game.attach(games[games.length - 1].addressGame);
+
+    //catching GameCreated event
+    const filter = gameFactory.filters.GameCreated();
+    const games = await gameFactory.queryFilter(filter);
+    if (games.length == 0) {
+      throw new Error(`GameCreated event not found`);
+    }
+
+    const gameContract = Game.attach(
+      (games[games.length - 1].args as Result).addressGame
+    );
 
     const bets: BetDTO[] = [];
     for (let i = 0; i < taskArgs.totalbets; i++) {

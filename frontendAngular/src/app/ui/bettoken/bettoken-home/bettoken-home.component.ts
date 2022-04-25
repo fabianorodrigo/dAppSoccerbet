@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
-import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer } from 'src/app/model';
+import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer, TransactionResult } from 'src/app/model';
 import { MessageService, NumbersService, Web3Service } from 'src/app/services';
 import { environment } from 'src/environments/environment';
 import { BuyDialogComponent } from '../buy-dialog/buy-dialog.component';
@@ -17,6 +17,10 @@ export class BettokenHomeComponent implements OnInit {
   formatedBalance: string = '0';
   formatedBalanceTooltip: string = '0';
   chainCurrencyName: string = environment.chainCurrencyName;
+
+  // just control of the `loading` visual behavior
+  currentAction = Action.NONE;
+  loading: boolean = false;
 
   constructor(
     private _changeDetectorRefs: ChangeDetectorRef,
@@ -37,8 +41,11 @@ export class BettokenHomeComponent implements OnInit {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
       // balance of BetTokens changes
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.MINTED, {
-          tokenBuyer: this.userAccountAddress,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.MINTED,
+          filter: {
+            tokenBuyer: this.userAccountAddress,
+          },
         })
       )?.subscribe((evt) => {
         if (evt == null) return;
@@ -49,8 +56,11 @@ export class BettokenHomeComponent implements OnInit {
         this.getBalance();
       });
       (
-        await this._betTokenService.getEventBehaviorSubject(BetTokenService.EVENTS.TRANSFER, {
-          from: this.userAccountAddress,
+        await this._betTokenService.getEventBehaviorSubject({
+          eventName: BetTokenService.EVENTS.TRANSFER,
+          filter: {
+            from: this.userAccountAddress,
+          },
         })
       )?.subscribe((evt) => {
         if (evt == null) return;
@@ -67,7 +77,9 @@ export class BettokenHomeComponent implements OnInit {
 
   buy(event: MouseEvent) {
     if (!this.userAccountAddress) return;
+    this.action(Action.BALANCE);
     this._web3Service.chainCurrencyBalanceOf(this.userAccountAddress).subscribe((_balance) => {
+      this.action();
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Buy Soccer Bet Tokens`,
@@ -78,9 +90,12 @@ export class BettokenHomeComponent implements OnInit {
       dialogRef.afterClosed().subscribe((_purchaseData) => {
         if (_purchaseData) {
           if (_purchaseData.value != null && this.userAccountAddress) {
-            this._betTokenService.buy(this.userAccountAddress, new BN(_purchaseData.value)).subscribe((_result) => {
-              //this._messageService.show(_result.result);
-            });
+            this.action(Action.BUY);
+            this._betTokenService
+              .buy(this.userAccountAddress, new BN(_purchaseData.value), this._genericCallback.bind(this))
+              .subscribe((_result) => {
+                //this._messageService.show(_result.result);
+              });
           } else {
             this._messageService.show(`Quantity of Bet Tokens is not valid`);
           }
@@ -89,21 +104,38 @@ export class BettokenHomeComponent implements OnInit {
     });
   }
 
+  private _genericCallback(confirmationResult: TransactionResult<string>) {
+    this.action();
+    // not showing message because the capture of the event is already doing it
+    //this._messageService.show(confirmationResult.result);
+    this._changeDetectorRefs.detectChanges();
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
+  }
+
   exchange(event: MouseEvent) {
     if (!this.userAccountAddress) return;
+    this.action(Action.BALANCE);
     this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+      this.action();
+      if (_balanceSBT.success == false) {
+        this._messageService.show(`It was not possible to get Bet Tokens balance`);
+        return;
+      }
       const dialogRef = this._dialog.open(BuyDialogComponent, {
         data: {
           title: `Exchange Soccer Bet Tokens for Ether`,
-          maxAmmount: new BN(_balanceSBT),
+          maxAmmount: new BN(_balanceSBT.result),
         },
       });
 
       dialogRef.afterClosed().subscribe((_amount) => {
         if (_amount) {
           if (_amount.value != null && this.userAccountAddress) {
+            this.action(Action.EXCHANGE);
             this._betTokenService
-              .exchange4Ether(this.userAccountAddress, new BN(_amount.value))
+              .exchange4Ether(this.userAccountAddress, new BN(_amount.value), this._genericCallback.bind(this))
               .subscribe((_result) => {
                 console.log(_result);
                 //this._messageService.show(_result.result);
@@ -120,11 +152,32 @@ export class BettokenHomeComponent implements OnInit {
 
   private getBalance() {
     if (this.userAccountAddress) {
-      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balance) => {
-        this.formatedBalance = this._numberService.formatBNShortScale(_balance);
-        this.formatedBalanceTooltip = this._numberService.formatBN(_balance);
+      this._betTokenService.balanceOf(this.userAccountAddress).subscribe((_balanceSBT) => {
+        if (_balanceSBT.success == false) {
+          this._messageService.show(`It was not possible to get Bet Tokens balance`);
+          return;
+        }
+        this.formatedBalance = this._numberService.formatBNShortScale(_balanceSBT.result as BN);
+        this.formatedBalanceTooltip = this._numberService.formatBN(_balanceSBT.result as BN);
         this._changeDetectorRefs.detectChanges();
       });
     }
   }
+
+  private action(a?: Action) {
+    if (a) {
+      this.currentAction = a;
+      this.loading = true;
+    } else {
+      this.currentAction = Action.NONE;
+      this.loading = false;
+    }
+  }
+}
+
+enum Action {
+  NONE = '',
+  BUY = 'BUY',
+  EXCHANGE = `EXCHANGE`,
+  BALANCE = `BALANCE`,
 }
