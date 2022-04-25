@@ -257,6 +257,11 @@ export abstract class BaseContract {
                 success: false,
                 result: message,
               });
+            } else {
+              subscriber.next({
+                success: false,
+                result: message,
+              });
             }
           }
         });

@@ -203,8 +203,10 @@ export class GameComponent implements OnInit {
     this.winnersIdentified = await this.gameCompound.gameService.winnersIdentified();
     this.gameCompound.game.winnersIdentified = this.winnersIdentified;
     this.action();
-    // not showing message because the capture of the event is already doing it
-    //this._messageService.show(confirmationResult.result);
+    // showing message only if not succeded because the capture of the event is already doing it when it is confirmed
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
     this._changeDetectorRefs.detectChanges();
   }
 
@@ -223,8 +225,10 @@ export class GameComponent implements OnInit {
     this.prizesCalculated = await this.gameCompound.gameService.prizesCalculated();
     this.gameCompound.game.prizesCalculated = this.prizesCalculated;
     this.action();
-    // not showing message because the capture of the event is already doing it
-    //this._messageService.show(confirmationResult.result);
+    // showing message only if not succeded because the capture of the event is already doing it when it is confirmed
+    if (confirmationResult.success == false) {
+      this._messageService.show(confirmationResult.result);
+    }
     this._changeDetectorRefs.detectChanges();
   }
 
