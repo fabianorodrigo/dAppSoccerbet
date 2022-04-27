@@ -1,5 +1,7 @@
 import {expect} from "chai";
-import {ethers} from "hardhat";
+import {ethers, waffle} from "hardhat";
+import {getImplementationAddress} from "@openzeppelin/upgrades-core";
+import {Game, Game__factory} from "../../../typechain-types";
 
 export const shouldDestroyGameContract = (): void => {
   //   // to silent warning for duplicate definition of Transfer event
@@ -49,6 +51,21 @@ export const shouldDestroyGameContract = (): void => {
           value: weiAmount,
         })
       ).to.be.reverted;
+    });
+
+    it(`Should revert if try to call destroyContract direct to the implementation contract is spite of the minimal proxy`, async function () {
+      const implementationAddress = await getImplementationAddress(
+        waffle.provider,
+        this.betToken.address
+      );
+      const gameFactory: Game__factory = await ethers.getContractFactory(
+        `Game`
+      );
+      const game: Game = gameFactory.attach(implementationAddress);
+
+      await expect(
+        game.connect(this.signers.owner).destroyContract()
+      ).to.be.revertedWith("Function must be called through delegatecall");
     });
   });
 };

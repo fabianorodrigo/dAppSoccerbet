@@ -329,10 +329,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function openForBetting()
         external
+        onlyDelegateCall
         onlyOwner
         isClosed
         isNotFinalized
-        onlyDelegateCall
     {
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
@@ -353,9 +353,9 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function bet(Score calldata _score, uint256 _value)
         external
+        onlyDelegateCall
         isOpen
         isNotFinalized
-        onlyDelegateCall
     {
         if (_value <= 0) {
             revert InvalidBettingValue();
@@ -398,10 +398,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function closeForBetting()
         external
+        onlyDelegateCall
         onlyOwner
         isOpen
         isNotFinalized
-        onlyDelegateCall
     {
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
@@ -418,10 +418,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function finalizeGame(Score calldata _finalScore)
         external
+        onlyDelegateCall
         onlyOwner
         isClosed
         isNotFinalized
-        onlyDelegateCall
     {
         // register the final score and finalizes the game
         finalScore = _finalScore;
@@ -564,7 +564,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() external onlyOwner onlyDelegateCall {
+    function destroyContract() external onlyDelegateCall onlyOwner {
         selfdestruct(payable(this.owner()));
     }
 
