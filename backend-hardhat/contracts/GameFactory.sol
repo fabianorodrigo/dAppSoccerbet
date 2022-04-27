@@ -95,6 +95,13 @@ contract GameFactoryUpgradeable is
     }
 
     /**
+     * @notice returns the Game contract implementation
+     */
+    function getGameImplementation() public view returns (address) {
+        return gameImplementation;
+    }
+
+    /**
      * @notice Allows the owner update the Game contract implementation for future games created
      */
     function setGameImplementation(address _gameImplementationAddress)
