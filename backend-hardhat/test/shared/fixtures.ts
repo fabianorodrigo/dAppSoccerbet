@@ -33,6 +33,7 @@ type IntegrationGameFactoryFixtureType = {
 type IntegrationGameFixtureType = {
   game: Game;
   betToken: BetTokenUpgradeable;
+  gameFactory: GameFactoryUpgradeable;
   testingAuxiliar: TestingAuxiliar;
   BETS: BetFixtureType[];
 };
@@ -199,5 +200,5 @@ export const GameFixture: Fixture<IntegrationGameFixtureType> = async (
     },
   ];
 
-  return {game, betToken, testingAuxiliar, BETS};
+  return {game, betToken, gameFactory, testingAuxiliar, BETS};
 };

@@ -1,4 +1,6 @@
 import {expect} from "chai";
+import {ethers} from "hardhat";
+import {Game, Game__factory} from "../../../typechain-types";
 
 const DATETIME_20220716_170000_IN_MINUTES =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
@@ -36,6 +38,20 @@ export const shouldOpen = (): void => {
       await expect(
         this.game.connect(this.signers.bettorA).openForBetting()
       ).to.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it(`Should revert if try to call OPEN direct to the implementation contract is spite of the minimal proxy`, async function () {
+      const implementationAddress =
+        await this.gameFactory.getGameImplementation();
+
+      const gameFactory: Game__factory = await ethers.getContractFactory(
+        `Game`
+      );
+      const game: Game = gameFactory.attach(implementationAddress);
+
+      await expect(
+        game.connect(this.signers.owner).openForBetting()
+      ).to.be.revertedWith("Function must be called through delegatecall");
     });
   });
 };

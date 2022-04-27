@@ -1,6 +1,5 @@
 import {expect} from "chai";
-import {ethers, waffle} from "hardhat";
-import {getImplementationAddress} from "@openzeppelin/upgrades-core";
+import {ethers} from "hardhat";
 import {Game, Game__factory} from "../../../typechain-types";
 
 export const shouldDestroyGameContract = (): void => {
@@ -54,10 +53,9 @@ export const shouldDestroyGameContract = (): void => {
     });
 
     it(`Should revert if try to call destroyContract direct to the implementation contract is spite of the minimal proxy`, async function () {
-      const implementationAddress = await getImplementationAddress(
-        waffle.provider,
-        this.betToken.address
-      );
+      const implementationAddress =
+        await this.gameFactory.getGameImplementation();
+
       const gameFactory: Game__factory = await ethers.getContractFactory(
         `Game`
       );

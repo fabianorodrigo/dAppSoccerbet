@@ -87,11 +87,11 @@ describe(`Integration tests`, async () => {
 
   describe(`Game`, async () => {
     beforeEach(async function () {
-      const {game, betToken, testingAuxiliar, BETS} = await this.loadFixture(
-        GameFixture
-      );
+      const {game, betToken, gameFactory, testingAuxiliar, BETS} =
+        await this.loadFixture(GameFixture);
 
       this.game = game;
+      this.gameFactory = gameFactory;
       this.betToken = betToken;
       this.testingAuxiliar = testingAuxiliar;
       this.BETS = BETS;
