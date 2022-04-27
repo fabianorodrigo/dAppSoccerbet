@@ -97,7 +97,7 @@ contract GameFactoryUpgradeable is
     /**
      * @notice returns the Game contract implementation
      */
-    function getGameImplementation() public view returns (address) {
+    function getGameImplementation() external view returns (address) {
         return gameImplementation;
     }
 
