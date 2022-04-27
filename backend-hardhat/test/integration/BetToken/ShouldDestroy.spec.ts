@@ -1,5 +1,10 @@
+import {getImplementationAddress} from "@openzeppelin/upgrades-core";
 import {expect} from "chai";
 import {ethers, waffle} from "hardhat";
+import {
+  BetTokenUpgradeable,
+  BetTokenUpgradeable__factory,
+} from "../../../typechain-types";
 
 export const shouldDestroyBetTokenContract = (): void => {
   //   // to silent warning for duplicate definition of Transfer event
@@ -11,6 +16,22 @@ export const shouldDestroyBetTokenContract = (): void => {
       await expect(
         this.betToken.connect(this.signers.bettorA).destroyContract()
       ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it(`Should revert if try to call destroyContract direct to the implementation contract is spite of the proxy`, async function () {
+      const implementationAddress = await getImplementationAddress(
+        waffle.provider,
+        this.betToken.address
+      );
+      const betTokenFactory: BetTokenUpgradeable__factory =
+        await ethers.getContractFactory(`BetTokenUpgradeable`);
+      const betToken: BetTokenUpgradeable = betTokenFactory.attach(
+        implementationAddress
+      );
+
+      await expect(
+        betToken.connect(this.signers.owner).destroyContract()
+      ).to.be.revertedWith("Function must be called through delegatecall");
     });
 
     it(`Should Ether goes to ERC20 owner after destroy contract`, async function () {
