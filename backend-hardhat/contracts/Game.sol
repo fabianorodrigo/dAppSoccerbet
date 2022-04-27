@@ -28,15 +28,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./structs/GameDTO.sol";
 
-import "hardhat/console.sol";
+import "./OnlyDelegateCall.sol";
 
 /**
  * @title Contract that represents a single game and e responsible for managing all bets
  * and prizes about this specific game
  *
+ * @dev Since the Openzeppelin clones (ERC1167) are actually a minimal proxy to the code of the
+ * first instance deployed that delegate all calls to that first instance, it has to be OnlyDelegateCall
+ * inherited so as no calls can be made direct to it, specially the self destruct
+ *
  * @author Fabiano Nascimento
  */
-contract Game is Initializable, Ownable, ReentrancyGuard {
+contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     uint8 public constant PAID = 4;
     uint8 public constant TIED = 3;
     uint8 public constant WINNER = 2;
@@ -271,7 +275,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) external initializer {
+    ) external initializer onlyDelegateCall {
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
@@ -323,7 +327,13 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * Events: GameOpened
      * Custom Errors: GameNotClosed, GameAlreadyFinalized
      */
-    function openForBetting() external onlyOwner isClosed isNotFinalized {
+    function openForBetting()
+        external
+        onlyOwner
+        isClosed
+        isNotFinalized
+        onlyDelegateCall
+    {
         open = true;
         emit GameOpened(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -345,6 +355,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         external
         isOpen
         isNotFinalized
+        onlyDelegateCall
     {
         if (_value <= 0) {
             revert InvalidBettingValue();
@@ -385,7 +396,13 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting() external onlyOwner isOpen isNotFinalized {
+    function closeForBetting()
+        external
+        onlyOwner
+        isOpen
+        isNotFinalized
+        onlyDelegateCall
+    {
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -404,6 +421,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
         onlyOwner
         isClosed
         isNotFinalized
+        onlyDelegateCall
     {
         // register the final score and finalizes the game
         finalScore = _finalScore;
@@ -425,7 +443,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @return TRUE if the process of identifying winners is completed (loop for all _bets)
      */
-    function identifyWinners() external returns (bool) {
+    function identifyWinners() external onlyDelegateCall returns (bool) {
         if (!finalized) {
             revert GameNotFinalized();
         }
@@ -475,7 +493,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @return TRUE if the process of calc prizes is completed (loop for all _bets)
      */
-    function calcPrizes() external returns (bool) {
+    function calcPrizes() external onlyDelegateCall returns (bool) {
         if (!winnersIdentified) {
             revert UnknownWinners();
         }
@@ -503,7 +521,11 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      *
      * @param _betIndex the index of Bet being withdrawn
      */
-    function withdrawPrize(uint256 _betIndex) external nonReentrant {
+    function withdrawPrize(uint256 _betIndex)
+        external
+        nonReentrant
+        onlyDelegateCall
+    {
         if (!prizesCalculated) {
             revert PrizesNotCalculated();
         }
@@ -542,7 +564,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() external onlyOwner {
+    function destroyContract() external onlyOwner onlyDelegateCall {
         selfdestruct(payable(this.owner()));
     }
 

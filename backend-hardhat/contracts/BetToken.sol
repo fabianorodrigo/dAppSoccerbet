@@ -95,7 +95,7 @@ contract BetTokenUpgradeable is
         return 10;
     }*/
 
-    function destroyContract() external onlyOwner {
+    function destroyContract() external onlyOwner onlyProxy {
         // If gas costs are subject to change, then smart contracts can’t
         // depend on any particular gas costs. Any smart contract that uses
         // transfer() or send() is taking a hard dependency on gas costs by
