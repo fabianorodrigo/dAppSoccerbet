@@ -32,6 +32,8 @@ describe(`Integration tests`, async () => {
   // This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
   upgrades.silenceWarnings();
 
+  let snapshot: any;
+
   before(async function () {
     const accounts = waffle.provider.getWallets();
 
@@ -44,6 +46,13 @@ describe(`Integration tests`, async () => {
     this.signers.bettorE = accounts[5];
 
     this.loadFixture = waffle.createFixtureLoader(accounts);
+    // try to workaround:  nonce has already been used NONCE_EXPIRED
+    snapshot = await waffle.provider.send("evm_snapshot", []);
+  });
+
+  after(async function () {
+    // try to workaround:  nonce has already been used NONCE_EXPIRED
+    await waffle.provider.send("evm_revert", [snapshot]);
   });
 
   describe(`Bet Token`, async () => {

@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {ethers, waffle} from "hardhat";
 import {Game, Game__factory} from "../../../typechain-types";
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
 export const shouldBet = (): void => {
@@ -59,7 +59,7 @@ export const shouldBet = (): void => {
           this.signers.bettorA.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES,
+          DATETIME_20220716_170000_IN_SECONDS,
           [score.home, score.visitor]
         );
     });

@@ -150,11 +150,12 @@ export const GameFixture: Fixture<IntegrationGameFixtureType> = async (
 
   // Game
   const GameFactory = await ethers.getContractFactory("Game");
-  const DATETIME_20220716_170000_IN_MINUTES =
-    new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
+  //Game is created to start in half hour
+  const DATETIME_GAME_START_IN_SECONDS =
+    Math.floor(new Date().getTime() / 1000) + 30 * 60;
   await gameFactory
     .connect(owner)
-    .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
+    .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_GAME_START_IN_SECONDS);
   //catching GameCreated event
   const filter = gameFactory.filters.GameCreated();
   const events = await gameFactory.queryFilter(filter);

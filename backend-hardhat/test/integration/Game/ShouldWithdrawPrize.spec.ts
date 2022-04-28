@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {ethers} from "ethers";
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
 export const shouldWithdrawPrize = (): void => {

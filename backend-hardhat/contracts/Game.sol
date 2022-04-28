@@ -114,6 +114,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * An operation of token tranfer failed
      */
     error TokenTransferFail();
+    /***
+     * A function demands that the msg.sender is the owner or has past 15 minutes after Game has started
+     */
+    error onlyOwnerORgameAlreadyBegun();
 
     //BetToken contract
     BetTokenUpgradeable private _betTokenContract;
@@ -396,13 +400,12 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting()
-        external
-        onlyDelegateCall
-        onlyOwner
-        isOpen
-        isNotFinalized
-    {
+    function closeForBetting() external onlyDelegateCall isOpen isNotFinalized {
+        if (
+            owner() != _msgSender() && block.timestamp < datetimeGame + 15 * 60
+        ) {
+            revert onlyOwnerORgameAlreadyBegun();
+        }
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -419,10 +422,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     function finalizeGame(Score calldata _finalScore)
         external
         onlyDelegateCall
-        onlyOwner
         isClosed
         isNotFinalized
     {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
