@@ -28,7 +28,9 @@ jobs:
           root: .
           paths:
             - node_modules
-            - build
+            - typechain-types
+            - artifacts
+            - cache
   test:
     docker:
       - image: fabianorodrigo/dappsoccerbet_hardhat:1.0.5
@@ -41,7 +43,6 @@ jobs:
       - restore_cache:
           keys:
             - node_modules-{{ checksum "package.json" }}
-      - run: npx hardhat compile --force
       - run: npm run coverage
       - store_test_results:
           path: ./reports/test-contract-results.xml
