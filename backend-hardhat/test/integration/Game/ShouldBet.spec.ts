@@ -141,7 +141,7 @@ export const shouldBet = (): void => {
 
       await expect(
         game.connect(this.signers.owner).bet(score, betTokenAmount)
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };

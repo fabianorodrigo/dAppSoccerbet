@@ -63,7 +63,7 @@ export const shouldDestroyGameContract = (): void => {
 
       await expect(
         game.connect(this.signers.owner).destroyContract()
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };

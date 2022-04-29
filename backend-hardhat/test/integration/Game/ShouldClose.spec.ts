@@ -77,7 +77,7 @@ export const shouldClose = (): void => {
 
       await expect(
         game.connect(this.signers.owner).closeForBetting()
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };

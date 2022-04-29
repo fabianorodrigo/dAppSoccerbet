@@ -51,7 +51,7 @@ export const shouldOpen = (): void => {
 
       await expect(
         game.connect(this.signers.owner).openForBetting()
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };

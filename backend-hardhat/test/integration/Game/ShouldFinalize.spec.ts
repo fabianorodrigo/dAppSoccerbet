@@ -72,7 +72,7 @@ export const shouldFinalize = (): void => {
 
       await expect(
         game.connect(this.signers.owner).finalizeGame(score)
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };
