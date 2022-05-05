@@ -22,6 +22,8 @@ export class GameComponent implements OnInit {
   gameCompound!: GameCompound;
   @Input()
   isAdmin: boolean = false;
+  canClose: boolean = false;
+  owner: string = '';
 
   userAccountAddress: string | null = null;
 
@@ -59,9 +61,13 @@ export class GameComponent implements OnInit {
     this.winnersIdentified = this.gameCompound.game.winnersIdentified;
     this.prizesCalculated = this.gameCompound.game.prizesCalculated;
 
+    this.owner = this.gameCompound.game.owner as string;
+
     // Subscribing for account address changes in the provider
-    this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
+    this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
       this.userAccountAddress = address;
+      this.canClose = await this.gameCompound.gameService.canClose();
+      console.log(this.canClose);
     });
 
     //events monitoring
@@ -131,17 +137,25 @@ export class GameComponent implements OnInit {
 
   openForBetting() {
     this.action(Action.OPEN);
-    this.gameCompound.gameService.openForBetting().subscribe((transactionResult) => {
+    this.gameCompound.gameService.openForBetting(this._genericCallback.bind(this)).subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
-      this.action();
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
+        this.action();
+      }
     });
   }
 
   closeForBetting() {
     this.action(Action.CLOSE);
-    this.gameCompound.gameService.closeForBetting().subscribe((transactionResult) => {
+    this.gameCompound.gameService.closeForBetting(this._genericCallback.bind(this)).subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
-      this.action();
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
+        this.action();
+      }
     });
   }
 

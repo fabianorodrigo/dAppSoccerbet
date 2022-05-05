@@ -18,11 +18,14 @@ export abstract class BaseContract {
   protected contract!: Contract;
   protected _eventListeners: { [event: string]: BehaviorSubject<any> } = {};
   private _owner!: string;
-
+  private _fromAccount!: string | null;
   public address: string;
 
   constructor(protected _messageService: MessageService, protected _web3Service: Web3Service, _address: string) {
     this.address = _address;
+    this._web3Service.getUserAccountAddressSubject().subscribe((_account) => {
+      this._fromAccount = _account;
+    });
   }
 
   protected async getContract(_abis: AbiItem[]): Promise<Contract> {
@@ -322,10 +325,16 @@ export abstract class BaseContract {
   protected async getProperty(_abi: AbiItem[], _propertyName: string): Promise<any> {
     try {
       const _contract = await this.getContract(_abi);
-      const _result = await _contract.methods[_propertyName]().call();
+      // If not passing 'from', the msg.sender is 0x0 at the contract's function
+      // This was detected when testing the 'canClose()' function, a kind of getter
+      // where we needed to validate the msg.sender
+      const _result = await _contract.methods[_propertyName]().call({
+        from: this._fromAccount,
+      });
       return _result;
     } catch (e: any) {
-      this._messageService.show(e.message);
+      console.error(e);
+      this._messageService.show(`Unexpected exception when fetching '${_propertyName}'`);
     }
   }
 

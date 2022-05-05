@@ -70,7 +70,7 @@
     </button>
     <button
       class="button"
-      *ngIf="open && !finalized && isAdmin"
+      *ngIf="open && !finalized && canClose"
       mat-flat-button
       [disabled]="!this.userAccountAddress || loading"
       [class.spinner]="currentAction == 'CLOSE'"
@@ -78,7 +78,7 @@
       matTooltip="The game is open for betting. Click to close it"
       (click)="closeForBetting()"
     >
-      Close for betting
+      Close
     </button>
     <button
       class="button"

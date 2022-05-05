@@ -27,9 +27,10 @@ export class GameService extends BaseContract {
 
   /**
    * Open the game for betting
+   * @param _callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  openForBetting(): Observable<TransactionResult<string>> {
+  openForBetting(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
     return this.send(
       contractABI.abi as AbiItem[],
       'openForBetting',
@@ -39,9 +40,10 @@ export class GameService extends BaseContract {
 
   /**
    * Close the game for betting
+   * @param _callback  Function to be called when the transaction is confirmed
    * @returns result of transaction submission
    */
-  closeForBetting(): Observable<TransactionResult<string>> {
+  closeForBetting(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
     return this.send(
       contractABI.abi as AbiItem[],
       'closeForBetting',
@@ -190,6 +192,9 @@ export class GameService extends BaseContract {
   }
   prizesCalculated(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], `prizesCalculated`);
+  }
+  canClose(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], 'canClose');
   }
 
   getDTO(): Observable<Game> {

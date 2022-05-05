@@ -118,6 +118,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * A function demands that the msg.sender is the owner or has past 15 minutes after Game has started
      */
     error onlyOwnerORgameAlreadyBegun();
+    /***
+     * A function demands that the msg.sender is the owner or has past 48 hours after Game has started
+     */
+    error onlyOwnerORgameAlreadyFinished();
 
     //BetToken contract
     BetTokenUpgradeable private _betTokenContract;
@@ -190,6 +194,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         uint256 datetimeGame,
         Score finalScore
     );
+
     /**
      * @notice Event triggered when a game has its winner bets identified
      */
@@ -401,9 +406,8 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
     function closeForBetting() external onlyProxy isOpen isNotFinalized {
-        if (
-            owner() != _msgSender() && block.timestamp < datetimeGame + 15 * 60
-        ) {
+        (, , bool isCloseable) = canClose();
+        if (!isCloseable) {
             revert onlyOwnerORgameAlreadyBegun();
         }
         open = false;
@@ -425,7 +429,9 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         isClosed
         isNotFinalized
     {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        if (!canFinalize()) {
+            revert onlyOwnerORgameAlreadyFinished();
+        }
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
@@ -601,6 +607,41 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function getCommissionValue() external view returns (uint256) {
         return _calculator.calcPercentage(_totalStake, commission);
+    }
+
+    /// @notice Indicates the permission to close the game based on the msg.sender and the time
+    // scheduled to start the game. If the msg.sender is the owner, he has always the permission
+    // to do it (not considering if the game is already closed or even finalized). If msg.sender
+    // is not the owner, then he is only allowed to close the game if it has passed 15 minutes
+    // from the time foreseen to start the game
+    // @returns isOwner TRUE if the sender is the owner of the contract
+    // @returns hasPassedTime TRUE if has passed 15 minutes from the start of the game
+    // @returns isCloseable TRUE if one of the validations is true, isOwner OR hasPassedTime
+    function canClose()
+        public
+        view
+        returns (
+            bool isOwner,
+            bool hasPassedTime,
+            bool isCloseable
+        )
+    {
+        return (
+            owner() == _msgSender(),
+            block.timestamp >= datetimeGame + 15 * 60,
+            owner() == _msgSender() || block.timestamp >= datetimeGame + 15 * 60
+        );
+    }
+
+    /// @notice Indicates the permission to finalize the game based on the msg.sender and the time
+    // scheduled to start the game. If the msg.sender is the owner, he has always the permission
+    // to do it (not considering if the game is already finalized or still open). If msg.sender
+    // is not the owner, then he is only allowed to finalize the game if it has passed 48 hours
+    // from the time foreseen to start the game
+    function canFinalize() public view returns (bool) {
+        return
+            owner() == _msgSender() ||
+            block.timestamp >= datetimeGame + 48 * 60 * 60;
     }
 
     /**
