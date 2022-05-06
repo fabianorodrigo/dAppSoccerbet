@@ -67,7 +67,7 @@ export class GameComponent implements OnInit {
     this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
       this.userAccountAddress = address;
       this.canClose = await this.gameCompound.gameService.canClose();
-      console.log(this.canClose);
+      this._changeDetectorRefs.detectChanges();
     });
 
     //events monitoring

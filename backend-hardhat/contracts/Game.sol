@@ -406,8 +406,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
     function closeForBetting() external onlyProxy isOpen isNotFinalized {
-        (, , bool isCloseable) = canClose();
-        if (!isCloseable) {
+        if (!canClose()) {
             revert onlyOwnerORgameAlreadyBegun();
         }
         open = false;
@@ -614,23 +613,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     // to do it (not considering if the game is already closed or even finalized). If msg.sender
     // is not the owner, then he is only allowed to close the game if it has passed 15 minutes
     // from the time foreseen to start the game
-    // @returns isOwner TRUE if the sender is the owner of the contract
-    // @returns hasPassedTime TRUE if has passed 15 minutes from the start of the game
-    // @returns isCloseable TRUE if one of the validations is true, isOwner OR hasPassedTime
-    function canClose()
-        public
-        view
-        returns (
-            bool isOwner,
-            bool hasPassedTime,
-            bool isCloseable
-        )
-    {
-        return (
-            owner() == _msgSender(),
-            block.timestamp >= datetimeGame + 15 * 60,
-            owner() == _msgSender() || block.timestamp >= datetimeGame + 15 * 60
-        );
+    function canClose() public view returns (bool) {
+        return
+            owner() == _msgSender() ||
+            block.timestamp >= datetimeGame + 15 * 60;
     }
 
     /// @notice Indicates the permission to finalize the game based on the msg.sender and the time
