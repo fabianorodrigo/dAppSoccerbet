@@ -23,6 +23,7 @@ export class GameComponent implements OnInit {
   @Input()
   isAdmin: boolean = false;
   canClose: boolean = false;
+  canFinalize: boolean = false;
   owner: string = '';
 
   userAccountAddress: string | null = null;
@@ -66,7 +67,9 @@ export class GameComponent implements OnInit {
     // Subscribing for account address changes in the provider
     this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
       this.userAccountAddress = address;
+      // when account changes, load the condition of current account be able to close or finalize the game
       this.canClose = await this.gameCompound.gameService.canClose();
+      this.canFinalize = await this.gameCompound.gameService.canFinalize();
       this._changeDetectorRefs.detectChanges();
     });
 
@@ -417,13 +420,17 @@ export class GameComponent implements OnInit {
     });
   }
 
-  private action(a?: Action) {
+  private async action(a?: Action) {
     if (a) {
       this.currentAction = a;
       this.loading = true;
     } else {
       this.currentAction = Action.NONE;
       this.loading = false;
+      // when finishes some action, load the condition of current account be able to close or finalize the game
+      this.canClose = await this.gameCompound.gameService.canClose();
+      this.canFinalize = await this.gameCompound.gameService.canFinalize();
+      this._changeDetectorRefs.detectChanges();
     }
   }
 }

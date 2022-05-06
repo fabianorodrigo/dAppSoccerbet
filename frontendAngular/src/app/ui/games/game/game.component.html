@@ -82,7 +82,7 @@
     </button>
     <button
       class="button"
-      *ngIf="!finalized && isAdmin"
+      *ngIf="!finalized && canFinalize"
       [class.spinner]="currentAction == 'FINALIZE'"
       [disabled]="open || !this.userAccountAddress || loading"
       mat-flat-button

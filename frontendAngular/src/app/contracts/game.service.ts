@@ -196,6 +196,9 @@ export class GameService extends BaseContract {
   canClose(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'canClose');
   }
+  canFinalize(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], 'canFinalize');
+  }
 
   getDTO(): Observable<Game> {
     return new Observable<Game>((_subscriber) => {
