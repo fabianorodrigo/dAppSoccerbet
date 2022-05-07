@@ -37,7 +37,7 @@ export class GamesHomeComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.loading = true;
-    this._gameFactory.isAdmin().subscribe((is) => {
+    this._gameFactory.isOwner().subscribe((is) => {
       //It is admin if the user is the owner of GameFactory contract and the route starts with '/admin'
       this.isAdmin = is && this._router.url.startsWith('/admin');
     });

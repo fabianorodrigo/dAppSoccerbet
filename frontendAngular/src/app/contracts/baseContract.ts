@@ -74,7 +74,7 @@ export abstract class BaseContract {
   /**
    * @returns returns TRUE if the wallet address is equal to the contract owner
    */
-  isAdmin(): Observable<boolean> {
+  isOwner(): Observable<boolean> {
     return new Observable<boolean>((_subscriber) => {
       this.owner().subscribe((_ownerAddress) => {
         this._web3Service.getUserAccountAddress().subscribe((_userAddress) => {
@@ -334,7 +334,7 @@ export abstract class BaseContract {
       return _result;
     } catch (e: any) {
       console.error(e);
-      this._messageService.show(`Unexpected exception when fetching '${_propertyName}'`);
+      this._messageService.show(`Unexpected exception when fetching '${_propertyName}': ${e.message}`);
     }
   }
 
