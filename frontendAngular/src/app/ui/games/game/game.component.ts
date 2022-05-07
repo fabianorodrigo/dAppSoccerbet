@@ -62,19 +62,20 @@ export class GameComponent implements OnInit {
     this.winnersIdentified = this.gameCompound.game.winnersIdentified;
     this.prizesCalculated = this.gameCompound.game.prizesCalculated;
 
-    this.owner = this.gameCompound.game.owner as string;
-
-    // Subscribing for account address changes in the provider
-    this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
-      this.userAccountAddress = address;
-      // when account changes, load the condition of current account be able to close or finalize the game
-      this.canClose = await this.gameCompound.gameService.canClose();
-      this.canFinalize = await this.gameCompound.gameService.canFinalize();
-      this._changeDetectorRefs.detectChanges();
-    });
-
-    //events monitoring
     try {
+      this.owner = this.gameCompound.game.owner as string;
+
+      // Subscribing for account address changes in the provider
+      this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
+        this.userAccountAddress = address;
+        // when account changes, load the condition of current account be able to close or finalize the game
+        this.canClose = await this.gameCompound.gameService.canClose();
+        this.canFinalize = await this.gameCompound.gameService.canFinalize();
+        this._changeDetectorRefs.detectChanges();
+      });
+
+      //events monitoring
+
       //bettoken approve for game contract
       (
         await this._betTokenService.getEventBehaviorSubject({
