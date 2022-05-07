@@ -1,12 +1,12 @@
-import { GameCompound } from './../game-compound.class';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { GameFactoryService, GameService } from 'src/app/contracts';
+import { GameFinalizedEvent, Web3Event, Web3Subscription } from 'src/app/model';
 import { Game } from 'src/app/model/game.interface';
+import { environment } from 'src/environments/environment';
 import { GameEvent } from '../../../model/events/game-event.interface';
 import { MessageService, Web3Service } from '../../../services';
-import { GameFinalizedEvent, Score, Web3Event, Web3Subscription } from 'src/app/model';
-import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { GameCompound } from './../game-compound.class';
 
 @Component({
   selector: 'dapp-games-home',
@@ -16,7 +16,7 @@ import { environment } from 'src/environments/environment';
 export class GamesHomeComponent implements OnInit, OnDestroy {
   constructor(
     private _messageService: MessageService,
-    private _webService: Web3Service,
+    private _web3Service: Web3Service,
     private _gameFactory: GameFactoryService,
     private _router: Router,
     private _changeDetectorRefs: ChangeDetectorRef
@@ -37,17 +37,36 @@ export class GamesHomeComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.loading = true;
+    // this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
+    //   console.log(`mudou a conta`, address);
+    //   if (address != null) {
+    //     this.checkOwnerCondition();
+    //   }
+    // });
     this._gameFactory.isOwner().subscribe((is) => {
       //It is admin if the user is the owner of GameFactory contract and the route starts with '/admin'
       this.isAdmin = is && this._router.url.startsWith('/admin');
     });
-    const currentBlock = await this._webService.getCurrentBlockNumber();
+    const currentBlock = await this._web3Service.getCurrentBlockNumber();
     this.loadMore(currentBlock);
     this._subscribeGameCreated();
   }
   ngOnDestroy(): void {
-    this.web3GameCreatedSubscription.unsubscribe();
+    this.web3GameCreatedSubscription?.unsubscribe();
   }
+
+  /**
+   * Check if the account connected is owner of GameFactory. If not, redirect to route `games`
+   */
+  // private checkOwnerCondition() {
+  //   this._gameFactory.isOwner().subscribe((isOwner) => {
+  //     console.log(`checkOwnerCondition`, isOwner);
+  //     //It is not owner, redirect to /games
+  //     if (!isOwner) {
+  //       this._router.navigate([`games`]);
+  //     }
+  //   });
+  // }
 
   newGame(event: MouseEvent) {
     this.editing = true;
@@ -143,7 +162,7 @@ export class GamesHomeComponent implements OnInit, OnDestroy {
   private _handleGameCreteadEvent(evt: Web3Event): void {
     if (evt == null) return;
     const eventData: GameEvent = evt.returnValues;
-    const gameService = new GameService(this._messageService, this._webService, eventData.addressGame);
+    const gameService = new GameService(this._messageService, this._web3Service, eventData.addressGame);
     this.addListeners(gameService);
     const gameData: Game = {
       addressGame: eventData.addressGame,
