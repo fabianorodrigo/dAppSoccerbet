@@ -26,7 +26,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.9",
   networks: {
-    hardhat: {
+    localhost: {
       //Hardhat node will mine each 10 seconds
       mining: {
         auto: false,
