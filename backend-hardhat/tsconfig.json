@@ -4,8 +4,9 @@
       "module": "commonjs",
       "strict": true,
       "esModuleInterop": true,
-      "outDir": "dist"
+      "outDir": "dist",
+      "resolveJsonModule": true
     },
-    "include": ["./scripts", "./test","./testStress"],
+    "include": ["./scripts", "./test","./testStress", "./typechain-types"],
     "files": ["./hardhat.config.ts"]
   }

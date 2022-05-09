@@ -5,7 +5,7 @@
   background-color: #e8e8e8;
   border-radius: 5px;
   padding: 10px;
-  min-width: 320px;
+  min-width: 380px;
   width: 50%;
   min-height: 80px;
   box-shadow: 1px 1px 5px #555;
@@ -40,7 +40,7 @@
 .row-action {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: start;
   gap: 5px;
   margin-top: 10px;
 }

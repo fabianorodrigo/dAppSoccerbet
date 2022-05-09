@@ -1,9 +1,11 @@
-import {task} from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
+import "@typechain/hardhat";
 import "hardhat-gas-reporter";
-import "./tasks/populateTestData"
+import {HardhatUserConfig, task} from "hardhat/config";
+import "solidity-coverage";
+import "./tasks/populateTestData";
+import "./tasks/listGames";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -21,12 +23,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
-export default {
+const config: HardhatUserConfig = {
   solidity: "0.8.9",
-  settings: {
-    optimizer: {
-      enabled: true,
-      runs: 200,
+  networks: {
+    localhost: {
+      //Hardhat node will mine each 10 seconds
+      mining: {
+        auto: false,
+        interval: 10000,
+      },
     },
   },
   mocha: {
@@ -43,3 +48,5 @@ export default {
     enabled: true,
   },
 };
+
+export default config;

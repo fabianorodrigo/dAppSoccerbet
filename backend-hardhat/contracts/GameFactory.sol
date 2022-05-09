@@ -85,7 +85,7 @@ contract GameFactoryUpgradeable is
     function initialize(
         address _betTokenContractAddress,
         address _calculatorContractAddress
-    ) external initializer {
+    ) external initializer onlyProxy {
         __Ownable_init();
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
@@ -95,12 +95,19 @@ contract GameFactoryUpgradeable is
     }
 
     /**
+     * @notice returns the Game contract implementation
+     */
+    function getGameImplementation() external view returns (address) {
+        return gameImplementation;
+    }
+
+    /**
      * @notice Allows the owner update the Game contract implementation for future games created
      */
     function setGameImplementation(address _gameImplementationAddress)
         external
         onlyOwner
-        onlyDelegateCall
+        onlyProxy
     {
         /// @custom:oz-upgrades-unsafe-allow delegatecall
         require(Address.isContract(_gameImplementationAddress));

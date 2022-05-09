@@ -14,7 +14,7 @@ import {TestUtils} from "../test/TestUtils";
 // This makes excessive noise: https://forum.openzeppelin.com/t/what-is-warning-a-proxy-admin-was-previously-deployed-on-this-network/20501
 upgrades.silenceWarnings();
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
 let ERC20BetToken: ContractFactory,
@@ -88,7 +88,7 @@ describe("Game Finalize", function () {
     );
     await gameFactory
       .connect(owner)
-      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_MINUTES);
+      .newGame("SÃO PAULO", "ATLÉTICO-MG", DATETIME_20220716_170000_IN_SECONDS);
     const games = await gameFactory.listGames();
     gameContract = Game.attach(games[0].addressGame);
   });

@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
+  chainId: 80001, //mumbai
+  chainName: 'Mumbai',
   chainCurrencyName: 'Ether',
   numberOfBlocksInHistoricSearches: 10,
   betTokenAddress: '0x85e855b22F01BdD33eE194490c7eB16b7EdaC019',

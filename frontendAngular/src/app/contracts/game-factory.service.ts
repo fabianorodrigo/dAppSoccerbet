@@ -23,17 +23,6 @@ export class GameFactoryService extends BaseContract {
     return contractABI.abi as AbiItem[];
   }
 
-  // listGames(): Observable<string[]> {
-  //   return this.getStringArray(contractABI.abi as AbiItem[], 'listGames');
-  // }
-
-  /**
-   * Fetch the list of games registered in the GameFactory
-   */
-  async listGamesDTO(): Promise<Game[]> {
-    return this.getProperty(contractABI.abi as AbiItem[], 'listGames');
-  }
-
   newGame(_game: Game): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
       this.getContract(contractABI.abi as AbiItem[]).then(async (_contract) => {

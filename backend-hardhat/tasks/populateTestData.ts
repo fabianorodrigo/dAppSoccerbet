@@ -8,6 +8,10 @@ import {
   PROXIES_ADDRESSES_FILENAME,
 } from "../scripts/ProxiesAddresses";
 import {BetDTO} from "../test/model";
+import {
+  GameFactoryUpgradeable,
+  GameFactoryUpgradeable__factory,
+} from "../typechain-types";
 //import {TestUtils} from "../test/TestUtils";
 
 task(
@@ -47,10 +51,9 @@ task(
       proxiesAddresses.BETTOKEN_PROXY_ADDRESS
     );
     //GameFactory contract
-    const GameFactory = await hre.ethers.getContractFactory(
-      "GameFactoryUpgradeable"
-    );
-    const gameFactory = await GameFactory.attach(
+    const GameFactory: GameFactoryUpgradeable__factory =
+      await hre.ethers.getContractFactory("GameFactoryUpgradeable");
+    const gameFactory: GameFactoryUpgradeable = await GameFactory.attach(
       proxiesAddresses.GAMEFACTORY_PROXY_ADDRESS
     );
     // Create new Game

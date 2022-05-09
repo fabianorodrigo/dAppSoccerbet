@@ -27,8 +27,10 @@ export class Web3Service {
     this.hasEthereumProvider();
   }
 
-  public get chaindId() {
-    return this._chainId;
+  async getCurrentChainId() {
+    return await window.ethereum.request({
+      method: 'eth_chainId',
+    });
   }
 
   /**
@@ -212,9 +214,6 @@ export class Web3Service {
       if (provider !== window.ethereum) {
         alert('Do you have multiple wallets installed?');
       } else {
-        this._chainId = await window.ethereum.request({
-          method: 'eth_chainId',
-        });
         window.ethereum.on('connect', this.handleOnConnect.bind(this));
         window.ethereum.on('disconnect', this.handleOnDisconnect.bind(this));
         window.ethereum.on('accountsChanged', this.handleOnAccountsChanged.bind(this));

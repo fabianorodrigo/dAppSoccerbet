@@ -4,3 +4,4 @@ build
 test-results/
 artifacts/
 mcore_*
+typechain-types

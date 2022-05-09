@@ -1,10 +1,10 @@
 import {expect} from "chai";
 import {BigNumber, Contract, Signer} from "ethers";
-import {WriteStream} from "fs";
-import {ethers} from "hardhat";
-import {BetDTO} from "./model";
+import {ethers, network, waffle} from "hardhat";
+import {BetTokenUpgradeable} from "../../typechain-types";
+import {BetDTO} from "../model";
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 export class TestUtils {
   static readonly PAID = 4;
@@ -36,7 +36,7 @@ export class TestUtils {
    * @returns TRUE if is a contract and wasn't destructed yet (code == 0x)
    */
   async isContract(address: string): Promise<boolean> {
-    return (await ethers.provider.getCode(address)) != "0x";
+    return (await waffle.provider.getCode(address)) != "0x";
   }
 
   /**
@@ -47,10 +47,11 @@ export class TestUtils {
    * @param {Array} bets Array of objects with 'bettorAddress', 'score' and 'tokenAmount' properties
    */
   async makeBets(
-    erc20BetToken: Contract,
+    erc20BetToken: BetTokenUpgradeable,
     gameContract: Contract,
     owner: Signer,
-    bets: BetDTO[]
+    bets: BetDTO[],
+    showBetsProgress: boolean = false
   ) {
     let totalStake = ethers.constants.Zero;
     //Game is initially closed for betting
@@ -77,6 +78,8 @@ export class TestUtils {
         .connect(bet.bettor)
         .bet(bet.score, bet.tokenAmount);
 
+      await receiptBet.wait();
+
       expect(receiptBet)
         .to.emit(gameContract, "BetOnGame")
         .withArgs(
@@ -84,7 +87,7 @@ export class TestUtils {
           await bet.bettor.getAddress(),
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES,
+          DATETIME_20220716_170000_IN_SECONDS,
           [bet.score.home, bet.score.visitor]
         );
       //https://github.com/indutny/bn.js/
@@ -97,7 +100,9 @@ export class TestUtils {
       );
       betCount++;
 
-      this.updateLine(`Bet: ${betCount}/${bets.length}`);
+      if (showBetsProgress) {
+        this.updateLine(`Bet: ${betCount}/${bets.length}`);
+      }
     }
 
     // The BETTOKEN balances of the Game contract is the sum of all bets
@@ -120,5 +125,33 @@ export class TestUtils {
     process.stdout.clearLine(-1);
     process.stdout.cursorTo(0);
     process.stdout.write(text);
+  }
+
+  /**
+   * Move the blockchain ahead an {amount} of seconds
+   *
+   * @param amount Amount of seconds
+   */
+  async moveTime(amount: number) {
+    console.log("Moving blocks...");
+    await network.provider.send("evm_increaseTime", [amount]);
+
+    console.log(`Moved forward in time ${amount} seconds`);
+  }
+
+  /**
+   * Move the blockchain ahead an {amount} of blocks
+   *
+   * @param amount Amount of blocks
+   */
+  async moveBlocks(amount: number) {
+    console.log("Moving blocks...");
+    for (let index = 0; index < amount; index++) {
+      await network.provider.request({
+        method: "evm_mine",
+        params: [],
+      });
+    }
+    console.log(`Moved ${amount} blocks`);
   }
 }
