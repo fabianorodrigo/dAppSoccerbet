@@ -22,9 +22,16 @@ export class AppComponent implements OnInit {
     private _messageService: MessageService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     console.log(`BetToken.address`, environment.betTokenAddress);
     console.log(`GameFactory.address`, environment.gameFactoryAddress);
+
+    const chainId = await this._web3Service.getCurrentChainId();
+    if (chainId != environment.chainId) {
+      const msg = `Unexpected chain: Change network to ${environment.chainName}`;
+      this._messageService.show(msg);
+      throw new Error(msg);
+    }
 
     this.getOwner().subscribe((ownerAddress) => {
       this.owner = ownerAddress;
@@ -42,7 +49,7 @@ export class AppComponent implements OnInit {
         this.owner = ownerAddress;
         if (!ownerAddress) {
           this._messageService.show(
-            `Connection with contract failed. Check if you are connected with your account in the right chain`
+            `Connection with contract failed. Check if you are connected with your account on ${environment.chainName} network`
           );
         } else {
           this.userAccountAddress = _address;

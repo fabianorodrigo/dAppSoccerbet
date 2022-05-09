@@ -4,6 +4,8 @@
 
 export const environment = {
   production: false,
+  chainId: 31337, //set on backend-hardhat/package.json `ganache` script
+  chainName: 'Localhost',
   chainCurrencyName: 'Ether',
   //Number of blocks to do historical searches (like for GameCreated events)
   numberOfBlocksInHistoricSearches: 10000,
