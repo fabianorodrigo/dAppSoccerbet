@@ -81,7 +81,6 @@ export const shouldFinalize = (): void => {
       ).to.revertedWith("onlyOwnerORgameAlreadyFinished()");
     });
     it(`Should be allowed someone different from owner finalize a game for betting 48 after it has begun`, async function () {
-      console.log(`game.datetime`, await this.game.datetimeGame());
       //Game created for tests starts in 30 minutes and it`s free to anyone finalize it 48 hours later,
       // so we move the blockchain ahead of time 48 hours and 31 minutes and should be possible to the bettorA close it
       await this.utils.moveTime(48 * 60 * 60 + 31 * 60);
@@ -127,7 +126,19 @@ export const shouldFinalize = (): void => {
           [score.home, score.visitor]
         );
     });
-
+    it(`Should revert if try to finalize a paused game`, async function () {
+      const score = {home: 3, visitor: 1};
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      expect(await this.game.paused()).to.be.true;
+      //finalize
+      await expect(
+        this.game.connect(this.signers.owner).finalizeGame(score)
+      ).to.be.revertedWith("Pausable: paused");
+    });
     it(`Should revert if try to call FINALIZE direct to the implementation contract is spite of the minimal proxy`, async function () {
       const score = {home: 3, visitor: 1};
       const implementationAddress =

@@ -58,6 +58,32 @@ export const shouldIdentifyWinners = (): void => {
       expect(await this.game.winnersIdentified()).to.be.true;
     });
 
+    it(`Should revert when try to identify winners of a paused game`, async function () {
+      //make bets
+      await this.utils.makeBets(
+        this.betToken,
+        this.game,
+        this.signers.owner,
+        this.BETS
+      );
+      //Closed for betting
+      await this.game.connect(this.signers.owner).closeForBetting();
+      //Finalize the game with the score bet by bettorA and bettorB
+      await this.game
+        .connect(this.signers.owner)
+        .finalizeGame({home: 3, visitor: 3});
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      expect(await this.game.paused()).to.be.true;
+      // identify the winner bets
+      await expect(this.game.identifyWinners()).to.be.revertedWith(
+        "Pausable: paused"
+      );
+    });
+
     it(`Should identify winners of a game where only one matched the final score and emit event 'GameWinnersIdentified'`, async function () {
       //make bets
       await this.utils.makeBets(

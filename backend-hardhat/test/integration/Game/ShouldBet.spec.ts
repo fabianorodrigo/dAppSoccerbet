@@ -128,6 +128,30 @@ export const shouldBet = (): void => {
       ).to.revertedWith("ERC20: insufficient allowance");
     });
 
+    it(`Should revert if try to bet on a paused game`, async function () {
+      const score = {home: 3, visitor: 1};
+      await this.game.connect(this.signers.owner).openForBetting();
+      const betTokenAmount = 1001;
+      ////////////////// BETTOR HAS TO BUY SOME BETTOKENS
+      await this.signers.bettorA.sendTransaction({
+        to: this.betToken.address,
+        value: betTokenAmount,
+      });
+      //////////////// BETTOR ALLOWS {this.game} SPENT THE VALUE OF THE BET IN HIS NAMEx'
+      const receiptApprove = await this.betToken
+        .connect(this.signers.bettorA)
+        .approve(this.game.address, betTokenAmount);
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      //Game is initially closed for betting. Since the game was not opened, it has to revert
+      await expect(
+        this.game.connect(this.signers.bettorA).bet(score, betTokenAmount)
+      ).to.be.revertedWith("Pausable: paused");
+    });
+
     it(`Should revert if try to call BET direct to the implementation contract is spite of the minimal proxy`, async function () {
       const score = {home: 3, visitor: 1};
       const betTokenAmount = 1001;

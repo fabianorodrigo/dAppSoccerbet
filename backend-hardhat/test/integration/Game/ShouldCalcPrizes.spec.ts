@@ -59,6 +59,35 @@ export const shouldCalcPrizes = (): void => {
       expect(await this.game.winnersIdentified()).to.be.true;
     });
 
+    it(`Should revert when try to calc prizes of a paused game`, async function () {
+      //make bets
+      await this.utils.makeBets(
+        this.betToken,
+        this.game,
+        this.signers.owner,
+        this.BETS
+      );
+      //Closed for betting
+      await this.game.connect(this.signers.owner).closeForBetting();
+      //Finalize the game
+      const finalizeTransaction = await this.game
+        .connect(this.signers.owner)
+        .finalizeGame({home: 0, visitor: 3});
+      //Resolves to the TransactionReceipt once the transaction has been included in the chain for confirms blocks.
+      await finalizeTransaction.wait();
+      // identify the winners bets
+      await this.game.identifyWinners();
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      // Calculates the prizes
+      await expect(this.game.calcPrizes()).to.be.revertedWith(
+        "Pausable: paused"
+      );
+    });
+
     it(`Should pay 90% of stake to the only one who matched the final score`, async function () {
       //make bets
       await this.utils.makeBets(

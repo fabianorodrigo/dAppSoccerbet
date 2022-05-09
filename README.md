@@ -59,6 +59,7 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
 ## CI/CD
 
 - [CircleCI](https://app.circleci.com/pipelines/github/fabianorodrigo/dAppSoccerbet)
+- [Github Actions](https://github.com/fabianorodrigo/dAppSoccerbet/actions/workflows/main.yaml)
 
 # Running Locally
 

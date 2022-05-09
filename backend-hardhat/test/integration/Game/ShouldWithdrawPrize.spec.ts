@@ -102,6 +102,34 @@ export const shouldWithdrawPrize = (): void => {
       );
     });
 
+    it(`Should revert when try to withdraw prizes from a paused game`, async function () {
+      await this.utils.makeBets(
+        this.betToken,
+        this.game,
+        this.signers.owner,
+        this.BETS
+      );
+      //Closed for betting
+      await this.game.connect(this.signers.owner).closeForBetting();
+      //Finalize the game
+      await this.game
+        .connect(this.signers.owner)
+        .finalizeGame({home: 0, visitor: 3});
+      // identify the winners bets
+      await this.game.identifyWinners();
+      // Calculates the prizes
+      await this.game.calcPrizes();
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      //withdraw
+      await expect(
+        this.game.connect(this.signers.bettorE).withdrawPrize(4)
+      ).to.be.revertedWith("Pausable: paused");
+    });
+
     it(`Should withdraw 90% of stake to the winner bet`, async function () {
       await this.utils.makeBets(
         this.betToken,

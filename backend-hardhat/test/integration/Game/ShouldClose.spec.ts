@@ -88,7 +88,19 @@ export const shouldClose = (): void => {
           DATETIME_20220716_170000_IN_SECONDS
         );
     });
-
+    it(`Should revert if try to close a paused game`, async function () {
+      //Game is initially closed for betting
+      await this.game.connect(this.signers.owner).openForBetting();
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      //close paused
+      await expect(
+        this.game.connect(this.signers.owner).closeForBetting()
+      ).to.be.revertedWith("Pausable: paused");
+    });
     it(`Should revert if try to call CLOSE direct to the implementation contract is spite of the minimal proxy`, async function () {
       const implementationAddress =
         await this.gameFactory.getGameImplementation();

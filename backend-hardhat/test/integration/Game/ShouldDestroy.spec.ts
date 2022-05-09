@@ -65,5 +65,18 @@ export const shouldDestroyGameContract = (): void => {
         game.connect(this.signers.owner).destroyContract()
       ).to.be.revertedWith("NotDelegateCall()");
     });
+
+    it(`Should revert when try to destroy a paused game`, async function () {
+      //pause game
+      const receiptPause = await this.game.connect(this.signers.owner).pause();
+      expect(receiptPause)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      expect(await this.game.paused()).to.be.true;
+      //destroy game
+      await expect(this.game.destroyContract()).to.be.revertedWith(
+        "Pausable: paused"
+      );
+    });
   });
 };
