@@ -22,6 +22,7 @@
     "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore .",
     "ganache": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --miner.blockTime 10 ",
     "ganache-debug": "ganache -p 8545 -i 31337 --chain.chainId 31337 --wallet.deterministic --database.dbPath ~/sgbds/ganache --logging.debug --logging.verbose ",
+    "hardhatnode": "npx hardhat node",
     "deployLocal": "npx hardhat run --network localhost scripts/deployProxies.ts",
     "upgradeBetTokenLocal": "npx hardhat run --network localhost scripts/upgradeBetToken.ts",
     "upgradeGameFactoryLocal": "npx hardhat run --network localhost scripts/upgradeGameFactory.ts"
@@ -45,6 +46,9 @@
     "hardhat-gas-reporter": "^1.0.8",
     "mocha-junit-reporter": "^2.0.2",
     "mocha-multi-reporters": "^1.5.1",
+    "prettier": "^2.6.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "solhint": "^3.3.7",
     "ts-node": "^10.5.0",
     "typechain": "^8.0.0",
     "typescript": "^4.5.5"

@@ -13,7 +13,7 @@ const TestingAuxiliar = artifacts.require("TestingAuxiliar");
 
 contract("Game", (accounts) => {
   let trace = false;
-  const DATETIME_20220716_170000_IN_MINUTES = new BN(
+  const DATETIME_20220716_170000_IN_SECONDS = new BN(
     new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000
   );
   // The owner is gonna be sent by 7º Ganache account
@@ -33,7 +33,7 @@ contract("Game", (accounts) => {
       owner,
       "SÃO PAULO",
       "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
+      DATETIME_20220716_170000_IN_SECONDS,
       erc20BetToken.address,
       calculator.address,
       new BN(10),
@@ -50,7 +50,7 @@ contract("Game", (accounts) => {
     expect(await gameContract.homeTeam()).to.equal("SÃO PAULO");
     expect(await gameContract.visitorTeam()).to.equal("ATLÉTICO-MG");
     expect(await gameContract.datetimeGame()).to.be.bignumber.equal(
-      DATETIME_20220716_170000_IN_MINUTES
+      DATETIME_20220716_170000_IN_SECONDS
     );
     //when the game is created, is initially closed for betting
     expect(
@@ -76,7 +76,7 @@ contract("Game", (accounts) => {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
+      datetimeGame: DATETIME_20220716_170000_IN_SECONDS,
     });
   });
 
@@ -108,7 +108,7 @@ contract("Game", (accounts) => {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
+      datetimeGame: DATETIME_20220716_170000_IN_SECONDS,
     });
   });
 
@@ -145,7 +145,7 @@ contract("Game", (accounts) => {
       addressGame: gameContract.address,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
+      datetimeGame: DATETIME_20220716_170000_IN_SECONDS,
       score: Object.values(score), //had to to this in order to expectEvent work properly
     });
   });
@@ -233,7 +233,7 @@ contract("Game", (accounts) => {
       addressBettor: bettor,
       homeTeam: "SÃO PAULO",
       visitorTeam: "ATLÉTICO-MG",
-      datetimeGame: DATETIME_20220716_170000_IN_MINUTES,
+      datetimeGame: DATETIME_20220716_170000_IN_SECONDS,
       score: Object.values(score), //had to to this in order to expectEvent work properly
     });
   });

@@ -38,7 +38,7 @@ async function main() {
 
   // The @openzeppelin/utils/Address, used on setGameImplementation function, has delegateCall,
   // then we need to include the 'unsafeAllow'. However, we made a restriction to setGameImplemention
-  // be called only throgh proxy
+  // be called only through proxy
   const gameFactory = await upgrades.deployProxy(
     GameFactory,
     [erc20BetToken.address, calculator.address],

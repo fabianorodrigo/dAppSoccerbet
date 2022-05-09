@@ -2,7 +2,7 @@ import {expect} from "chai";
 import {ethers} from "ethers";
 import {TestUtils} from "../../shared";
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
 export const shouldIdentifyWinners = (): void => {
@@ -80,7 +80,7 @@ export const shouldIdentifyWinners = (): void => {
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES
+          DATETIME_20220716_170000_IN_SECONDS
         );
       //Verify winners identified
       const bets = await this.game.listBets();
@@ -121,7 +121,7 @@ export const shouldIdentifyWinners = (): void => {
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES
+          DATETIME_20220716_170000_IN_SECONDS
         );
       //Verify winners identified
       const bets = await this.game.listBets();
@@ -164,7 +164,7 @@ export const shouldIdentifyWinners = (): void => {
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES
+          DATETIME_20220716_170000_IN_SECONDS
         );
       //Verify winners identified
       const bets = await this.game.listBets();

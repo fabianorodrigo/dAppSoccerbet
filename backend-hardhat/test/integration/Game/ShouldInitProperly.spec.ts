@@ -1,8 +1,4 @@
 import {expect} from "chai";
-import {BigNumber} from "ethers";
-
-const DATETIME_20220716_170000_IN_MINUTES =
-  new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 
 export const shouldInitProperly = (): void => {
   //   // to silent warning for duplicate definition of Transfer event
@@ -13,9 +9,7 @@ export const shouldInitProperly = (): void => {
       // Game attributes
       expect(await this.game.homeTeam()).to.equal("SÃO PAULO");
       expect(await this.game.visitorTeam()).to.equal("ATLÉTICO-MG");
-      expect(await this.game.datetimeGame()).to.be.equal(
-        DATETIME_20220716_170000_IN_MINUTES
-      );
+
       //when the game is created, is initially closed for betting
       expect(
         await this.game.open(),

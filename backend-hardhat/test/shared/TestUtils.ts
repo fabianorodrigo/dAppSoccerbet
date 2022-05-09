@@ -1,10 +1,10 @@
 import {expect} from "chai";
 import {BigNumber, Contract, Signer} from "ethers";
-import {ethers} from "hardhat";
+import {ethers, network, waffle} from "hardhat";
 import {BetTokenUpgradeable} from "../../typechain-types";
 import {BetDTO} from "../model";
 
-const DATETIME_20220716_170000_IN_MINUTES =
+const DATETIME_20220716_170000_IN_SECONDS =
   new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 export class TestUtils {
   static readonly PAID = 4;
@@ -36,7 +36,7 @@ export class TestUtils {
    * @returns TRUE if is a contract and wasn't destructed yet (code == 0x)
    */
   async isContract(address: string): Promise<boolean> {
-    return (await ethers.provider.getCode(address)) != "0x";
+    return (await waffle.provider.getCode(address)) != "0x";
   }
 
   /**
@@ -87,7 +87,7 @@ export class TestUtils {
           await bet.bettor.getAddress(),
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_MINUTES,
+          DATETIME_20220716_170000_IN_SECONDS,
           [bet.score.home, bet.score.visitor]
         );
       //https://github.com/indutny/bn.js/
@@ -125,5 +125,33 @@ export class TestUtils {
     process.stdout.clearLine(-1);
     process.stdout.cursorTo(0);
     process.stdout.write(text);
+  }
+
+  /**
+   * Move the blockchain ahead an {amount} of seconds
+   *
+   * @param amount Amount of seconds
+   */
+  async moveTime(amount: number) {
+    console.log("Moving blocks...");
+    await network.provider.send("evm_increaseTime", [amount]);
+
+    console.log(`Moved forward in time ${amount} seconds`);
+  }
+
+  /**
+   * Move the blockchain ahead an {amount} of blocks
+   *
+   * @param amount Amount of blocks
+   */
+  async moveBlocks(amount: number) {
+    console.log("Moving blocks...");
+    for (let index = 0; index < amount; index++) {
+      await network.provider.request({
+        method: "evm_mine",
+        params: [],
+      });
+    }
+    console.log(`Moved ${amount} blocks`);
   }
 }

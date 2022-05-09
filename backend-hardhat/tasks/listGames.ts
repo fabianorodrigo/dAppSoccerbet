@@ -1,6 +1,4 @@
 import "@nomiclabs/hardhat-waffle";
-import {BigNumber} from "ethers";
-import {Result} from "ethers/lib/utils";
 import * as fs from "fs";
 import {task} from "hardhat/config";
 import {
@@ -14,18 +12,8 @@ import {
 } from "../typechain-types";
 //import {TestUtils} from "../test/TestUtils";
 
-task(
-  "populateTestData",
-  "Create a game and an amount of bets on the Ganache network for purpose of testing"
-)
-  .addParam("totalbets", "The quantity of bets registered on game")
-  .addOptionalParam("home", "Home team", "HOME " + new Date().toLocaleString())
-  .addOptionalParam(
-    "visitor",
-    "Visitor team",
-    "VISITOR " + new Date().toLocaleString()
-  )
-  .setAction(async (taskArgs, hre) => {
+task("listGames", "List games on the Ganache network").setAction(
+  async (taskArgs, hre) => {
     //const utils = new TestUtils();
     const accounts = await hre.ethers.getSigners();
     // The owner is gonna be sent by 1º account
@@ -38,6 +26,7 @@ task(
     const bettorE = accounts[5];
 
     const proxiesAddresses = getProxyAddresses();
+
     //Calculator contract
     const Calculator = await hre.ethers.getContractFactory(
       "CalculatorUpgradeable"
@@ -56,62 +45,24 @@ task(
     const gameFactory: GameFactoryUpgradeable = await GameFactory.attach(
       proxiesAddresses.GAMEFACTORY_PROXY_ADDRESS
     );
-    // Create new Game
-    const gameDate = new Date();
-    const Game = await hre.ethers.getContractFactory("Game");
-    const receiptNewGame = await gameFactory
-      .connect(owner)
-      .newGame(
-        taskArgs.home,
-        taskArgs.visitor,
-        BigNumber.from(Math.floor(gameDate.getTime() / 1000))
-      );
-    await receiptNewGame.wait();
 
     //catching GameCreated event
+    const Game = await hre.ethers.getContractFactory("Game");
     const filter = gameFactory.filters.GameCreated();
-    const games = await gameFactory.queryFilter(filter);
+
+    const games = await gameFactory.queryFilter(filter, 0, "latest");
     if (games.length == 0) {
       throw new Error(`GameCreated event not found`);
     }
 
-    const gameContract = Game.attach(
-      (games[games.length - 1].args as Result).addressGame
-    );
-
-    const bets: BetDTO[] = [];
-    for (let i = 0; i < taskArgs.totalbets; i++) {
-      let b = null;
-      if (i % 5 == 0) {
-        b = bettorE;
-      } else if (i % 4 == 0) {
-        b = bettorD;
-      } else if (i % 3 == 0) {
-        b = bettorC;
-      } else if (i % 2 == 0) {
-        b = bettorB;
-      } else {
-        b = bettorA;
-      }
-
-      bets.push({
-        bettor: b,
-        tokenAmount: BigNumber.from(getRandomBetween(1000, 700000)),
-        score: {
-          home: getRandomBetween(0, 5),
-          visitor: getRandomBetween(0, 4),
-        },
-      });
-    }
-    // //make bets
-    await makeBets(hre.ethers, erc20BetToken, gameContract, owner, bets);
-    //Closed for betting
-    const receiptClose = await gameContract.connect(owner).closeForBetting();
-    await receiptClose.wait();
-    console.log(
-      `${taskArgs.totalbets} Bets done and the game was closed for betting`
-    );
-  });
+    games.forEach((g) => {
+      console.log(g.address);
+    });
+    // const gameContract = Game.attach(
+    //   (games[games.length - 1].args as Result).addressGame
+    // );
+  }
+);
 
 function getProxyAddresses(): ProxiesAddresses {
   const proxyAddresses = JSON.parse(

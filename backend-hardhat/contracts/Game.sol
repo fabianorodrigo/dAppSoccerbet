@@ -114,6 +114,14 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * An operation of token tranfer failed
      */
     error TokenTransferFail();
+    /***
+     * A function demands that the msg.sender is the owner or has past 15 minutes after Game has started
+     */
+    error onlyOwnerORgameAlreadyBegun();
+    /***
+     * A function demands that the msg.sender is the owner or has past 48 hours after Game has started
+     */
+    error onlyOwnerORgameAlreadyFinished();
 
     //BetToken contract
     BetTokenUpgradeable private _betTokenContract;
@@ -186,6 +194,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         uint256 datetimeGame,
         Score finalScore
     );
+
     /**
      * @notice Event triggered when a game has its winner bets identified
      */
@@ -275,7 +284,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         address _betTokenContractAddress,
         address _calculatorContractAddress,
         uint256 _commission
-    ) external initializer onlyDelegateCall {
+    ) external initializer onlyProxy {
         homeTeam = _home;
         visitorTeam = _visitor;
         datetimeGame = _datetimeGame;
@@ -329,7 +338,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function openForBetting()
         external
-        onlyDelegateCall
+        onlyProxy
         onlyOwner
         isClosed
         isNotFinalized
@@ -353,7 +362,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function bet(Score calldata _score, uint256 _value)
         external
-        onlyDelegateCall
+        onlyProxy
         isOpen
         isNotFinalized
     {
@@ -396,13 +405,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting()
-        external
-        onlyDelegateCall
-        onlyOwner
-        isOpen
-        isNotFinalized
-    {
+    function closeForBetting() external onlyProxy isOpen isNotFinalized {
+        if (!canClose()) {
+            revert onlyOwnerORgameAlreadyBegun();
+        }
         open = false;
         emit GameClosed(address(this), homeTeam, visitorTeam, datetimeGame);
     }
@@ -418,11 +424,13 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function finalizeGame(Score calldata _finalScore)
         external
-        onlyDelegateCall
-        onlyOwner
+        onlyProxy
         isClosed
         isNotFinalized
     {
+        if (!canFinalize()) {
+            revert onlyOwnerORgameAlreadyFinished();
+        }
         // register the final score and finalizes the game
         finalScore = _finalScore;
         finalized = true;
@@ -443,7 +451,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @return TRUE if the process of identifying winners is completed (loop for all _bets)
      */
-    function identifyWinners() external onlyDelegateCall returns (bool) {
+    function identifyWinners() external onlyProxy returns (bool) {
         if (!finalized) {
             revert GameNotFinalized();
         }
@@ -493,7 +501,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @return TRUE if the process of calc prizes is completed (loop for all _bets)
      */
-    function calcPrizes() external onlyDelegateCall returns (bool) {
+    function calcPrizes() external onlyProxy returns (bool) {
         if (!winnersIdentified) {
             revert UnknownWinners();
         }
@@ -521,11 +529,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @param _betIndex the index of Bet being withdrawn
      */
-    function withdrawPrize(uint256 _betIndex)
-        external
-        nonReentrant
-        onlyDelegateCall
-    {
+    function withdrawPrize(uint256 _betIndex) external nonReentrant onlyProxy {
         if (!prizesCalculated) {
             revert PrizesNotCalculated();
         }
@@ -564,7 +568,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() external onlyDelegateCall onlyOwner {
+    function destroyContract() external onlyProxy onlyOwner {
         selfdestruct(payable(this.owner()));
     }
 
@@ -602,6 +606,44 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      */
     function getCommissionValue() external view returns (uint256) {
         return _calculator.calcPercentage(_totalStake, commission);
+    }
+
+    /// @notice Indicates the permission to close the game based on the msg.sender and the time
+    // scheduled to start the game. If the msg.sender is the owner, he has always the permission
+    // to do it (not considering if the game is already closed or even finalized). If msg.sender
+    // is not the owner, then he is only allowed to close the game if it has passed 15 minutes
+    // from the time foreseen to start the game
+    function canClose() public view returns (bool) {
+        // console.log("owner", owner());
+        // console.log("_msgSender", _msgSender());
+        // console.log("block.timestamp", block.timestamp);
+        // console.log("datetimeGame + 15 * 60", datetimeGame + 15 * 60);
+        // console.log(
+        //     "passou o tempo",
+        //     block.timestamp >= datetimeGame + 15 * 60
+        // );
+        return
+            owner() == _msgSender() ||
+            block.timestamp >= datetimeGame + 15 * 60;
+    }
+
+    /// @notice Indicates the permission to finalize the game based on the msg.sender and the time
+    // scheduled to start the game. If the msg.sender is the owner, he has always the permission
+    // to do it (not considering if the game is already finalized or still open). If msg.sender
+    // is not the owner, then he is only allowed to finalize the game if it has passed 48 hours
+    // from the time foreseen to start the game
+    function canFinalize() public view returns (bool) {
+        // console.log("owner", owner());
+        // console.log("_msgSender", _msgSender());
+        // console.log("block.timestamp", block.timestamp);
+        // console.log("datetimeGame + 48 * 60 * 60", datetimeGame + 48 * 60 * 60);
+        // console.log(
+        //     "passou o tempo",
+        //     block.timestamp >= datetimeGame + 48 * 60 * 60
+        // );
+        return
+            owner() == _msgSender() ||
+            block.timestamp >= datetimeGame + 48 * 60 * 60;
     }
 
     /**

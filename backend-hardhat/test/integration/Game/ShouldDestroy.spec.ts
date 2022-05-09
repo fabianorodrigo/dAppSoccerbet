@@ -1,5 +1,5 @@
 import {expect} from "chai";
-import {ethers} from "hardhat";
+import {ethers, waffle} from "hardhat";
 import {Game, Game__factory} from "../../../typechain-types";
 
 export const shouldDestroyGameContract = (): void => {
@@ -14,24 +14,24 @@ export const shouldDestroyGameContract = (): void => {
         this.game.address
       );
       //game contract balance should be ZERO
-      expect(await ethers.provider.getBalance(this.game.address)).to.be.equal(
+      expect(await waffle.provider.getBalance(this.game.address)).to.be.equal(
         ethers.constants.Zero
       );
       // The ETHER balance of the new TestingAuxiliar contract has to be 1 Ether
       expect(
-        await ethers.provider.getBalance(this.testingAuxiliar.address)
+        await waffle.provider.getBalance(this.testingAuxiliar.address)
       ).to.be.equal(weiAmount);
       // Destructing the testingAuxiliar should send it's Ethers to Game contract
       await this.testingAuxiliar.destroyContract();
-      expect(await ethers.provider.getBalance(this.game.address)).to.be.equal(
+      expect(await waffle.provider.getBalance(this.game.address)).to.be.equal(
         weiAmount
       );
       // Destructing the Game contract should send it's Ethers to owner
-      const ownerBalance = await ethers.provider.getBalance(
+      const ownerBalance = await waffle.provider.getBalance(
         await this.signers.owner.getAddress()
       );
       await this.game.connect(this.signers.owner).destroyContract();
-      const ownerBalancePostDestruction = await ethers.provider.getBalance(
+      const ownerBalancePostDestruction = await waffle.provider.getBalance(
         await this.signers.owner.getAddress()
       );
       expect(ownerBalancePostDestruction.gt(ownerBalance)).to.be.true;
@@ -63,7 +63,7 @@ export const shouldDestroyGameContract = (): void => {
 
       await expect(
         game.connect(this.signers.owner).destroyContract()
-      ).to.be.revertedWith("Function must be called through delegatecall");
+      ).to.be.revertedWith("NotDelegateCall()");
     });
   });
 };

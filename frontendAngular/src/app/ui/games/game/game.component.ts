@@ -22,6 +22,9 @@ export class GameComponent implements OnInit {
   gameCompound!: GameCompound;
   @Input()
   isAdmin: boolean = false;
+  canClose: boolean = false;
+  canFinalize: boolean = false;
+  owner: string = '';
 
   userAccountAddress: string | null = null;
 
@@ -59,13 +62,20 @@ export class GameComponent implements OnInit {
     this.winnersIdentified = this.gameCompound.game.winnersIdentified;
     this.prizesCalculated = this.gameCompound.game.prizesCalculated;
 
-    // Subscribing for account address changes in the provider
-    this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
-      this.userAccountAddress = address;
-    });
-
-    //events monitoring
     try {
+      this.owner = this.gameCompound.game.owner as string;
+
+      // Subscribing for account address changes in the provider
+      this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
+        this.userAccountAddress = address;
+        // when account changes, load the condition of current account be able to close or finalize the game
+        this.canClose = await this.gameCompound.gameService.canClose();
+        this.canFinalize = await this.gameCompound.gameService.canFinalize();
+        this._changeDetectorRefs.detectChanges();
+      });
+
+      //events monitoring
+
       //bettoken approve for game contract
       (
         await this._betTokenService.getEventBehaviorSubject({
@@ -131,17 +141,25 @@ export class GameComponent implements OnInit {
 
   openForBetting() {
     this.action(Action.OPEN);
-    this.gameCompound.gameService.openForBetting().subscribe((transactionResult) => {
+    this.gameCompound.gameService.openForBetting(this._genericCallback.bind(this)).subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
-      this.action();
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
+        this.action();
+      }
     });
   }
 
   closeForBetting() {
     this.action(Action.CLOSE);
-    this.gameCompound.gameService.closeForBetting().subscribe((transactionResult) => {
+    this.gameCompound.gameService.closeForBetting(this._genericCallback.bind(this)).subscribe((transactionResult) => {
       this._messageService.show(transactionResult.result);
-      this.action();
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
+        this.action();
+      }
     });
   }
 
@@ -403,13 +421,17 @@ export class GameComponent implements OnInit {
     });
   }
 
-  private action(a?: Action) {
+  private async action(a?: Action) {
     if (a) {
       this.currentAction = a;
       this.loading = true;
     } else {
       this.currentAction = Action.NONE;
       this.loading = false;
+      // when finishes some action, load the condition of current account be able to close or finalize the game
+      this.canClose = await this.gameCompound.gameService.canClose();
+      this.canFinalize = await this.gameCompound.gameService.canFinalize();
+      this._changeDetectorRefs.detectChanges();
     }
   }
 }

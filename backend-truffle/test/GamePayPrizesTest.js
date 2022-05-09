@@ -12,7 +12,7 @@ const Calculator = artifacts.require("Calculator");
 const Game = artifacts.require("Game");
 
 contract("Game", (accounts) => {
-  const DATETIME_20220716_170000_IN_MINUTES = new BN(
+  const DATETIME_20220716_170000_IN_SECONDS = new BN(
     new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000
   );
   // The owner is gonna be sent by 7º Ganache account
@@ -62,7 +62,7 @@ contract("Game", (accounts) => {
       owner,
       "SÃO PAULO",
       "ATLÉTICO-MG",
-      DATETIME_20220716_170000_IN_MINUTES,
+      DATETIME_20220716_170000_IN_SECONDS,
       erc20BetToken.address,
       calculator.address,
       new BN(10),
