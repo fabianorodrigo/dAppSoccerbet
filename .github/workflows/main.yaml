@@ -27,8 +27,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: cd backend-hardhat
-      - run: ls
-      - run: npm install
-      - run: npm run build
-      - run: npm run test
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend-hardhat
+      - name: Build
+        run: npm run build
+        working-directory: ./backend-hardhat
+      - name: Run tests
+        run: npm run test
+        working-directory: ./backend-hardhat
