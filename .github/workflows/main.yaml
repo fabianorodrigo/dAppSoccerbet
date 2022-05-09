@@ -1,6 +1,11 @@
 name: dappsoccerbet_hardhat CI
+description: Continuous Integration Actions of the Ðapp Soccer Bet
+authors: Fabiano Nascimento
 
-on: [push]
+on:
+  push:
+    paths:
+      - "backend-hardhat/**"
 env:
   NETWORK: $NETWORK
   RPC_URL_ZNX_TESTNET: $RPC_URL_ZNX_TESTNET
