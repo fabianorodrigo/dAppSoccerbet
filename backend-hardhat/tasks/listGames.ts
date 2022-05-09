@@ -6,11 +6,6 @@ import {
   PROXIES_ADDRESSES_FILENAME,
 } from "../scripts/ProxiesAddresses";
 import {BetDTO} from "../test/model";
-import {
-  GameFactoryUpgradeable,
-  GameFactoryUpgradeable__factory,
-} from "../typechain-types";
-//import {TestUtils} from "../test/TestUtils";
 
 task("listGames", "List games on the Ganache network").setAction(
   async (taskArgs, hre) => {
@@ -40,9 +35,10 @@ task("listGames", "List games on the Ganache network").setAction(
       proxiesAddresses.BETTOKEN_PROXY_ADDRESS
     );
     //GameFactory contract
-    const GameFactory: GameFactoryUpgradeable__factory =
-      await hre.ethers.getContractFactory("GameFactoryUpgradeable");
-    const gameFactory: GameFactoryUpgradeable = await GameFactory.attach(
+    const GameFactory = await hre.ethers.getContractFactory(
+      "GameFactoryUpgradeable"
+    );
+    const gameFactory = await GameFactory.attach(
       proxiesAddresses.GAMEFACTORY_PROXY_ADDRESS
     );
 
