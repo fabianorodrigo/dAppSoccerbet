@@ -34,3 +34,5 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./backend-hardhat
+      - name: Slither
+        uses: ./slither.yaml
