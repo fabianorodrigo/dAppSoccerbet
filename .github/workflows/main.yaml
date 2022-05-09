@@ -1,4 +1,4 @@
-name: dappsoccerbet_hardhat CI
+name: Ðapp Soccer Bet Hardhat CI
 
 on:
   [push]
