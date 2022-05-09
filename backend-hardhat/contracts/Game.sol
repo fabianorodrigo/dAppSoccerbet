@@ -614,6 +614,14 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     // is not the owner, then he is only allowed to close the game if it has passed 15 minutes
     // from the time foreseen to start the game
     function canClose() public view returns (bool) {
+        // console.log("owner", owner());
+        // console.log("_msgSender", _msgSender());
+        // console.log("block.timestamp", block.timestamp);
+        // console.log("datetimeGame + 15 * 60", datetimeGame + 15 * 60);
+        // console.log(
+        //     "passou o tempo",
+        //     block.timestamp >= datetimeGame + 15 * 60
+        // );
         return
             owner() == _msgSender() ||
             block.timestamp >= datetimeGame + 15 * 60;
@@ -625,6 +633,14 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     // is not the owner, then he is only allowed to finalize the game if it has passed 48 hours
     // from the time foreseen to start the game
     function canFinalize() public view returns (bool) {
+        // console.log("owner", owner());
+        // console.log("_msgSender", _msgSender());
+        // console.log("block.timestamp", block.timestamp);
+        // console.log("datetimeGame + 48 * 60 * 60", datetimeGame + 48 * 60 * 60);
+        // console.log(
+        //     "passou o tempo",
+        //     block.timestamp >= datetimeGame + 48 * 60 * 60
+        // );
         return
             owner() == _msgSender() ||
             block.timestamp >= datetimeGame + 48 * 60 * 60;
