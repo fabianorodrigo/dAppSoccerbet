@@ -1,6 +1,4 @@
 name: dappsoccerbet_hardhat CI
-description: Continuous Integration Actions of the Ðapp Soccer Bet
-authors: Fabiano Nascimento
 
 on:
   [push]
