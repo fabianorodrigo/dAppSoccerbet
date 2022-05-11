@@ -34,6 +34,7 @@ export class GameWinnersDialogComponent implements OnInit {
     public data: {
       gameCompound: GameCompound;
       winnerBets: Bet[];
+      paused: boolean;
     },
     private _numberService: NumbersService,
     private _web3Service: Web3Service,

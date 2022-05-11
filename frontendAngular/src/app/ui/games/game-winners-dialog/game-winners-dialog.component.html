@@ -42,7 +42,7 @@
             matTooltip="Withdraw an ammount of Soccer Bet Tokens"
             (click)="withdraw(i)"
             [class.spinner]="loading"
-            [disabled]="loading"
+            [disabled]="loading || data.paused"
           >
             Withdraw
           </button>

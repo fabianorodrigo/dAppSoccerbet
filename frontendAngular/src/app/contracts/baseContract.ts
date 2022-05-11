@@ -250,6 +250,7 @@ export abstract class BaseContract {
               });
           } catch (e: any) {
             const providerError = ProviderErrors[e.code];
+            console.log(e.message);
             let message = `We had some problem. The transaction wasn't sent.`;
             if (providerError) {
               message = `${providerError.title}: ${providerError.message}. The transaction wasn't sent.`;
