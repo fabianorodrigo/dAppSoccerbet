@@ -34,6 +34,25 @@ export const shouldDestroyBetTokenContract = (): void => {
       ).to.be.revertedWith("Function must be called through delegatecall");
     });
 
+    it(`Should revert when try to destroy a paused BetToken contract`, async function () {
+      const weiAmount = ethers.utils.parseEther("1.0");
+      await this.signers.bettorA.sendTransaction({
+        to: this.betToken.address,
+        value: weiAmount,
+      });
+      //pause game
+      const receiptPause = await this.betToken
+        .connect(this.signers.owner)
+        .pause();
+      expect(receiptPause)
+        .to.emit(this.betToken, "Paused")
+        .withArgs(this.signers.owner.address);
+      //destroy
+      expect(
+        this.betToken.connect(this.signers.owner).destroyContract()
+      ).to.be.revertedWith("Pausable: paused");
+    });
+
     it(`Should Ether goes to ERC20 owner after destroy contract`, async function () {
       const weiAmount = ethers.utils.parseEther("1.0");
       await this.signers.bettorA.sendTransaction({

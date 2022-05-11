@@ -32,6 +32,8 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
   - ERC20Upgradeable
   - UUPSUpgradeable
   - Clones
+  - Pausable
+  - PausableUpgradeable
 
 ### Quality Assurance
 
