@@ -623,6 +623,17 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
         _pause();
     }
 
+   /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     /// @notice Indicates the permission to close the game based on the msg.sender and the time
     // scheduled to start the game. If the msg.sender is the owner, he has always the permission
     // to do it (not considering if the game is already closed or even finalized). If msg.sender

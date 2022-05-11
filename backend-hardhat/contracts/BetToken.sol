@@ -122,6 +122,17 @@ contract BetTokenUpgradeable is
         _pause();
     }
 
+   /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     function _authorizeUpgrade(address newImplementation)
         internal
         override
