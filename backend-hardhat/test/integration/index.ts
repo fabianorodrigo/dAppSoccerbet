@@ -34,6 +34,8 @@ describe(`Integration tests`, async () => {
   let snapshot: any;
 
   before(async function () {
+    // try to workaround:  nonce has already been used NONCE_EXPIRED
+    snapshot = await ethers.provider.send("evm_snapshot", []);
     const accounts = waffle.provider.getWallets();
 
     this.signers = {} as Signers;
@@ -53,13 +55,11 @@ describe(`Integration tests`, async () => {
      * This makes our runtimes significantly faster than using beforeEach.
      */
     this.loadFixture = waffle.createFixtureLoader(accounts);
-    // try to workaround:  nonce has already been used NONCE_EXPIRED
-    //snapshot = await waffle.provider.send("evm_snapshot", []);
   });
 
   after(async function () {
     // try to workaround:  nonce has already been used NONCE_EXPIRED
-    //await waffle.provider.send("evm_revert", [snapshot]);
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
 
   describe(`Bet Token`, async () => {
