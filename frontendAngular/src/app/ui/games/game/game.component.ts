@@ -24,6 +24,7 @@ export class GameComponent implements OnInit {
   isAdmin: boolean = false;
   canClose: boolean = false;
   paused: boolean = false;
+  betTokenPaused: boolean = false;
   canFinalize: boolean = false;
   owner: string = '';
 
@@ -73,6 +74,7 @@ export class GameComponent implements OnInit {
         this.canClose = await this.gameCompound.gameService.canClose();
         this.canFinalize = await this.gameCompound.gameService.canFinalize();
         this.paused = await this.gameCompound.gameService.paused();
+        this.betTokenPaused = await this._betTokenService.paused();
         this._changeDetectorRefs.detectChanges();
       });
 
@@ -460,6 +462,7 @@ export class GameComponent implements OnInit {
       this.canClose = await this.gameCompound.gameService.canClose();
       this.canFinalize = await this.gameCompound.gameService.canFinalize();
       this.paused = await this.gameCompound.gameService.paused();
+      this.betTokenPaused = await this._betTokenService.paused();
       this._changeDetectorRefs.detectChanges();
     }
   }

@@ -29,11 +29,10 @@ Visit the [worflow documentation](./docs/workflow/) for a more detailed descript
   - ReentrancyGuard
   - ReentrancyGuardUpgradeable
   - Initializable
-  - ERC20Upgradeable
+  - ERC20PausableUpgradeable
   - UUPSUpgradeable
   - Clones
   - Pausable
-  - PausableUpgradeable
 
 ### Quality Assurance
 

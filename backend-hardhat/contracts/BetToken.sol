@@ -20,20 +20,19 @@ Events
 Functions
 */
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 contract BetTokenUpgradeable is
     Initializable,
-    ERC20Upgradeable,
+    ERC20PausableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    ReentrancyGuardUpgradeable,
-    PausableUpgradeable
+    ReentrancyGuardUpgradeable
+    
 {
     event TokenMinted(
         address indexed tokenBuyer,
@@ -58,7 +57,7 @@ contract BetTokenUpgradeable is
         __ERC20_init("Soccer Bet Token", "SBT");
         __Ownable_init();
         __ReentrancyGuard_init();
-        __Pausable_init();
+        __ERC20Pausable_init();
     }
 
     /**

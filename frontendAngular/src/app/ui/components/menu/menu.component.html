@@ -16,7 +16,11 @@
     <a matline>Administration</a>
   </mat-list-item>
   <mat-menu #menu="matMenu">
-    <button mat-menu-item routerLink="/adminToken" (click)="onSidenavClose()">
+    <button
+      mat-menu-item
+      routerLink="/adminBetToken"
+      (click)="onSidenavClose()"
+    >
       Bet Token
     </button>
     <button mat-menu-item routerLink="/adminGames" (click)="onSidenavClose()">

@@ -93,4 +93,36 @@ export class BetTokenService extends BaseContract {
       _value
     );
   }
+
+  /**
+   * Pause the contract BetToken
+   * @param _callback  Function to be called when the transaction is confirmed
+   * @returns result of transaction submission
+   */
+  pause(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'pause',
+      'Transaction to pause Bet Token was sent successfully',
+      _callback
+    );
+  }
+
+  /**
+   * Unpause the contract BetToken returning to it's normal state
+   * @param _callback  Function to be called when the transaction is confirmed
+   * @returns result of transaction submission
+   */
+  unpause(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'unpause',
+      'Transaction to unpause the game was sent successfully',
+      _callback
+    );
+  }
+
+  paused(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], 'paused');
+  }
 }

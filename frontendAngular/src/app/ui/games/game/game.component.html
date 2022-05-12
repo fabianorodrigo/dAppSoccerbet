@@ -148,7 +148,7 @@
     <button
       mat-flat-button
       *ngIf="!finalized && !isAdmin"
-      [disabled]="!this.userAccountAddress || loading"
+      [disabled]="!this.userAccountAddress || loading || betTokenPaused"
       [class.spinner]="currentAction == 'APPROVE'"
       color="accent"
       matTooltip="Approve a maximum ammount of Bet Tokens to be spent on bettings on this Game"
