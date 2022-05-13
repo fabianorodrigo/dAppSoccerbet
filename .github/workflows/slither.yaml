@@ -31,8 +31,9 @@ jobs:
           target: ${{ inputs.slither_target }}
           sarif: results.sarif
           slither-config: ${{ inputs.slither_config }}
-      - name: ls
-        run: find / -name results.sarif
+      - run: pwd
+      - name: find
+        run: find . -name results.sarif
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
