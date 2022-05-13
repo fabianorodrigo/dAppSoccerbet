@@ -39,6 +39,7 @@ jobs:
         id: slither
         continue-on-error: true
         with:
+          working-directory: ./backend-hardhat
           sarif: results.sarif
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
