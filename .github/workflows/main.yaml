@@ -13,7 +13,7 @@ env:
   ROPSTEN_URL: $ROPSTEN_URL
 jobs:
   build_test:
-    name: Ðapp Soccer Bet Hardhat - CI
+    name: Integration Tests
     runs-on: ubuntu-latest
 
     strategy:
@@ -61,7 +61,7 @@ jobs:
 #          path: /
         
   slither:
-    name: Ðapp Soccer Bet Hardhat - QA
+    name: Static Analysis
     runs-on: ubuntu-latest
     needs: build_test
     steps:
