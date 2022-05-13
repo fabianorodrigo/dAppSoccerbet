@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_test
     steps:
-      - uses: ./.github/actions/slither.yaml
+      - uses: ./slither.yaml
     # steps:
     #   - uses: actions/checkout@v3
     #   - name: slither
