@@ -11,8 +11,16 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+
     steps:
       - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: ls
         run: ls -la
       - name: Run Slither
@@ -23,7 +31,8 @@ jobs:
           target: ${{ inputs.slither_target }}
           sarif: results.sarif
           slither-config: ${{ inputs.slither_config }}
-
+      - name: ls
+        run: ls -la
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
