@@ -41,15 +41,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_test
     steps:
+      - name: lista-l
+        run: ls  -l  
       - name: slither
         uses: crytic/slither-action@v0.1.1
         id: slither
         continue-on-error: true
         with:
-          working-directory: ./backend-hardhat
           sarif: results.sarif
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
-          working-directory: ./backend-hardhat
           sarif_file: ${{ steps.slither.outputs.sarif }}
