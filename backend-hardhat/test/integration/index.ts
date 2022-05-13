@@ -35,7 +35,7 @@ describe(`Integration tests`, async () => {
 
   before(async function () {
     // try to workaround:  nonce has already been used NONCE_EXPIRED
-    snapshot = await ethers.provider.send("evm_snapshot", []);
+    //snapshot = await ethers.provider.send("evm_snapshot", []);
     const accounts = waffle.provider.getWallets();
 
     this.signers = {} as Signers;
@@ -59,7 +59,7 @@ describe(`Integration tests`, async () => {
 
   after(async function () {
     // try to workaround:  nonce has already been used NONCE_EXPIRED
-    await ethers.provider.send("evm_revert", [snapshot]);
+    //await ethers.provider.send("evm_revert", [snapshot]);
   });
 
   describe(`Bet Token`, async () => {
