@@ -32,8 +32,8 @@ jobs:
           sarif: results.sarif
           slither-config: ${{ inputs.slither_config }}
       - name: ls
-        run: ls -la
+        run: ls -la ./backend-hardhat
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
+          sarif_file: ${{ inputs.slither_target }}/${{ steps.slither.outputs.sarif }}
