@@ -55,15 +55,7 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./backend-hardhat
-  #      - uses: actions/upload-artifact@master
-  #        with:
-  #          name: upload de algo
-  #          path: /
-
   slither:
-    name: Static Analysis
-    runs-on: ubuntu-latest
-    needs: build_test
     uses: ./.github/workflows/slither.yaml
     with:
       slither_target: ./backend-hardhat
