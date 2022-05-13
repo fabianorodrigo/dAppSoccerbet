@@ -1,5 +1,13 @@
 name: Slither Analysis
-on: [push]
+on:
+  workflow_call:
+    inputs:
+      slither_target:
+        required: true
+        type: string
+      slither_config:
+        required: false
+        type: string
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -10,9 +18,9 @@ jobs:
         id: slither
         continue-on-error: true
         with:
-          target: ./backend-hardhat
+          target: ${{ inputs.slither_target }}
           sarif: results.sarif
-          slither-config: ./slither.config.json
+          slither-config: ${{ inputs.slither_config }}
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
