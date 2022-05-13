@@ -13,13 +13,14 @@ export const shouldBuySomeToken = (): void => {
       const erc20BalanceETH = await waffle.provider.getBalance(
         this.betToken.address
       );
-      let receipt = await this.signers.bettorA.sendTransaction({
-        to: this.betToken.address,
-        value: weiAmount,
-      });
 
       // Test for event
-      await expect(receipt)
+      await expect(
+        this.signers.bettorA.sendTransaction({
+          to: this.betToken.address,
+          value: weiAmount,
+        })
+      )
         .to.emit(this.betToken, "TokenMinted")
         .withArgs(
           await this.signers.bettorA.getAddress(),
@@ -40,15 +41,16 @@ export const shouldBuySomeToken = (): void => {
       //One wei => 1 Ether = 1 * 10^18 wei
       const weiAmount = 1; //new BN(1);
       //pause game
-      const receiptPause = await this.betToken
+      const receiptPausePromise = this.betToken
         .connect(this.signers.owner)
         .pause();
-      expect(receiptPause)
+      await expect(receiptPausePromise)
         .to.emit(this.betToken, "Paused")
         .withArgs(this.signers.owner.address);
+
       expect(await this.betToken.paused()).to.be.true;
       // send Ether
-      expect(
+      await expect(
         this.signers.bettorA.sendTransaction({
           to: this.betToken.address,
           value: weiAmount,

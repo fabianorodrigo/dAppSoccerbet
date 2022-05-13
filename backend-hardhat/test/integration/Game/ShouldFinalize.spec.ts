@@ -12,24 +12,24 @@ export const shouldFinalize = (): void => {
   context(`#finalize`, async function () {
     it(`Should finalize a closed game and emit event 'GameFinalized'`, async function () {
       const score = {home: 3, visitor: 1};
-      const receiptFinalize = await this.game
+      const receiptFinalizePromise = this.game
         .connect(this.signers.owner)
         .finalizeGame(score);
-      expect(await this.game.open()).to.be.false;
-      expect(await this.game.finalized()).to.be.true;
-      const finalScore = await this.game.finalScore();
-      expect(finalScore.home).to.be.equal(score.home);
-      expect(finalScore.visitor).to.be.equal(score.visitor);
-      expect(receiptFinalize)
+      await expect(receiptFinalizePromise)
         .to.emit(this.game, "GameFinalized")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS,
-          ethers.constants.Zero,
+          await this.game.datetimeGame(),
           [score.home, score.visitor]
         );
+
+      expect(await this.game.open()).to.be.false;
+      expect(await this.game.finalized()).to.be.true;
+      const finalScore = await this.game.finalScore();
+      expect(finalScore.home).to.be.equal(score.home);
+      expect(finalScore.visitor).to.be.equal(score.visitor);
     });
 
     it(`Should revert if try to finalize an open game`, async function () {
@@ -38,7 +38,7 @@ export const shouldFinalize = (): void => {
       await this.game.connect(this.signers.owner).openForBetting();
       await expect(
         this.game.connect(this.signers.owner).finalizeGame(score)
-      ).to.revertedWith("GameNotClosed()");
+      ).to.be.revertedWith("GameNotClosed()");
       expect(await this.game.finalized()).to.be.false;
       const finalScore = await this.game.finalScore();
       expect(finalScore.home).to.be.equal(ethers.constants.Zero);
@@ -50,7 +50,7 @@ export const shouldFinalize = (): void => {
       await this.game.connect(this.signers.owner).finalizeGame(score);
       await expect(
         this.game.connect(this.signers.owner).finalizeGame(score)
-      ).to.revertedWith("GameAlreadyFinalized()");
+      ).to.be.revertedWith("GameAlreadyFinalized()");
     });
     it(`Should not be allowed someone different from owner finalize a game before has passed 48 hours of it's starting time`, async function () {
       //Game created for tests starts in 30 minutes and it`s free to anyone finalize it 48 hours later,
@@ -78,7 +78,7 @@ export const shouldFinalize = (): void => {
 
       await expect(
         this.game.connect(this.signers.bettorA).finalizeGame(score)
-      ).to.revertedWith("onlyOwnerORgameAlreadyFinished()");
+      ).to.be.revertedWith("onlyOwnerORgameAlreadyFinished()");
     });
     it(`Should be allowed someone different from owner finalize a game for betting 48 after it has begun`, async function () {
       //Game created for tests starts in 30 minutes and it`s free to anyone finalize it 48 hours later,
@@ -107,30 +107,30 @@ export const shouldFinalize = (): void => {
       // so we move the blockchain ahead of time 48 hours and 31 minutes and should be possible to the bettorA close it
       await this.utils.moveTime(48 * 60 * 60 + 31 * 60);
 
-      const receiptFinalize = await this.game
+      const receiptFinalizePromise = this.game
         .connect(this.signers.bettorE)
         .finalizeGame(score);
-      expect(await this.game.open()).to.be.false;
-      expect(await this.game.finalized()).to.be.true;
-      const finalScore = await this.game.finalScore();
-      expect(finalScore.home).to.be.equal(score.home);
-      expect(finalScore.visitor).to.be.equal(score.visitor);
-      expect(receiptFinalize)
+      await expect(receiptFinalizePromise)
         .to.emit(this.game, "GameFinalized")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS,
-          ethers.constants.Zero,
+          await this.game.datetimeGame(),
           [score.home, score.visitor]
         );
+
+      expect(await this.game.open()).to.be.false;
+      expect(await this.game.finalized()).to.be.true;
+      const finalScore = await this.game.finalScore();
+      expect(finalScore.home).to.be.equal(score.home);
+      expect(finalScore.visitor).to.be.equal(score.visitor);
     });
     it(`Should revert if try to finalize a paused game`, async function () {
       const score = {home: 3, visitor: 1};
       //pause game
-      const receiptPause = await this.game.connect(this.signers.owner).pause();
-      expect(receiptPause)
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
         .to.emit(this.game, "Paused")
         .withArgs(this.signers.owner.address);
       expect(await this.game.paused()).to.be.true;

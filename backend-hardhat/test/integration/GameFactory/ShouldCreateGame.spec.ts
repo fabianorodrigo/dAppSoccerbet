@@ -12,17 +12,23 @@ export const shouldCreatGame = (): void => {
 
   context(`#createGame`, async function () {
     it(`Should create a new game`, async function () {
-      const receipt = await this.gameFactory.newGame(
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_163000_IN_MINUTES
-      );
-      expect(receipt).to.emit(this.gameFactory, "GameCreated").withArgs(
-        "0x4ABEaCA4b05d8fA4CED09D26aD28Ea298E8afaC8", //"0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08", //constant address created by Waffle or Hardhat node
-        "SÃO PAULO",
-        "ATLÉTICO-MG",
-        DATETIME_20220716_163000_IN_MINUTES
-      );
+      const receiptPromise = this.gameFactory
+        .connect(this.signers.owner)
+        .newGame(
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_163000_IN_MINUTES
+        );
+      await expect(receiptPromise)
+        .to.emit(this.gameFactory, "GameCreated")
+        .withArgs(
+          "0x06cd7788D77332cF1156f1E327eBC090B5FF16a3", //"0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08", //constant address created by Waffle or Hardhat node
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          DATETIME_20220716_163000_IN_MINUTES,
+          10,
+          await this.signers.owner.getAddress()
+        );
     });
 
     it(`Should catch events CreateGame`, async function () {

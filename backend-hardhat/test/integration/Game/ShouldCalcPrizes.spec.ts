@@ -78,8 +78,8 @@ export const shouldCalcPrizes = (): void => {
       // identify the winners bets
       await this.game.identifyWinners();
       //pause game
-      const receiptPause = await this.game.connect(this.signers.owner).pause();
-      expect(receiptPause)
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
         .to.emit(this.game, "Paused")
         .withArgs(this.signers.owner.address);
       // Calculates the prizes

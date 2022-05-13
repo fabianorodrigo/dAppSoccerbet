@@ -41,14 +41,14 @@ export const shouldDestroyBetTokenContract = (): void => {
         value: weiAmount,
       });
       //pause game
-      const receiptPause = await this.betToken
+      const receiptPausePromise = this.betToken
         .connect(this.signers.owner)
         .pause();
-      expect(receiptPause)
+      await expect(receiptPausePromise)
         .to.emit(this.betToken, "Paused")
         .withArgs(this.signers.owner.address);
       //destroy
-      expect(
+      await expect(
         this.betToken.connect(this.signers.owner).destroyContract()
       ).to.be.revertedWith("Pausable: paused");
     });

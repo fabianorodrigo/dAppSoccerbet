@@ -12,18 +12,19 @@ export const shouldOpen = (): void => {
   context(`#open`, async function () {
     it(`Should open closed game for betting and emit event 'GameOpened'`, async function () {
       //Game is initially closed for betting
-      const receiptOpen = await this.game
+      const receiptOpenPromise = this.game
         .connect(this.signers.owner)
         .openForBetting();
-      expect(await this.game.open()).to.be.true;
-      expect(receiptOpen)
+      await expect(receiptOpenPromise)
         .to.emit(this.game, "GameOpened")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
+
+      expect(await this.game.open()).to.be.true;
     });
 
     it(`Should revert when try open for betting an already open game`, async function () {
@@ -31,13 +32,13 @@ export const shouldOpen = (): void => {
       await this.game.connect(this.signers.owner).openForBetting();
       await expect(
         this.game.connect(this.signers.owner).openForBetting()
-      ).to.revertedWith("GameNotClosed()");
+      ).to.be.revertedWith("GameNotClosed()");
     });
 
     it(`Should revert if someone different from owner try open a game for betting`, async function () {
       await expect(
         this.game.connect(this.signers.bettorA).openForBetting()
-      ).to.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it(`Should revert if try to call OPEN direct to the implementation contract is spite of the minimal proxy`, async function () {

@@ -29,21 +29,35 @@ export const shouldBet = (): void => {
         await this.betToken.balanceOf(this.signers.bettorA.address)
       ).to.be.equal(1001);
       //////////////// BETTOR ALLOWS {this.game} SPENT THE VALUE OF THE BET IN HIS NAME
-      const receiptApprove = await this.betToken
+      const receiptApprovePromise = this.betToken
         .connect(this.signers.bettorA)
         .approve(this.game.address, betTokenAmount);
-      expect(receiptApprove)
+      await expect(receiptApprovePromise)
         .to.emit(this.betToken, "Approval")
-        .withArgs(this.betToken, this.game.address, betTokenAmount);
+        .withArgs(
+          await this.signers.bettorA.getAddress(),
+          this.game.address,
+          betTokenAmount
+        );
       const allowanceValue = await this.betToken.allowance(
         this.signers.bettorA.address,
         this.game.address
       );
       expect(allowanceValue).to.be.equal(betTokenAmount);
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-      const receiptBet = await this.game
+      const receiptBetPromise = this.game
         .connect(this.signers.bettorA)
         .bet(score, betTokenAmount);
+      await expect(receiptBetPromise)
+        .to.emit(this.game, "BetOnGame")
+        .withArgs(
+          this.game.address,
+          this.signers.bettorA.address,
+          "SÃO PAULO",
+          "ATLÉTICO-MG",
+          await this.game.datetimeGame(),
+          [score.home, score.visitor]
+        );
       // The BETTOKEN balances of the Game contract and the bettor are, respectively, 1001 and 0 BETTOKENs
       expect(await this.betToken.balanceOf(this.game.address)).to.be.equal(
         1001
@@ -51,17 +65,6 @@ export const shouldBet = (): void => {
       expect(
         await this.betToken.balanceOf(this.signers.bettorA.address)
       ).to.be.equal(ethers.constants.Zero);
-
-      expect(receiptBet)
-        .to.emit(this.game, "BetOnGame")
-        .withArgs(
-          this.game.address,
-          this.signers.bettorA.address,
-          "SÃO PAULO",
-          "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS,
-          [score.home, score.visitor]
-        );
     });
 
     it(`Should revert if try to bet on a closed game`, async function () {
@@ -101,9 +104,9 @@ export const shouldBet = (): void => {
       //Game is initially closed for betting
       await this.game.connect(this.signers.owner).openForBetting();
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-      expect(
+      await expect(
         this.game.connect(this.signers.bettorA).bet(score, betTokenAmount)
-      ).to.revertedWith("InsufficientTokenBalance(0)");
+      ).to.be.revertedWith("InsufficientTokenBalance(0)");
     });
 
     it(`Should revert if try to bet on a game without approve enough Bet Tokens for Game contract`, async function () {
@@ -125,7 +128,7 @@ export const shouldBet = (): void => {
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
       await expect(
         this.game.connect(this.signers.bettorA).bet(score, betTokenAmount)
-      ).to.revertedWith("ERC20: insufficient allowance");
+      ).to.be.revertedWith("ERC20: insufficient allowance");
     });
 
     it(`Should revert if try to bet on a paused game`, async function () {
@@ -142,8 +145,8 @@ export const shouldBet = (): void => {
         .connect(this.signers.bettorA)
         .approve(this.game.address, betTokenAmount);
       //pause game
-      const receiptPause = await this.game.connect(this.signers.owner).pause();
-      expect(receiptPause)
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
         .to.emit(this.game, "Paused")
         .withArgs(this.signers.owner.address);
       //Game is initially closed for betting. Since the game was not opened, it has to revert

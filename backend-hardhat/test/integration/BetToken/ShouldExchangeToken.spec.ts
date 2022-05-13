@@ -61,14 +61,14 @@ export const shouldExchange4Ethers = (): void => {
         value: weiAmount,
       });
       //pause game
-      const receiptPause = await this.betToken
+      const receiptPausePromise = this.betToken
         .connect(this.signers.owner)
         .pause();
-      expect(receiptPause)
+      await expect(receiptPausePromise)
         .to.emit(this.betToken, "Paused")
         .withArgs(this.signers.owner.address);
       // exchange
-      expect(
+      await expect(
         this.betToken.connect(this.signers.bettorA).exchange4Ether(1)
       ).to.be.revertedWith("Pausable: paused");
     });

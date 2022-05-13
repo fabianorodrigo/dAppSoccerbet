@@ -18,10 +18,10 @@ export const shouldSetCommission = (): void => {
         DATETIME_20220716_163000_IN_MINUTES
       );
       expect(await this.gameFactory.getCommission()).to.be.equal(10);
-      const setCommissionReceipt = await this.gameFactory
+      const setCommissionReceiptPromise = this.gameFactory
         .connect(this.signers.owner)
         .setCommission(16);
-      expect(setCommissionReceipt)
+      await expect(setCommissionReceiptPromise)
         .to.emit(this.gameFactory, "CommissionChanged")
         .withArgs(10, 16);
       expect(await this.gameFactory.getCommission()).to.be.equal(16);
@@ -30,7 +30,7 @@ export const shouldSetCommission = (): void => {
     it(`Should revert if someone different from owner try set commission`, async function () {
       await expect(
         this.gameFactory.connect(this.signers.bettorA).setCommission(16)
-      ).to.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
 };
