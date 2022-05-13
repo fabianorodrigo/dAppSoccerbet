@@ -12,6 +12,7 @@ jobs:
         with:
           target: ./backend-hardhat
           sarif: results.sarif
+          slither-config: ./backend-hardhat/slither.config.json
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
