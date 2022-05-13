@@ -269,7 +269,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
     /**
      * @notice Initialize the contract's state variables
      *
-     * @param _owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
+     * @param __owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
      * @param _home The name of the team playing at home
      * @param _visitor The name of the team playing out of home
      * @param _datetimeGame The date/time scheduled to start the game
@@ -278,7 +278,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
      * @param _commission The percentage of stake that will be reverted to administrative costs
      */
     function initialize(
-        address payable _owner,
+        address payable __owner,
         string calldata _home,
         string calldata _visitor,
         uint256 _datetimeGame,
@@ -296,7 +296,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
         );
         _calculator = CalculatorUpgradeable(_calculatorContractAddress);
         commission = _commission;
-        _transferOwnership(_owner);
+        _transferOwnership(__owner);
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -378,6 +378,18 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
             });
         }
 
+        _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
+        _totalStake += _value;
+
+        emit BetOnGame(
+            address(this),
+            msg.sender,
+            homeTeam,
+            visitorTeam,
+            datetimeGame,
+            _score
+        );
+
         //In the Bet Token, the sender is gonna be Game Contract.
         //In this case, before calling 'bet' function, the bettor has
         //to approve the spent of at least the amount of tokens of this bet
@@ -388,16 +400,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
             revert TokenTransferFail();
         }
 
-        _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
-        _totalStake += _value;
-        emit BetOnGame(
-            address(this),
-            msg.sender,
-            homeTeam,
-            visitorTeam,
-            datetimeGame,
-            _score
-        );
+
     }
 
     /**
@@ -648,9 +651,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
         //     "passou o tempo",
         //     block.timestamp >= datetimeGame + 15 * 60
         // );
+        //slither-disable-next-line timestamp
         return
             owner() == _msgSender() ||
-            block.timestamp >= datetimeGame + 15 * 60;
+            block.timestamp >= datetimeGame + 15 minutes;
     }
 
     /// @notice Indicates the permission to finalize the game based on the msg.sender and the time
@@ -667,9 +671,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Paus
         //     "passou o tempo",
         //     block.timestamp >= datetimeGame + 48 * 60 * 60
         // );
+        //slither-disable-next-line timestamp
         return
             owner() == _msgSender() ||
-            block.timestamp >= datetimeGame + 48 * 60 * 60;
+            block.timestamp >= datetimeGame + 48 hours;
     }
 
     /**

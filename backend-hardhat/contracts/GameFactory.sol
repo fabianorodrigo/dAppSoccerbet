@@ -27,6 +27,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "hardhat/console.sol";
 
+import "./Base.sol";
 import "./BetToken.sol";
 import "./Game.sol";
 import "./OnlyDelegateCall.sol";
@@ -37,6 +38,7 @@ import "./structs/GameDTO.sol";
  * @author Fabiano Nascimento
  */
 contract GameFactoryUpgradeable is
+    Base,
     Initializable,
     OwnableUpgradeable,
     OnlyDelegateCall
@@ -82,10 +84,11 @@ contract GameFactoryUpgradeable is
         private
     **/
 
+
     function initialize(
         address _betTokenContractAddress,
         address _calculatorContractAddress
-    ) external initializer onlyProxy {
+    ) external nonZeroAddress(_betTokenContractAddress) nonZeroAddress(_calculatorContractAddress) initializer onlyProxy {
         __Ownable_init();
         betTokenContractAddress = _betTokenContractAddress;
         calculatorContractAddress = _calculatorContractAddress;
@@ -141,6 +144,17 @@ contract GameFactoryUpgradeable is
         address clone = Clones.clone(gameImplementation);
         //calls Game.initialize
         Game g = Game(clone);
+
+        //event moved to before the external call g.initilize as slither pointed out
+        emit GameCreated(
+            clone,
+            _home,
+            _visitor,
+            _datetimeGame,
+            commission,
+            payable(this.owner())
+        );
+
         // console.log("GameFactory address", address(this));
         // console.log("Template address", gameImplementation);
         // console.log("CLone address", clone);
@@ -153,14 +167,7 @@ contract GameFactoryUpgradeable is
             calculatorContractAddress,
             commission
         );
-        emit GameCreated(
-            clone,
-            g.homeTeam(),
-            g.visitorTeam(),
-            g.datetimeGame(),
-            g.commission(),
-            g.owner()
-        );
+
     }
 
     /**
