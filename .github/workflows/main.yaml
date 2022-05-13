@@ -63,7 +63,7 @@ jobs:
   slither:
     name: Static Analysis
     runs-on: ubuntu-latest
+    needs: build_test
     steps:
-      - uses: actions/checkout@v3
       - name: Slither
         uses: ./slither.yaml
