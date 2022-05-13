@@ -55,7 +55,10 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./backend-hardhat
-      - uses: actions/upload-artifact@master      
+#      - uses: actions/upload-artifact@master
+#        with:
+#          name: upload de algo
+#          path: /
         
   slither:
     name: Ðapp Soccer Bet Hardhat - QA
