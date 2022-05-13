@@ -1,4 +1,4 @@
-name: Ðapp Soccer Bet Hardhat CI
+name: Ðapp Soccer Bet Hardhat CI/CD
 
 on:
   [push]
@@ -12,7 +12,8 @@ env:
   MNEMONIC: $MNEMONIC
   ROPSTEN_URL: $ROPSTEN_URL
 jobs:
-  start-hardhat-node:
+  build_test:
+    name: Ðapp Soccer Bet Hardhat - CI
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,7 +35,13 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./backend-hardhat
-      - name: Run Slither
+        
+  slither:
+    name: Ðapp Soccer Bet Hardhat - QA
+    runs-on: ubuntu-latest
+    needs: build_test
+    steps:
+      - name: slither
         uses: crytic/slither-action@v0.1.1
         id: slither
         continue-on-error: true
