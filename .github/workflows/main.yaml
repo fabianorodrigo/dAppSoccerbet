@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          
+
       - name: Cache node modules
         id: cache-npm
         uses: actions/cache@v3
@@ -45,7 +45,7 @@ jobs:
         name: List the state of node modules
         continue-on-error: true
         run: npm list
-          
+
       - name: Install dependencies
         run: npm install
         working-directory: ./backend-hardhat
@@ -55,19 +55,17 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./backend-hardhat
-#      - uses: actions/upload-artifact@master
-#        with:
-#          name: upload de algo
-#          path: /
-        
+  #      - uses: actions/upload-artifact@master
+  #        with:
+  #          name: upload de algo
+  #          path: /
+
   slither:
     name: Static Analysis
     runs-on: ubuntu-latest
     needs: build_test
     steps:
       - uses: actions/checkout@v3
-      - name: lista-l
-        run: ls  -l  
       - name: slither
         uses: crytic/slither-action@v0.1.1
         id: slither
