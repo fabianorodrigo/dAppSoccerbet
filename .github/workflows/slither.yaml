@@ -34,7 +34,8 @@ jobs:
       - run: pwd
       - name: find
         run: find . -name results.sarif
+      - run: echo '${{ steps.slither.outputs.sarif }}'
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ inputs.slither_target }}/${{ steps.slither.outputs.sarif }}
+          sarif_file: ${{ steps.slither.outputs.sarif }}
