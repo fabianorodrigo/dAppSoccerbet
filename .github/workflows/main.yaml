@@ -58,7 +58,7 @@ jobs:
   slither:
     uses: ./.github/workflows/slither.yaml
     with:
-      slither_target: ./backend-hardhat
+      slither_target: ./backend-hardhat/
       slither_config: ./backend-hardhat/slither.config.json
     # steps:
     #   - uses: actions/checkout@v3
