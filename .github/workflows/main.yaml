@@ -60,6 +60,8 @@ jobs:
     # with:
     #   slither_target: ./backend-hardhat/
     #   slither_config: ./backend-hardhat/slither.config.json
+    name: Static Analysis
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: slither
