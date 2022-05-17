@@ -1,8 +1,5 @@
-import {expect, assert} from "chai";
-import {BigNumber, BigNumberish, Signer, Transaction} from "ethers";
-import {parseEther} from "ethers/lib/utils";
-import {ethers, waffle} from "hardhat";
-import {BetTokenUpgradeable} from "../../../typechain-types";
+import {expect} from "chai";
+import {waffle} from "hardhat";
 
 export const shouldBuySomeToken = (): void => {
   //   // to silent warning for duplicate definition of Transfer event
@@ -16,13 +13,14 @@ export const shouldBuySomeToken = (): void => {
       const erc20BalanceETH = await waffle.provider.getBalance(
         this.betToken.address
       );
-      let receipt = await this.signers.bettorA.sendTransaction({
-        to: this.betToken.address,
-        value: weiAmount,
-      });
 
       // Test for event
-      await expect(receipt)
+      await expect(
+        this.signers.bettorA.sendTransaction({
+          to: this.betToken.address,
+          value: weiAmount,
+        })
+      )
         .to.emit(this.betToken, "TokenMinted")
         .withArgs(
           await this.signers.bettorA.getAddress(),
@@ -37,6 +35,27 @@ export const shouldBuySomeToken = (): void => {
       await expect(
         await waffle.provider.getBalance(this.betToken.address)
       ).to.be.equal(erc20BalanceETH.add(weiAmount));
+    });
+
+    it(`Should revert when try to send Ether to the BetToken contract paused`, async function () {
+      //One wei => 1 Ether = 1 * 10^18 wei
+      const weiAmount = 1; //new BN(1);
+      //pause game
+      const receiptPausePromise = this.betToken
+        .connect(this.signers.owner)
+        .pause();
+      await expect(receiptPausePromise)
+        .to.emit(this.betToken, "Paused")
+        .withArgs(this.signers.owner.address);
+
+      expect(await this.betToken.paused()).to.be.true;
+      // send Ether
+      await expect(
+        this.signers.bettorA.sendTransaction({
+          to: this.betToken.address,
+          value: weiAmount,
+        })
+      ).to.be.revertedWith("Pausable: paused");
     });
   });
 };

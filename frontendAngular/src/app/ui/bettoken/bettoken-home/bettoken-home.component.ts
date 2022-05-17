@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import * as BN from 'bn.js';
 import { BetTokenService } from 'src/app/contracts';
 import { BetTokenMintedEvent as BetTokenReceivedEvent, ERC20Transfer, TransactionResult } from 'src/app/model';
@@ -18,6 +19,9 @@ export class BettokenHomeComponent implements OnInit {
   formatedBalanceTooltip: string = '0';
   chainCurrencyName: string = environment.chainCurrencyName;
 
+  isAdmin: boolean = false;
+  paused: boolean = false;
+
   // just control of the `loading` visual behavior
   currentAction = Action.NONE;
   loading: boolean = false;
@@ -28,14 +32,21 @@ export class BettokenHomeComponent implements OnInit {
     private _betTokenService: BetTokenService,
     private _messageService: MessageService,
     private _numberService: NumbersService,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private _router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
     // Subscribing for account address changes in the provider
-    this._web3Service.getUserAccountAddressSubject().subscribe((address) => {
+    this._web3Service.getUserAccountAddressSubject().subscribe(async (address) => {
       this.userAccountAddress = address;
+      this.paused = await this._betTokenService.paused();
       this.getBalance();
+    });
+    //check if it the account is owner of BetToken
+    this._betTokenService.isOwner().subscribe((is) => {
+      //It is admin if the user is the owner of GameFactory contract and the route starts with '/admin'
+      this.isAdmin = is && this._router.url.startsWith('/admin');
     });
     try {
       // Subscribing for transfer of Ether to the BetToken contract and, consequently,
@@ -164,13 +175,43 @@ export class BettokenHomeComponent implements OnInit {
     }
   }
 
-  private action(a?: Action) {
+  pause() {
+    this.action(Action.PAUSE);
+    this._betTokenService
+      .pause(this._genericCallback.bind(this))
+      .subscribe((transactionResult: TransactionResult<string>) => {
+        this._messageService.show(transactionResult.result);
+        if (transactionResult.success) {
+          this._messageService.show(transactionResult.result);
+        } else {
+          this.action();
+        }
+      });
+  }
+
+  unpause() {
+    this.action(Action.UNPAUSE);
+    this._betTokenService
+      .unpause(this._genericCallback.bind(this))
+      .subscribe((transactionResult: TransactionResult<string>) => {
+        this._messageService.show(transactionResult.result);
+        if (transactionResult.success) {
+          this._messageService.show(transactionResult.result);
+        } else {
+          this.action();
+        }
+      });
+  }
+
+  private async action(a?: Action) {
     if (a) {
       this.currentAction = a;
       this.loading = true;
     } else {
       this.currentAction = Action.NONE;
       this.loading = false;
+      this.paused = await this._betTokenService.paused();
+      this._changeDetectorRefs.detectChanges();
     }
   }
 }
@@ -180,4 +221,6 @@ enum Action {
   BUY = 'BUY',
   EXCHANGE = `EXCHANGE`,
   BALANCE = `BALANCE`,
+  PAUSE = 'PAUSE',
+  UNPAUSE = 'UNPAUSE',
 }

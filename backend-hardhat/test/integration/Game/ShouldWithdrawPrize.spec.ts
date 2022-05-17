@@ -28,7 +28,7 @@ export const shouldWithdrawPrize = (): void => {
       await this.game.calcPrizes();
       await expect(
         this.game.connect(this.signers.bettorA).withdrawPrize(5)
-      ).to.revertedWith("InvalidBetIndex()");
+      ).to.be.revertedWith("InvalidBetIndex()");
     });
 
     it(`Should revert if try to withdraw the prize of a loser bet`, async function () {
@@ -50,7 +50,7 @@ export const shouldWithdrawPrize = (): void => {
       await this.game.calcPrizes();
       await expect(
         this.game.connect(this.signers.bettorE).withdrawPrize(4)
-      ).to.revertedWith("InvalidBettingResultForWithdrawing(1)");
+      ).to.be.revertedWith("InvalidBettingResultForWithdrawing(1)");
     });
 
     it(`Should revert if try to withdraw the prize of already paid bet`, async function () {
@@ -75,7 +75,7 @@ export const shouldWithdrawPrize = (): void => {
       // pay twice
       await expect(
         this.game.connect(this.signers.bettorE).withdrawPrize(4)
-      ).to.revertedWith("InvalidBettingResultForWithdrawing(4)");
+      ).to.be.revertedWith("InvalidBettingResultForWithdrawing(4)");
     });
 
     it(`Should revert if an account different from the bet's bettor is trying to withdraw the prize`, async function () {
@@ -97,9 +97,37 @@ export const shouldWithdrawPrize = (): void => {
       await this.game.calcPrizes();
       await expect(
         this.game.connect(this.signers.bettorA).withdrawPrize(4)
-      ).to.revertedWith(
+      ).to.be.revertedWith(
         `InvalidPrizeWithdrawer("${await this.signers.bettorE.getAddress()}")`
       );
+    });
+
+    it(`Should revert when try to withdraw prizes from a paused game`, async function () {
+      await this.utils.makeBets(
+        this.betToken,
+        this.game,
+        this.signers.owner,
+        this.BETS
+      );
+      //Closed for betting
+      await this.game.connect(this.signers.owner).closeForBetting();
+      //Finalize the game
+      await this.game
+        .connect(this.signers.owner)
+        .finalizeGame({home: 0, visitor: 3});
+      // identify the winners bets
+      await this.game.identifyWinners();
+      // Calculates the prizes
+      await this.game.calcPrizes();
+      //pause game
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      //withdraw
+      await expect(
+        this.game.connect(this.signers.bettorE).withdrawPrize(4)
+      ).to.be.revertedWith("Pausable: paused");
     });
 
     it(`Should withdraw 90% of stake to the winner bet`, async function () {
@@ -253,7 +281,7 @@ export const shouldWithdrawPrize = (): void => {
       await this.game.identifyWinners();
       await expect(
         this.game.connect(this.signers.bettorE).withdrawPrize(4)
-      ).to.revertedWith("PrizesNotCalculated()");
+      ).to.be.revertedWith("PrizesNotCalculated()");
     });
   });
 };

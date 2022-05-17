@@ -1,0 +1,41 @@
+name: Slither Analysis
+on:
+  workflow_call:
+    inputs:
+      slither_target:
+        required: true
+        type: string
+      slither_config:
+        required: true
+        type: string
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: ls
+        run: ls -la
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.1
+        id: slither
+        continue-on-error: true
+        with:
+          target: ${{ inputs.slither_target }}
+          sarif: results.sarif
+          slither-config: ${{ inputs.slither_config }}
+      - run: pwd
+      - name: find
+        run: find . -name results.sarif
+      - run: echo '${{ steps.slither.outputs.sarif }}'
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.slither.outputs.sarif }}

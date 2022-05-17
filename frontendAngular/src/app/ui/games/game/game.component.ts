@@ -23,6 +23,8 @@ export class GameComponent implements OnInit {
   @Input()
   isAdmin: boolean = false;
   canClose: boolean = false;
+  paused: boolean = false;
+  betTokenPaused: boolean = false;
   canFinalize: boolean = false;
   owner: string = '';
 
@@ -71,6 +73,8 @@ export class GameComponent implements OnInit {
         // when account changes, load the condition of current account be able to close or finalize the game
         this.canClose = await this.gameCompound.gameService.canClose();
         this.canFinalize = await this.gameCompound.gameService.canFinalize();
+        this.paused = await this.gameCompound.gameService.paused();
+        this.betTokenPaused = await this._betTokenService.paused();
         this._changeDetectorRefs.detectChanges();
       });
 
@@ -290,6 +294,7 @@ export class GameComponent implements OnInit {
   }
 
   private _genericCallback(confirmationResult: TransactionResult<string>) {
+    console.log(`voltou _genericCallback`);
     this.action();
     // not showing message because the capture of the event is already doing it
     //this._messageService.show(confirmationResult.result);
@@ -399,12 +404,37 @@ export class GameComponent implements OnInit {
             data: {
               gameCompound: this.gameCompound,
               winnerBets: _winners,
+              paused: this.paused,
             },
             minWidth: 900,
           });
         } else {
           this._messageService.show(`No winners on this game`);
         }
+        this.action();
+      }
+    });
+  }
+
+  pause() {
+    this.action(Action.PAUSE);
+    this.gameCompound.gameService.pause(this._genericCallback.bind(this)).subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.result);
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
+        this.action();
+      }
+    });
+  }
+
+  unpause() {
+    this.action(Action.UNPAUSE);
+    this.gameCompound.gameService.unpause(this._genericCallback.bind(this)).subscribe((transactionResult) => {
+      this._messageService.show(transactionResult.result);
+      if (transactionResult.success) {
+        this._messageService.show(transactionResult.result);
+      } else {
         this.action();
       }
     });
@@ -431,6 +461,8 @@ export class GameComponent implements OnInit {
       // when finishes some action, load the condition of current account be able to close or finalize the game
       this.canClose = await this.gameCompound.gameService.canClose();
       this.canFinalize = await this.gameCompound.gameService.canFinalize();
+      this.paused = await this.gameCompound.gameService.paused();
+      this.betTokenPaused = await this._betTokenService.paused();
       this._changeDetectorRefs.detectChanges();
     }
   }
@@ -446,4 +478,6 @@ enum Action {
   FINALIZE = `FINALIZE`,
   IDENTIFY_WINNERS = `IDENTIFY_WINNERS`,
   CALC_PRIZES = `CALC_PRIZES`,
+  PAUSE = 'PAUSE',
+  UNPAUSE = 'UNPAUSE',
 }

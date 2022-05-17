@@ -58,6 +58,32 @@ export const shouldIdentifyWinners = (): void => {
       expect(await this.game.winnersIdentified()).to.be.true;
     });
 
+    it(`Should revert when try to identify winners of a paused game`, async function () {
+      //make bets
+      await this.utils.makeBets(
+        this.betToken,
+        this.game,
+        this.signers.owner,
+        this.BETS
+      );
+      //Closed for betting
+      await this.game.connect(this.signers.owner).closeForBetting();
+      //Finalize the game with the score bet by bettorA and bettorB
+      await this.game
+        .connect(this.signers.owner)
+        .finalizeGame({home: 3, visitor: 3});
+      //pause game
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      expect(await this.game.paused()).to.be.true;
+      // identify the winner bets
+      await expect(this.game.identifyWinners()).to.be.revertedWith(
+        "Pausable: paused"
+      );
+    });
+
     it(`Should identify winners of a game where only one matched the final score and emit event 'GameWinnersIdentified'`, async function () {
       //make bets
       await this.utils.makeBets(
@@ -73,14 +99,14 @@ export const shouldIdentifyWinners = (): void => {
         .connect(this.signers.owner)
         .finalizeGame({home: 0, visitor: 3});
       // identify the winners bets
-      const receipt = await this.game.identifyWinners();
-      expect(receipt)
+      const receiptPromise = this.game.identifyWinners();
+      await expect(receiptPromise)
         .to.emit(this.game, "GameWinnersIdentified")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
       //Verify winners identified
       const bets = await this.game.listBets();
@@ -114,14 +140,14 @@ export const shouldIdentifyWinners = (): void => {
         .connect(this.signers.owner)
         .finalizeGame({home: 2, visitor: 2});
       // identify the winners bets
-      const receipt = await this.game.identifyWinners();
-      expect(receipt)
+      const receiptPromise = this.game.identifyWinners();
+      await expect(receiptPromise)
         .to.emit(this.game, "GameWinnersIdentified")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
       //Verify winners identified
       const bets = await this.game.listBets();
@@ -157,14 +183,14 @@ export const shouldIdentifyWinners = (): void => {
         .connect(this.signers.owner)
         .finalizeGame({home: 3, visitor: 3});
       // identify the winners bets
-      const receipt = await this.game.identifyWinners();
-      expect(receipt)
+      const receiptPromise = this.game.identifyWinners();
+      await expect(receiptPromise)
         .to.emit(this.game, "GameWinnersIdentified")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
       //Verify winners identified
       const bets = await this.game.listBets();

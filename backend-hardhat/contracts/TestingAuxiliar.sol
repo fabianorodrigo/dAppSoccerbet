@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
+
+import "./Base.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -8,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  *
  * @author Fabiano Nascimento
  */
-contract TestingAuxiliar is Ownable {
+contract TestingAuxiliar is Base, Ownable {
     address payable public selfDestructRecipient;
 
     /**
@@ -16,7 +18,7 @@ contract TestingAuxiliar is Ownable {
      * @param _selfDestructRecipient The address that will receive
      * the remaining Ether after calling selfdestruct
      */
-    constructor(address _selfDestructRecipient) payable {
+    constructor(address _selfDestructRecipient) payable nonZeroAddress(_selfDestructRecipient) {
         selfDestructRecipient = payable(_selfDestructRecipient);
     }
 

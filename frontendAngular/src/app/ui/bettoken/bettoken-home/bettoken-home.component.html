@@ -11,7 +11,7 @@
   <button
     class="button"
     mat-raised-button
-    [disabled]="!this.userAccountAddress || loading"
+    [disabled]="!this.userAccountAddress || loading || paused"
     [class.spinner]="currentAction == 'BUY'"
     color="primary"
     [matTooltip]="
@@ -24,11 +24,35 @@
   <button
     class="button"
     mat-raised-button
-    [disabled]="!this.userAccountAddress || loading"
+    [disabled]="!this.userAccountAddress || loading || paused"
     [class.spinner]="currentAction == 'EXCHANGE'"
     matTooltip="Exchange an ammount of Soccer Bet Tokens for Ether"
     (click)="exchange($event)"
   >
     Exchange Soccer Bet Tokens...
+  </button>
+  <button
+    class="button"
+    *ngIf="!paused && isAdmin"
+    mat-flat-button
+    [disabled]="!this.userAccountAddress || loading"
+    [class.spinner]="currentAction == 'PAUSE'"
+    color="warn"
+    matTooltip="Pause the contract"
+    (click)="pause()"
+  >
+    Pause
+  </button>
+  <button
+    class="button"
+    *ngIf="paused && isAdmin"
+    mat-flat-button
+    [disabled]="!this.userAccountAddress || loading"
+    [class.spinner]="currentAction == 'UNPAUSE'"
+    color="accent"
+    matTooltip="Unpause the contract returning it to the normal state"
+    (click)="unpause()"
+  >
+    Unpause
   </button>
 </div>

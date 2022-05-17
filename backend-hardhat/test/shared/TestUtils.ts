@@ -4,8 +4,6 @@ import {ethers, network, waffle} from "hardhat";
 import {BetTokenUpgradeable} from "../../typechain-types";
 import {BetDTO} from "../model";
 
-const DATETIME_20220716_170000_IN_SECONDS =
-  new Date(2022, 6, 16, 17, 0, 0, 0).getTime() / 1000;
 export class TestUtils {
   static readonly PAID = 4;
   static readonly TIED = 3;
@@ -74,22 +72,20 @@ export class TestUtils {
         .connect(bet.bettor)
         .approve(gameContract.address, bet.tokenAmount);
       //////////////// BETTOR MAKES A BET IN THE VALUE OF {betTokenAmount}
-      const receiptBet = await gameContract
+      const receiptBetPromise = gameContract
         .connect(bet.bettor)
         .bet(bet.score, bet.tokenAmount);
-
-      await receiptBet.wait();
-
-      expect(receiptBet)
+      await expect(receiptBetPromise)
         .to.emit(gameContract, "BetOnGame")
         .withArgs(
           gameContract.address,
           await bet.bettor.getAddress(),
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS,
+          await gameContract.datetimeGame(), //game is created 30 minutes ahead (fixture execution + 30 minutes)
           [bet.score.home, bet.score.visitor]
         );
+
       //https://github.com/indutny/bn.js/
       //Prefix "i":  perform operation in-place, storing the result in the host
       //object (on which the method was invoked). Might be used to avoid number allocation costs

@@ -1,30 +1,29 @@
-import {BigNumber, Contract, Signer} from "ethers";
-import {upgrades, waffle} from "hardhat";
-import {BetTokenUpgradeable, Game} from "../../typechain-types";
+import {BigNumber} from "ethers";
+import {ethers, upgrades, waffle} from "hardhat";
 import {
   BetTokenFixture,
   CalculatorFixture,
   GameFactoryFixture,
   GameFixture,
 } from "../shared/fixtures";
-import {Mocks, Signers} from "../shared/types";
 import {TestUtils} from "../shared/TestUtils";
+import {Mocks, Signers} from "../shared/types";
 import {shouldBuySomeToken} from "./BetToken/ShouldBuyToken.spec";
 import {shouldDestroyBetTokenContract} from "./BetToken/ShouldDestroy.spec";
 import {shouldExchange4Ethers} from "./BetToken/ShouldExchangeToken.spec";
 import {shouldCalcPercentage} from "./Calculator/ShouldCalcPercentage.spec";
 import {shouldBet} from "./Game/ShouldBet.spec";
+import {shouldCalcPrizes} from "./Game/ShouldCalcPrizes.spec";
 import {shouldClose} from "./Game/ShouldClose.spec";
 import {shouldDestroyGameContract} from "./Game/ShouldDestroy.spec";
 import {shouldFinalize} from "./Game/ShouldFinalize.spec";
 import {shouldGetProperties} from "./Game/ShouldGetProperties.spec";
+import {shouldIdentifyWinners} from "./Game/ShouldIdentifyWinners.spec";
+import {shouldInitProperly} from "./Game/ShouldInitProperly.spec";
 import {shouldOpen} from "./Game/ShouldOpen.spec";
+import {shouldWithdrawPrize} from "./Game/ShouldWithdrawPrize.spec";
 import {shouldCreatGame} from "./GameFactory/ShouldCreateGame.spec";
 import {shouldSetCommission} from "./GameFactory/ShouldSetCommission.spec";
-import {shouldWithdrawPrize} from "./Game/ShouldWithdrawPrize.spec";
-import {shouldInitProperly} from "./Game/ShouldInitProperly.spec";
-import {shouldCalcPrizes} from "./Game/ShouldCalcPrizes.spec";
-import {shouldIdentifyWinners} from "./Game/ShouldIdentifyWinners.spec";
 
 describe(`Integration tests`, async () => {
   // As we have part of contracts following UUPS pattern e GameFactory following Transparent Proxy pattern,
@@ -35,6 +34,8 @@ describe(`Integration tests`, async () => {
   let snapshot: any;
 
   before(async function () {
+    // try to workaround:  nonce has already been used NONCE_EXPIRED
+    //snapshot = await ethers.provider.send("evm_snapshot", []);
     const accounts = waffle.provider.getWallets();
 
     this.signers = {} as Signers;
@@ -45,14 +46,20 @@ describe(`Integration tests`, async () => {
     this.signers.bettorD = accounts[4];
     this.signers.bettorE = accounts[5];
 
+    /**
+     * This fixture just deploys our Greeter contract, but with a catch.
+     * A snapshot of our blockchain is taken after running this fixture.
+     * So afterwards with loadFixture we don't actually run time-intensive redeploments.
+     *
+     * Rather we simply load the previously stored snapshot of the blockchain.
+     * This makes our runtimes significantly faster than using beforeEach.
+     */
     this.loadFixture = waffle.createFixtureLoader(accounts);
-    // try to workaround:  nonce has already been used NONCE_EXPIRED
-    snapshot = await waffle.provider.send("evm_snapshot", []);
   });
 
   after(async function () {
     // try to workaround:  nonce has already been used NONCE_EXPIRED
-    await waffle.provider.send("evm_revert", [snapshot]);
+    //await ethers.provider.send("evm_revert", [snapshot]);
   });
 
   describe(`Bet Token`, async () => {
@@ -65,9 +72,12 @@ describe(`Integration tests`, async () => {
       this.mocks.mockUsdc = mockUsdc;
     });
 
-    shouldBuySomeToken();
-
+    // the order of these functions affects the tests results
+    // in spite of this.betToken.balanceOf(bettorA) is zero in the beforeEach
+    // inside the shouldExchange4Ethers, it returns 1 when after shouldBuySomeToken
     shouldExchange4Ethers();
+
+    shouldBuySomeToken();
 
     shouldDestroyBetTokenContract();
   });

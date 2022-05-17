@@ -34,7 +34,8 @@ export class GameService extends BaseContract {
     return this.send(
       contractABI.abi as AbiItem[],
       'openForBetting',
-      'Transaction to open the game for betting was sent successfully'
+      'Transaction to open the game for betting was sent successfully',
+      _callback
     );
   }
 
@@ -47,7 +48,8 @@ export class GameService extends BaseContract {
     return this.send(
       contractABI.abi as AbiItem[],
       'closeForBetting',
-      'Transaction to close the game for betting was sent successfully'
+      'Transaction to close the game for betting was sent successfully',
+      _callback
     );
   }
 
@@ -169,6 +171,34 @@ export class GameService extends BaseContract {
     );
   }
 
+  /**
+   * Pause the contract of the game
+   * @param _callback  Function to be called when the transaction is confirmed
+   * @returns result of transaction submission
+   */
+  pause(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'pause',
+      'Transaction to pause the game was sent successfully',
+      _callback
+    );
+  }
+
+  /**
+   * Unpause the contract of the game returning to it's normal state
+   * @param _callback  Function to be called when the transaction is confirmed
+   * @returns result of transaction submission
+   */
+  unpause(_callback?: CallbackFunction): Observable<TransactionResult<string>> {
+    return this.send(
+      contractABI.abi as AbiItem[],
+      'unpause',
+      'Transaction to unpause the game was sent successfully',
+      _callback
+    );
+  }
+
   homeTeam(): Promise<string> {
     return this.getString(contractABI.abi as AbiItem[], 'homeTeam');
   }
@@ -198,6 +228,9 @@ export class GameService extends BaseContract {
   }
   canFinalize(): Promise<boolean> {
     return this.getBoolean(contractABI.abi as AbiItem[], 'canFinalize');
+  }
+  paused(): Promise<boolean> {
+    return this.getBoolean(contractABI.abi as AbiItem[], 'paused');
   }
 
   getDTO(): Observable<Game> {

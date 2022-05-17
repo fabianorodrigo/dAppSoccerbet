@@ -20,7 +20,7 @@ Events
 Functions
 */
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -28,10 +28,11 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 contract BetTokenUpgradeable is
     Initializable,
-    ERC20Upgradeable,
+    ERC20PausableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
     ReentrancyGuardUpgradeable
+    
 {
     event TokenMinted(
         address indexed tokenBuyer,
@@ -56,12 +57,13 @@ contract BetTokenUpgradeable is
         __ERC20_init("Soccer Bet Token", "SBT");
         __Ownable_init();
         __ReentrancyGuard_init();
+        __ERC20Pausable_init();
     }
 
     /**
      * @notice sending Ether to the contract, the sender is buying tokens for betting
      */
-    receive() external payable onlyProxy {
+    receive() external payable onlyProxy whenNotPaused {
         // _mint sums the second parameter to the token's totalSupply and assign the
         // new tokens to the address of the msg.sender
         _mint(msg.sender, msg.value);
@@ -71,7 +73,7 @@ contract BetTokenUpgradeable is
     /**
      * @notice exchange the amount of Soccer Bet Tokens for the same quantity of Wei
      */
-    function exchange4Ether(uint256 _amount) external nonReentrant onlyProxy {
+    function exchange4Ether(uint256 _amount) external nonReentrant onlyProxy whenNotPaused {
         //_burn already has require validating account balance, account not being 0x0 ...
         _burn(msg.sender, _amount);
         // If gas costs are subject to change, then smart contracts can’t
@@ -95,7 +97,7 @@ contract BetTokenUpgradeable is
         return 10;
     }*/
 
-    function destroyContract() external onlyProxy onlyOwner {
+    function destroyContract() external onlyProxy onlyOwner whenNotPaused{
         // If gas costs are subject to change, then smart contracts can’t
         // depend on any particular gas costs. Any smart contract that uses
         // transfer() or send() is taking a hard dependency on gas costs by
@@ -105,6 +107,29 @@ contract BetTokenUpgradeable is
         // This is the current recommended method to use
         (bool sent, ) = owner().call{value: address(this).balance}("");
         require(sent, "Fail");
+    }
+
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     * - msg.sender has to be the owner
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+   /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     function _authorizeUpgrade(address newImplementation)

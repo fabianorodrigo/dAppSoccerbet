@@ -40,11 +40,11 @@ export const shouldDestroyGameContract = (): void => {
     it(`Should revert if someone different from owner try destroy contract`, async function () {
       await expect(
         this.game.connect(this.signers.bettorA).destroyContract()
-      ).to.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWith("Ownable: caller is not the owner");
     });
     it(`Should revert when send Ether to the contract`, async function () {
       const weiAmount = ethers.utils.parseEther("1.0");
-      expect(
+      await expect(
         this.signers.bettorA.sendTransaction({
           to: this.game.address,
           value: weiAmount,
@@ -64,6 +64,19 @@ export const shouldDestroyGameContract = (): void => {
       await expect(
         game.connect(this.signers.owner).destroyContract()
       ).to.be.revertedWith("NotDelegateCall()");
+    });
+
+    it(`Should revert when try to destroy a paused game`, async function () {
+      //pause game
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      expect(await this.game.paused()).to.be.true;
+      //destroy game
+      await expect(this.game.destroyContract()).to.be.revertedWith(
+        "Pausable: paused"
+      );
     });
   });
 };

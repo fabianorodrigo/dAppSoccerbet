@@ -58,6 +58,30 @@
     </mat-menu>
     <button
       class="button"
+      *ngIf="!paused && isAdmin"
+      mat-flat-button
+      [disabled]="!this.userAccountAddress || loading"
+      [class.spinner]="currentAction == 'PAUSE'"
+      color="warn"
+      matTooltip="Pause the contract"
+      (click)="pause()"
+    >
+      Pause
+    </button>
+    <button
+      class="button"
+      *ngIf="paused && isAdmin"
+      mat-flat-button
+      [disabled]="!this.userAccountAddress || loading"
+      [class.spinner]="currentAction == 'UNPAUSE'"
+      color="accent"
+      matTooltip="Unpause the contract returning it to the normal state"
+      (click)="unpause()"
+    >
+      Unpause
+    </button>
+    <button
+      class="button"
       *ngIf="!open && !finalized && isAdmin"
       mat-flat-button
       [disabled]="!this.userAccountAddress || loading"
@@ -72,7 +96,7 @@
       class="button"
       *ngIf="open && !finalized && canClose"
       mat-flat-button
-      [disabled]="!this.userAccountAddress || loading"
+      [disabled]="!this.userAccountAddress || loading || paused"
       [class.spinner]="currentAction == 'CLOSE'"
       color="accent"
       matTooltip="The game is open for betting. Click to close it"
@@ -84,7 +108,7 @@
       class="button"
       *ngIf="!open && !finalized && canFinalize"
       [class.spinner]="currentAction == 'FINALIZE'"
-      [disabled]="open || !this.userAccountAddress || loading"
+      [disabled]="open || !this.userAccountAddress || loading || paused"
       mat-flat-button
       color="warn"
       (click)="finalizeGame()"
@@ -95,7 +119,9 @@
       class="button"
       *ngIf="finalized"
       [class.spinner]="currentAction == 'IDENTIFY_WINNERS'"
-      [disabled]="winnersIdentified || !this.userAccountAddress || loading"
+      [disabled]="
+        winnersIdentified || !this.userAccountAddress || loading || paused
+      "
       mat-flat-button
       color="accent"
       (click)="identifyWinners()"
@@ -110,7 +136,8 @@
         !winnersIdentified ||
         prizesCalculated ||
         !this.userAccountAddress ||
-        loading
+        loading ||
+        paused
       "
       mat-flat-button
       color="warn"
@@ -121,7 +148,7 @@
     <button
       mat-flat-button
       *ngIf="!finalized && !isAdmin"
-      [disabled]="!this.userAccountAddress || loading"
+      [disabled]="!this.userAccountAddress || loading || betTokenPaused"
       [class.spinner]="currentAction == 'APPROVE'"
       color="accent"
       matTooltip="Approve a maximum ammount of Bet Tokens to be spent on bettings on this Game"
@@ -132,7 +159,7 @@
     <button
       mat-flat-button
       *ngIf="!finalized && !isAdmin"
-      [disabled]="!this.userAccountAddress || !open || loading"
+      [disabled]="!this.userAccountAddress || !open || loading || paused"
       [class.spinner]="currentAction == 'BET'"
       color="primary"
       matTooltip="Click to place your bet"

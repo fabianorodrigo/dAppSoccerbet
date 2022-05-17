@@ -13,25 +13,25 @@ export const shouldClose = (): void => {
     it(`Should close open game for betting and emit event 'GameClosed'`, async function () {
       //Game is initially closed for betting
       await this.game.connect(this.signers.owner).openForBetting();
-      const receiptClose = await this.game
+      const receiptClosePromise = this.game
         .connect(this.signers.owner)
         .closeForBetting();
-      expect(await this.game.open()).to.be.false;
-      expect(receiptClose)
+      await expect(receiptClosePromise)
         .to.emit(this.game, "GameClosed")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
+      expect(await this.game.open()).to.be.false;
     });
 
     it(`Should revert if try close for betting a closed game`, async function () {
       //Game is initially closed for betting
-      expect(
+      await expect(
         this.game.connect(this.signers.owner).closeForBetting()
-      ).to.revertedWith("GameNotOpen()");
+      ).to.be.revertedWith("GameNotOpen()");
     });
     it(`Should not be allowed someone different from owner close a game for betting before it has begun`, async function () {
       //Game created for tests starts in 30 minutes and it`s free to anyone close it 15 minutes later,
@@ -53,7 +53,7 @@ export const shouldClose = (): void => {
 
       await expect(
         this.game.connect(this.signers.bettorA).closeForBetting()
-      ).to.revertedWith("onlyOwnerORgameAlreadyBegun()");
+      ).to.be.revertedWith("onlyOwnerORgameAlreadyBegun()");
     });
     it(`Should be allowed someone different from owner close a game for betting 15min after it has begun`, async function () {
       //Game created for tests starts in 30 minutes and it`s free to anyone close it 15 minutes later,
@@ -75,20 +75,32 @@ export const shouldClose = (): void => {
       // so we move the blockchain ahead of time 46 minutes and it`s gonna be possible to the bettorE close it
       await this.utils.moveTime(46 * 60);
 
-      const receiptClose = await this.game
+      const receiptClosePromise = this.game
         .connect(this.signers.bettorE)
         .closeForBetting();
-      expect(await this.game.open()).to.be.false;
-      expect(receiptClose)
+      await expect(receiptClosePromise)
         .to.emit(this.game, "GameClosed")
         .withArgs(
           this.game.address,
           "SÃO PAULO",
           "ATLÉTICO-MG",
-          DATETIME_20220716_170000_IN_SECONDS
+          await this.game.datetimeGame()
         );
+      expect(await this.game.open()).to.be.false;
     });
-
+    it(`Should revert if try to close a paused game`, async function () {
+      //Game is initially closed for betting
+      await this.game.connect(this.signers.owner).openForBetting();
+      //pause game
+      const receiptPausePromise = this.game.connect(this.signers.owner).pause();
+      await expect(receiptPausePromise)
+        .to.emit(this.game, "Paused")
+        .withArgs(this.signers.owner.address);
+      //close paused
+      await expect(
+        this.game.connect(this.signers.owner).closeForBetting()
+      ).to.be.revertedWith("Pausable: paused");
+    });
     it(`Should revert if try to call CLOSE direct to the implementation contract is spite of the minimal proxy`, async function () {
       const implementationAddress =
         await this.gameFactory.getGameImplementation();

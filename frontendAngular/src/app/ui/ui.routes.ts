@@ -14,6 +14,11 @@ export const routes: Routes = [
     path: 'token',
     component: BettokenHomeComponent,
   },
+  {
+    path: 'adminBetToken',
+    component: BettokenHomeComponent,
+    canActivate: [OwnerGuard],
+  },
   { path: 'games', component: GamesHomeComponent },
   {
     path: 'adminGames',

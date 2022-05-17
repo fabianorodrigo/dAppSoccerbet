@@ -26,6 +26,7 @@ import "./Calculator.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./structs/GameDTO.sol";
 
 import "./OnlyDelegateCall.sol";
@@ -40,7 +41,7 @@ import "./OnlyDelegateCall.sol";
  *
  * @author Fabiano Nascimento
  */
-contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
+contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall, Pausable {
     uint8 public constant PAID = 4;
     uint8 public constant TIED = 3;
     uint8 public constant WINNER = 2;
@@ -268,7 +269,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
     /**
      * @notice Initialize the contract's state variables
      *
-     * @param _owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
+     * @param __owner The GameFactory establishes the owner of the Game. Tipycally, the same GameFactory owner
      * @param _home The name of the team playing at home
      * @param _visitor The name of the team playing out of home
      * @param _datetimeGame The date/time scheduled to start the game
@@ -277,7 +278,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * @param _commission The percentage of stake that will be reverted to administrative costs
      */
     function initialize(
-        address payable _owner,
+        address payable __owner,
         string calldata _home,
         string calldata _visitor,
         uint256 _datetimeGame,
@@ -295,7 +296,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         );
         _calculator = CalculatorUpgradeable(_calculatorContractAddress);
         commission = _commission;
-        _transferOwnership(_owner);
+        _transferOwnership(__owner);
     }
 
     /** SOLIDITY STYLE GUIDE **
@@ -365,6 +366,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         onlyProxy
         isOpen
         isNotFinalized
+        whenNotPaused
     {
         if (_value <= 0) {
             revert InvalidBettingValue();
@@ -376,6 +378,18 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
             });
         }
 
+        _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
+        _totalStake += _value;
+
+        emit BetOnGame(
+            address(this),
+            msg.sender,
+            homeTeam,
+            visitorTeam,
+            datetimeGame,
+            _score
+        );
+
         //In the Bet Token, the sender is gonna be Game Contract.
         //In this case, before calling 'bet' function, the bettor has
         //to approve the spent of at least the amount of tokens of this bet
@@ -386,16 +400,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
             revert TokenTransferFail();
         }
 
-        _bets.push(Bet(msg.sender, _score, _value, NO_RESULT, 0));
-        _totalStake += _value;
-        emit BetOnGame(
-            address(this),
-            msg.sender,
-            homeTeam,
-            visitorTeam,
-            datetimeGame,
-            _score
-        );
+
     }
 
     /**
@@ -405,7 +410,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * Events: GameClosed
      * Custom Errors: GameNotOpen, GameAlreadyFinalized
      */
-    function closeForBetting() external onlyProxy isOpen isNotFinalized {
+    function closeForBetting() external onlyProxy isOpen isNotFinalized whenNotPaused {
         if (!canClose()) {
             revert onlyOwnerORgameAlreadyBegun();
         }
@@ -427,6 +432,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         onlyProxy
         isClosed
         isNotFinalized
+        whenNotPaused
     {
         if (!canFinalize()) {
             revert onlyOwnerORgameAlreadyFinished();
@@ -451,7 +457,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @return TRUE if the process of identifying winners is completed (loop for all _bets)
      */
-    function identifyWinners() external onlyProxy returns (bool) {
+    function identifyWinners() external onlyProxy whenNotPaused returns (bool) {
         if (!finalized) {
             revert GameNotFinalized();
         }
@@ -501,7 +507,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @return TRUE if the process of calc prizes is completed (loop for all _bets)
      */
-    function calcPrizes() external onlyProxy returns (bool) {
+    function calcPrizes() external onlyProxy whenNotPaused returns (bool) {
         if (!winnersIdentified) {
             revert UnknownWinners();
         }
@@ -529,7 +535,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      *
      * @param _betIndex the index of Bet being withdrawn
      */
-    function withdrawPrize(uint256 _betIndex) external nonReentrant onlyProxy {
+    function withdrawPrize(uint256 _betIndex) external nonReentrant onlyProxy whenNotPaused {
         if (!prizesCalculated) {
             revert PrizesNotCalculated();
         }
@@ -568,7 +574,7 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
      * A contract cannot react to such Ether transfers and thus also cannot reject them.
      * This is a design choice of the EVM and Solidity cannot work around it.
      */
-    function destroyContract() external onlyProxy onlyOwner {
+    function destroyContract() external onlyProxy onlyOwner whenNotPaused {
         selfdestruct(payable(this.owner()));
     }
 
@@ -608,6 +614,29 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         return _calculator.calcPercentage(_totalStake, commission);
     }
 
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     * - msg.sender has to be the owner
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+   /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
     /// @notice Indicates the permission to close the game based on the msg.sender and the time
     // scheduled to start the game. If the msg.sender is the owner, he has always the permission
     // to do it (not considering if the game is already closed or even finalized). If msg.sender
@@ -622,9 +651,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         //     "passou o tempo",
         //     block.timestamp >= datetimeGame + 15 * 60
         // );
+        //slither-disable-next-line timestamp
         return
             owner() == _msgSender() ||
-            block.timestamp >= datetimeGame + 15 * 60;
+            block.timestamp >= datetimeGame + 15 minutes;
     }
 
     /// @notice Indicates the permission to finalize the game based on the msg.sender and the time
@@ -641,9 +671,10 @@ contract Game is Initializable, Ownable, ReentrancyGuard, OnlyDelegateCall {
         //     "passou o tempo",
         //     block.timestamp >= datetimeGame + 48 * 60 * 60
         // );
+        //slither-disable-next-line timestamp
         return
             owner() == _msgSender() ||
-            block.timestamp >= datetimeGame + 48 * 60 * 60;
+            block.timestamp >= datetimeGame + 48 hours;
     }
 
     /**
