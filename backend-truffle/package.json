@@ -20,9 +20,9 @@
     "manticore": "docker run --entrypoint=\"\" --rm --name dappsoccerapp_cicd -v $PWD:/home/dappsoccerbet/repo/ --user $(id -u):$(id -g) fabianorodrigo/dappsoccerbet_hardhat:1.0.4 manticore ."
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.4.1",
+    "@openzeppelin/contracts": "^4.6.0",
     "@truffle/hdwallet-provider": "^2.0.0",
-    "eth-gas-reporter": "^0.2.24"
+    "eth-gas-reporter": "^0.2.25"
   },
   "devDependencies": {
     "-": "^0.0.1",
