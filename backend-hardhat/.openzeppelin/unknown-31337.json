@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-    "txHash": "0x10a0633924fabcf161261db86b47b8decad20ae104f5e946c28d4a643e957c0b"
+    "txHash": "0x587e7a84a3b1b358d303a84b487800b356758b948a86ce040be1b1db58e62ec3"
   },
   "proxies": [
     {
@@ -72,49 +72,49 @@
     },
     {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x487259889fdabaca9695394205a8d1875646af671196cebbd5cc339165a39ed6",
+      "txHash": "0x47ec9134e9ec89cc701e08682770a5e4a98462aea9a72e3e7d451b25584edf4c",
       "kind": "uups"
     },
     {
       "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-      "txHash": "0x5e2b2ad7243e29bccc3db789c69089ed3ad94b1c3597fb98f63a481032b29aa6",
+      "txHash": "0x0d5ba1dcbd3678e578752b48103ec5f0ca1a27eafa4b2cb08e27a3ad92b03227",
       "kind": "uups"
     },
     {
       "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-      "txHash": "0x281cb05d1cf1b80d38f7936b4ac911e5c7d891588520eb1efea38f0870407485",
+      "txHash": "0xe9acedee17fd2337d48a6ef7c18a8d1596d7b3c68f0d66e783f5d01651335fef",
       "kind": "uups"
     },
     {
       "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-      "txHash": "0x222452f234e9e10e7f48b7e8bd55210de8afaae31daa38ae4d92131393826e4a",
+      "txHash": "0xfd3262c8d474bc9870891ec472aecefeb28413d9ab13751bec14f62992ea55e3",
       "kind": "uups"
     },
     {
       "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0xb992e70d3b0d0a854f1e77382d5d19f3e149989ba29d856b66a12bda5e6017ec",
+      "txHash": "0x705070c84f28e7e6c7936e64a31c15dc803d7e3559def9cb00657bc162d6e79b",
       "kind": "transparent"
     },
     {
       "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
-      "txHash": "0x6ff56fd18be724e377c8fc833cbeefc29f1c79c4120160cbf7d3a504df82ad51",
+      "txHash": "0xb29b64956f5bc86b9aa2e7b9674e9aff7eab4281886587cf9990b1ebf9d81e9f",
       "kind": "uups"
     },
     {
       "address": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
-      "txHash": "0x4da550b2f50e6dcf0b5c57ff3b5f70e6bb6072f09b1229956a3b66a3e379963d",
+      "txHash": "0xf0cb4b6c84ab0e1f94f967f4229e7597a1ac612bc7b529199874c373bd15b54e",
       "kind": "uups"
     },
     {
       "address": "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
-      "txHash": "0x2bd42dbddf7dec2a484bed07eadde584549264571e8bb32a4bd3a429f370ad5a",
+      "txHash": "0x06bc418b81add03aad6301315a026f5580bcc13a42d6d806a7d7fda26a3f5da3",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "a6893924b08c2d46adfda52f7ec7dbdef785b146e1aa5c4d0250725bc903e57d": {
+    "66a4f7399a5f4e021c96b428743a395fcef3ed02bf7d2a687f77d957d3878737": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0x521f9bec21e3c26c486a983f3ea8e7081f7ac6470c663448ea7cabb05ec42513",
+      "txHash": "0xb28d4ff7ddeb5510eef422204ee33e8a0f325042b969e1ea7944d69313622af9",
       "layout": {
         "storage": [
           {
@@ -204,7 +204,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "PausableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:102"
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
           },
           {
             "label": "__gap",
@@ -228,7 +228,7 @@
             "slot": "202",
             "type": "t_array(t_uint256)49_storage",
             "contract": "OwnableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
           },
           {
             "label": "__gap",
@@ -307,9 +307,9 @@
         }
       }
     },
-    "d321607cd62fc567a72d12968fabed08d92441c7dc13480053c57e5572b26fa6": {
+    "1119ed417735b76e37fdba99e9b46a73b426bf5320845fb2b2b781ac92fd66fa": {
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "txHash": "0x7795dcab950cd958a46be2c3a62876750958bbe6913f6145137280aa0142bbf0",
+      "txHash": "0x6a009187708bda5eef8a08d9b2ff9c0ff46ef4cc342d36ed86fdc92c41f5b34b",
       "layout": {
         "storage": [
           {
@@ -351,7 +351,7 @@
             "slot": "52",
             "type": "t_array(t_uint256)49_storage",
             "contract": "OwnableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
           },
           {
             "label": "__gap",
@@ -398,9 +398,9 @@
         }
       }
     },
-    "4110e18e077b7374fa88f449053442846d6cbe60d3c18f0b6830de0c42843976": {
+    "ecdb426a9d5bccbc95f6d2a03bb240b86d59c9af6de87d2bb94511b2cf2ceed3": {
       "address": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
-      "txHash": "0xe0526c09271837ba149bb5d5bec52ee68d1d83420dbe548d72f0bd0899a56078",
+      "txHash": "0x63f470cbbb235f134ad97ac9ec81033b422c83b4433d4d65d3667f302504a219",
       "layout": {
         "storage": [
           {
@@ -442,7 +442,7 @@
             "slot": "52",
             "type": "t_array(t_uint256)49_storage",
             "contract": "OwnableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:87"
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
           },
           {
             "label": "betTokenContractAddress",
@@ -450,7 +450,7 @@
             "slot": "101",
             "type": "t_address",
             "contract": "GameFactoryUpgradeable",
-            "src": "contracts/GameFactory.sol:45"
+            "src": "contracts/GameFactory.sol:47"
           },
           {
             "label": "calculatorContractAddress",
@@ -458,7 +458,7 @@
             "slot": "102",
             "type": "t_address",
             "contract": "GameFactoryUpgradeable",
-            "src": "contracts/GameFactory.sol:47"
+            "src": "contracts/GameFactory.sol:49"
           },
           {
             "label": "commission",
@@ -466,7 +466,7 @@
             "slot": "103",
             "type": "t_uint256",
             "contract": "GameFactoryUpgradeable",
-            "src": "contracts/GameFactory.sol:51"
+            "src": "contracts/GameFactory.sol:53"
           },
           {
             "label": "gameImplementation",
@@ -474,7 +474,7 @@
             "slot": "104",
             "type": "t_address",
             "contract": "GameFactoryUpgradeable",
-            "src": "contracts/GameFactory.sol:53"
+            "src": "contracts/GameFactory.sol:55"
           }
         ],
         "types": {

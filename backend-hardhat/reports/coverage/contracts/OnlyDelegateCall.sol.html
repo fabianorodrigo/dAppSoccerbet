@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/TestingAuxiliar.sol</title>
+    <title>Code coverage report for contracts/OnlyDelegateCall.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -16,32 +16,32 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> TestingAuxiliar.sol
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> OnlyDelegateCall.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">40% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>2/5</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">50% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>2/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">50% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>4/8</span>
       </div>
     </div>
   </div>
-  <div class='status-line high'></div>
+  <div class='status-line low'></div>
 <pre><table class="coverage">
 <tr><td class="line-count quiet">1
 2
@@ -79,7 +79,23 @@
 34
 35
 36
-37</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -100,7 +116,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">284×</span>
+<span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -108,47 +126,77 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">284×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">279×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
 pragma solidity &gt;=0.4.22 &lt;0.9.0;
 &nbsp;
+import "@openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol";
+import "hardhat/console.sol";
 &nbsp;
-import "./Base.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-&nbsp;
-/**
- * @title Contract to auxiliar during tests
- *
- * @author Fabiano Nascimento
- */
-contract TestingAuxiliar is Base, Ownable {
-    address payable public selfDestructRecipient;
+abstract contract OnlyDelegateCall {
+    error NotActiveProxyError();
+    error NotDelegateCall();
 &nbsp;
     /**
-     * @notice creates a new instance of Auxiliar contract
-     * @param _selfDestructRecipient The address that will receive
-     * the remaining Ether after calling selfdestruct
+     * @dev Storage slot with the address of the current implementation.
+     * This is the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1, and is
+     * validated in the constructor.
      */
-    constructor(address _selfDestructRecipient) payable nonZeroAddress(_selfDestructRecipient) {
-        selfDestructRecipient = payable(_selfDestructRecipient);
+    bytes32 internal constant _IMPLEMENTATION_SLOT =
+        0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+&nbsp;
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+    address private immutable __self = address(this);
+&nbsp;
+    function checkDelegateCall() private view {
+        if (address(this) == __self) {
+            revert NotDelegateCall();
+        }
     }
 &nbsp;
     /**
-     * @notice If neither a receive Ether nor a payable fallback function is present,
-     * the contract cannot receive Ether through regular transactions and throws an exception.
-     * A contract without a receive Ether function can receive Ether as a recipient of a
-     * COINBASE TRANSACTION (aka miner block reward) or as a destination of a SELFDESTRUCT.
-     * A contract cannot react to such Ether transfers and thus also cannot reject them.
-     * This is a design choice of the EVM and Solidity cannot work around it.
+     * @dev Returns the current implementation address.
      */
-    function destroyContract() external onlyOwner {
-        selfdestruct(selfDestructRecipient);
+<span class="fstat-no" title="function not covered" >    function _getImplementation() internal view returns (address) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log(</span>
+            StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value
+        );
+<span class="cstat-no" title="statement not covered" >        return</span>
+            StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value;
+    }
+&nbsp;
+    modifier onlyProxy() {
+        checkDelegateCall();
+&nbsp;
+        // if (_getImplementation() != __self) {
+        //     revert NotActiveProxyError();
+        // }
+        _;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    modifier onlyMinimalProxy() {</span>
+<span class="cstat-no" title="statement not covered" >        checkDelegateCall()</span>;
+        _;
     }
 }
 &nbsp;</pre></td></tr>
