@@ -28,7 +28,7 @@
     "http-browserify": "^1.7.0",
     "rxjs": "~7.5.6",
     "tslib": "^2.4.0",
-    "web3-utils": "^1.7.4",
+    "web3-utils": "^1.7.5",
     "web3": "^1.7.5",
     "zone.js": "~0.11.7"
   },
