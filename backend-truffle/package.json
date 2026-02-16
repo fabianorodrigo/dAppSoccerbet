@@ -22,7 +22,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.3",
     "@truffle/hdwallet-provider": "^2.0.0",
-    "eth-gas-reporter": "^0.2.25"
+    "eth-gas-reporter": "^0.2.26"
   },
   "devDependencies": {
     "-": "^0.0.1",
